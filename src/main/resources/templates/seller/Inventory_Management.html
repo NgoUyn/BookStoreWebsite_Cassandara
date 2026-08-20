@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/panel_head :: head('BOOKOM SELLER - Kho hàng', false)}"></head>
+<body class="font-sans bg-[#fbfaf8] text-brand-dark">
+<div class="flex min-h-screen">
+    <div th:replace="~{fragments/seller_layout :: sidebar(${activeMenu})}"></div>
+
+    <div class="flex-1 min-w-0">
+        <div th:replace="~{fragments/seller_layout :: header(${pageTitle}, ${pageSubtitle})}"></div>
+
+        <main class="p-4 md:p-8 space-y-6">
+
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black text-brand-dark">Danh sách sản phẩm</h2>
+                <a th:href="@{/seller/book/form}"
+                   class="px-5 py-2.5 bg-brand-orange text-white font-bold rounded-lg shadow-md hover:bg-orange-700 transition hover:scale-105 active:scale-95 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Thêm sách mới
+                </a>
+            </div>
+            <section class="rounded-xl border border-brand-accent bg-white p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input id="inv-q" class="rounded-lg border border-brand-accent px-3 py-2 font-bold" placeholder="Tìm tên sách/tác giả">
+                <select id="inv-category" class="rounded-lg border border-brand-accent px-3 py-2 font-bold">
+                    <option value="all">Tat ca danh muc</option>
+                </select>
+                <select id="inv-stock" class="rounded-lg border border-brand-accent px-3 py-2 font-bold">
+                    <option value="all">Tat ca ton kho</option>
+                    <option value="low">Low</option>
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                </select>
+            </section>
+
+            <section class="rounded-xl border border-brand-accent bg-white overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b border-brand-border text-sm text-slate-500 uppercase font-black tracking-wider">
+                        <tr>
+                            <th class="py-4 px-4 w-1/3 text-left">Tên sách</th>
+
+                            <th class="py-4 px-2 w-32 text-left">Tác giả</th>
+
+                            <th class="py-4 px-2 w-40 text-left">Danh mục</th>
+
+                            <th class="py-4 px-2 w-32 text-right">Giá</th>
+
+                            <th class="py-4 px-2 w-24 text-center">Tồn kho</th>
+
+                            <th class="py-4 px-2 w-28 text-center">Trạng thái</th>
+
+                            <th class="py-4 px-2 w-20 text-center">Cập nhật</th>
+
+                            <th class="py-4 px-4 w-32 text-center">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody id="inventory-books-table" class="divide-y divide-brand-accent"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script th:src="@{/js/panel-data.js}"></script>
+<script th:src="@{/js/api-service.js}"></script>
+<script th:src="@{/js/inventory-management-integration.js}"></script>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+<aside th:fragment="sidebar(activeMenu)" class="hidden md:flex md:w-72 md:flex-col bg-[#5D4037] border-r border-black/10">
+    <div class="h-20 px-6 flex items-center border-b border-white/10">
+        <a th:href="@{/seller/dashboard}" class="text-2xl font-black tracking-tight text-white">
+            BOOKOM <span class="text-[#F8D9C0] text-sm align-middle">SELLER</span>
+        </a>
+    </div>
+    <nav class="p-4 space-y-2 text-sm font-extrabold tracking-wide">
+        <a th:href="@{/seller/dashboard}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition"
+           th:classappend="${activeMenu == 'seller-dashboard'} ? ' bg-[#D19C74] text-white shadow-md' : ' text-[#FAF5E8]/90 hover:bg-white/10 hover:text-white'">
+            <span class="h-2 w-2 rounded-full" th:classappend="${activeMenu == 'seller-dashboard'} ? ' bg-white' : ' bg-[#FAF5E8]/50'"></span>
+            Tổng quan
+        </a>
+        <a th:href="@{/seller/orders}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition"
+           th:classappend="${activeMenu == 'seller-orders'} ? ' bg-[#D19C74] text-white shadow-md' : ' text-[#FAF5E8]/90 hover:bg-white/10 hover:text-white'">
+            <span class="h-2 w-2 rounded-full" th:classappend="${activeMenu == 'seller-orders'} ? ' bg-white' : ' bg-[#FAF5E8]/50'"></span>
+            Đơn hàng
+        </a>
+        <a th:href="@{/seller/inventory}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition"
+           th:classappend="${activeMenu == 'seller-inventory'} ? ' bg-[#D19C74] text-white shadow-md' : ' text-[#FAF5E8]/90 hover:bg-white/10 hover:text-white'">
+            <span class="h-2 w-2 rounded-full" th:classappend="${activeMenu == 'seller-inventory'} ? ' bg-white' : ' bg-[#FAF5E8]/50'"></span>
+            Kho hàng
+        </a>
+        
+        <a th:href="@{/seller/vouchers}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition"
+           th:classappend="${activeMenu == 'seller-vouchers'} ? ' bg-[#D19C74] text-white shadow-md' : ' text-[#FAF5E8]/90 hover:bg-white/10 hover:text-white'">
+            <span class="h-2 w-2 rounded-full" th:classappend="${activeMenu == 'seller-vouchers'} ? ' bg-white' : ' bg-[#FAF5E8]/50'"></span>
+            Khuyến mãi
+        </a>
+        <a th:href="@{/seller/shop}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition"
+           th:classappend="${activeMenu == 'seller-shop'} ? ' bg-[#D19C74] text-white shadow-md' : ' text-[#FAF5E8]/90 hover:bg-white/10 hover:text-white'">
+            <span class="h-2 w-2 rounded-full" th:classappend="${activeMenu == 'seller-shop'} ? ' bg-white' : ' bg-[#FAF5E8]/50'"></span>
+            Hồ sơ 
+        </a>
+        <a th:href="@{/seller/customers}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition"
+           th:classappend="${activeMenu == 'seller-customers'} ? ' bg-[#D19C74] text-white shadow-md' : ' text-[#FAF5E8]/90 hover:bg-white/10 hover:text-white'">
+            <span class="h-2 w-2 rounded-full" th:classappend="${activeMenu == 'seller-customers'} ? ' bg-white' : ' bg-[#FAF5E8]/50'"></span>
+            Phân tích khách hàng
+        </a>
+
+        <a th:href="@{/seller/chat}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition"
+           th:classappend="${activeMenu == 'seller-chat'} ? ' bg-[#D19C74] text-white shadow-md' : ' text-[#FAF5E8]/90 hover:bg-white/10 hover:text-white'">
+            <span class="h-2 w-2 rounded-full" th:classappend="${activeMenu == 'seller-chat'} ? ' bg-white' : ' bg-[#FAF5E8]/50'"></span>
+            Tin nhắn
+        </a>
+
+        <!-- Logout -->
+        <hr class="border-white/10 my-4">
+        <button id="seller-logout-btn" class="flex items-center gap-3 rounded-xl px-4 py-3 transition w-full text-left text-red-300 hover:bg-red-500/20 hover:text-red-200">
+            <span class="h-2 w-2 rounded-full bg-red-400"></span>
+            Đăng xuất
+        </button>
+
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebarLogoutBtn = document.getElementById('seller-logout-btn');
+            const headerLogoutBtn = document.getElementById('header-logout-btn');
+
+            const handleLogout = async () => {
+                if (typeof ApiService !== 'undefined' && ApiService.logout) {
+                    await ApiService.logout();
+                } else {
+                    // Fallback nếu ApiService chưa load
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.replace('/');
+                }
+            };
+
+            if (sidebarLogoutBtn) {
+                sidebarLogoutBtn.addEventListener('click', handleLogout);
+            }
+            if (headerLogoutBtn) {
+                headerLogoutBtn.addEventListener('click', handleLogout);
+            }
+        });
+    </script>
+</aside>
+
+<header th:fragment="header(pageTitle, pageSubtitle)" class="h-20 bg-white border-b border-[#E5CBB5] px-6 md:px-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-xl md:text-2xl font-black text-[#5D4037]" th:text="${pageTitle}">Quan ly kho hang</h1>
+        <p class="text-xs md:text-sm text-[#5D4037]/70 font-bold" th:text="${pageSubtitle}">Dieu huong bang Thymeleaf Fragments</p>
+    </div>
+    <div class="flex items-center gap-3">
+        <a th:href="@{/}" class="hidden sm:inline-flex text-sm font-black text-[#5D4037]/70 hover:text-[#5D4037]">Ve trang mua sam</a>
+        <div class="h-10 w-10 rounded-full bg-[#D19C74] text-white flex items-center justify-center text-xs font-black shadow-sm overflow-hidden" th:title="${sellerName}">
+            <img th:if="${sellerAvatar}" th:src="${sellerAvatar}" alt="Avatar" class="w-full h-full object-cover" />
+            <span th:unless="${sellerAvatar}" class="text-xs font-black">SL</span>
+        </div>
+        <div class="hidden sm:block text-xs">
+            <div class="font-bold text-[#5D4037]" th:text="${sellerName}">Seller</div>
+            <div class="text-[#5D4037]/60" th:text="${sellerEmail}">seller@email.com</div>
+        </div>
+        <button id="header-logout-btn" class="text-sm font-black text-red-500 hover:text-red-700 transition ml-2" title="Đăng xuất">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </div>
+</header>
+

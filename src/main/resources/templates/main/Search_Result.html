@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOKOM - Kết Quả Tìm Kiếm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-brown': '#cda27a',
+                        'brand-dark': '#4a3b32',
+                        'brand-bg': '#fbfaf8',
+                        'brand-orange': '#ea580c',
+                        'brand-border': '#eaddcf',
+                    },
+                    fontFamily: { sans: ['Quicksand', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-bg font-sans text-brand-dark min-h-screen">
+
+<header class="bg-white sticky top-0 z-50 shadow-sm border-b border-brand-border px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-8">
+        <a th:href="@{/}" class="text-2xl font-black tracking-tighter flex items-center gap-2 shrink-0">
+            <div class="bg-brand-brown text-white p-1 rounded-lg">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+            </div>
+            BOOKOM
+        </a>
+
+        <div class="grow max-w-2xl hidden md:flex">
+            <form id="search-result-search-form" class="relative w-full">
+                <div class="w-full flex items-center bg-gray-100 rounded-full px-4 py-2 border border-transparent focus-within:border-brand-brown focus-within:bg-white transition-all">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input id="search-keyword-input" type="text" value="Tâm lý học" class="w-full bg-transparent outline-none px-3 font-medium text-sm text-brand-dark" placeholder="Tìm kiếm tựa sách, tác giả..." autocomplete="off">
+                    <button class="bg-brand-dark text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-brand-brown transition" type="submit">Tìm kiếm</button>
+                </div>
+                <div id="search-suggestion-panel" class="absolute left-0 right-0 top-[calc(100%+0.75rem)] bg-white border border-brand-border rounded-2xl shadow-lg overflow-hidden hidden z-30"></div>
+            </form>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <a th:href="@{/main/cart}" class="relative text-brand-dark hover:text-brand-orange transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <span class="absolute -top-1 -right-2 bg-brand-orange text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">2</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+    <div class="mb-8">
+        <div class="text-sm font-bold text-gray-400 mb-2 flex items-center gap-2">
+            <a th:href="@{/}" class="hover:text-brand-brown">Trang chủ</a>
+            <span>/</span>
+            <span class="text-brand-dark">Kết quả tìm kiếm</span>
+        </div>
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-black text-brand-dark">
+                    Tìm thấy <span id="search-result-total" class="text-brand-orange">0</span> kết quả cho: <span id="search-result-query" class="italic">""</span>
+                </h1>
+                <p id="search-result-summary" class="text-sm text-gray-500 mt-2">Lọc theo giá, tác giả và năm xuất bản để thu hẹp kết quả nhanh hơn.</p>
+            </div>
+            <div class="flex items-center gap-3 bg-white border border-brand-border rounded-xl px-4 py-3 shadow-sm w-full lg:w-auto">
+                <span class="text-sm font-bold text-gray-500 uppercase">Sắp xếp theo:</span>
+                <select id="search-sort-select" class="bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg text-sm font-bold outline-none focus:border-brand-brown w-full lg:w-auto">
+                    <option value="latest">Mới nhất</option>
+                    <option value="price-asc">Giá: Thấp đến Cao</option>
+                    <option value="price-desc">Giá: Cao đến Thấp</option>
+                    <option value="title-asc">Tên: A-Z</option>
+                    <option value="author-asc">Tác giả: A-Z</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+
+        <aside class="w-full lg:w-1/4 shrink-0 space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-brand-border shadow-sm sticky top-24">
+                <div class="flex items-center justify-between mb-4 border-b border-brand-border pb-2">
+                    <h2 class="font-bold text-lg uppercase tracking-wider flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        Bộ lọc
+                    </h2>
+                    <button id="search-reset-filters-btn" type="button" class="text-xs text-brand-orange font-bold hover:underline">Xóa lọc</button>
+                </div>
+
+                <!-- Accordion for filters -->
+                <div id="filter-accordion" class="space-y-1">
+
+                    <!-- Categories -->
+                    <div class="filter-group border-b border-brand-border">
+                        <button type="button" class="filter-toggle flex items-center justify-between w-full py-3 font-bold text-sm text-gray-500 uppercase">
+                            <span>Danh mục</span>
+                            <svg class="w-3 h-3 shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div class="filter-content hidden overflow-hidden">
+                            <div id="search-category-list" class="py-2 space-y-2 max-h-60 overflow-y-auto">
+                                <div class="rounded-lg border border-dashed border-brand-border bg-brand-cream/30 px-3 py-2 text-xs text-gray-500">
+                                    Đang tải danh mục...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sellers -->
+                    <div class="filter-group border-b border-brand-border">
+                        <button type="button" class="filter-toggle flex items-center justify-between w-full py-3 font-bold text-sm text-gray-500 uppercase">
+                            <span>Nhà bán</span>
+                            <svg class="w-3 h-3 shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div class="filter-content hidden overflow-hidden">
+                            <div id="search-seller-list" class="py-2 space-y-2 max-h-60 overflow-y-auto">
+                                <div class="rounded-lg border border-dashed border-brand-border bg-brand-cream/30 px-3 py-2 text-xs text-gray-500">
+                                    Đang tải nhà bán...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rating -->
+                    <div class="filter-group border-b border-brand-border">
+                        <button type="button" class="filter-toggle flex items-center justify-between w-full py-3 font-bold text-sm text-gray-500 uppercase">
+                            <span>Đánh giá</span>
+                            <svg class="w-3 h-3 shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div class="filter-content hidden overflow-hidden">
+                            <div class="py-3">
+                                <label for="search-rating-slider" class="flex justify-between text-sm font-medium text-gray-900 mb-2">
+                                    Từ <span id="search-rating-value" class="font-bold text-brand-orange">0 sao</span>
+                                </label>
+                                <input id="search-rating-slider" type="range" min="0" max="5" step="0.5" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-brown">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- In Stock -->
+                    <div class="filter-group border-b border-brand-border">
+                        <button type="button" class="filter-toggle flex items-center justify-between w-full py-3 font-bold text-sm text-gray-500 uppercase">
+                            <span>Tình trạng</span>
+                            <svg class="w-3 h-3 shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div class="filter-content hidden overflow-hidden">
+                            <div class="py-3">
+                                <label for="search-instock-toggle" class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" value="" id="search-instock-toggle" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-brown"></div>
+                                    <span class="ml-3 text-sm font-medium text-gray-900">Chỉ hiển thị sách còn hàng</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Other filters -->
+                    <div class="filter-group border-b border-brand-border">
+                        <button type="button" class="filter-toggle flex items-center justify-between w-full py-3 font-bold text-sm text-gray-500 uppercase">
+                            <span>Lọc khác</span>
+                            <svg class="w-3 h-3 shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div class="filter-content hidden overflow-hidden">
+                            <div class="py-2 space-y-4">
+                                <div>
+                                    <h3 class="font-bold text-xs mb-2 text-gray-400 uppercase">Tác giả</h3>
+                                    <input id="search-author-input" type="text" placeholder="Nhập tên tác giả" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-brand-brown">
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xs mb-2 text-gray-400 uppercase">Khoảng giá</h3>
+                                    <div class="flex items-center gap-2">
+                                        <input id="search-min-price-input" type="number" placeholder="Từ đ" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-brand-brown">
+                                        <span class="text-gray-400">-</span>
+                                        <input id="search-max-price-input" type="number" placeholder="Đến đ" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-brand-brown">
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xs mb-2 text-gray-400 uppercase">Năm xuất bản</h3>
+                                    <div class="flex items-center gap-2">
+                                        <input id="search-year-from-input" type="number" placeholder="Từ năm" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-brand-brown">
+                                        <span class="text-gray-400">-</span>
+                                        <input id="search-year-to-input" type="number" placeholder="Đến năm" class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-brand-brown">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button id="search-apply-filters-btn" type="button" class="mt-4 w-full py-3 bg-brand-dark text-white text-sm font-bold rounded-lg hover:bg-brand-brown transition shadow-lg">ÁP DỤNG BỘ LỌC</button>
+            </div>
+        </aside>
+
+        <div class="w-full lg:w-3/4">
+
+            <div class="flex justify-between items-center mb-6 bg-white p-3 rounded-xl border border-brand-border shadow-sm">
+                <span id="search-result-range" class="text-sm font-medium hidden md:inline">Hiển thị 0 - 0 của 0 kết quả</span>
+                <div class="flex items-center gap-2 text-xs text-gray-500 font-semibold">
+                    <span class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-brand-cream border border-brand-accent"><span class="w-2 h-2 rounded-full bg-brand-biscuit"></span>Autocomplete</span>
+                    <span class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-brand-cream border border-brand-accent"><span class="w-2 h-2 rounded-full bg-brand-biscuit"></span>Lọc nâng cao</span>
+                </div>
+            </div>
+
+            <div id="search-filter-chips" class="flex flex-wrap items-center gap-2 mb-4 empty:mb-0">
+            </div>
+
+            <div id="search-results-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+
+            <div class="grid lg:grid-cols-2 gap-6 mt-8">
+                <div class="bg-white border border-brand-border rounded-2xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.25em] text-brand-brown font-black">Best sellers</p>
+                            <h3 class="text-lg font-black text-brand-dark">Đang được mua nhiều</h3>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-brand-cream text-brand-dark text-xs font-black">Top</span>
+                    </div>
+                    <div id="search-best-sellers" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-white border border-brand-border rounded-2xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.25em] text-brand-brown font-black">Trending</p>
+                            <h3 class="text-lg font-black text-brand-dark">Xu hướng gần đây</h3>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-brand-cream text-brand-dark text-xs font-black">Now</span>
+                    </div>
+                    <div id="search-trending" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div id="search-pagination" class="mt-12 flex justify-center items-center gap-2"></div>
+
+        </div>
+    </div>
+    <div th:replace="~{fragments/_QuickViewModal :: quickViewModal}"></div>
+    <script src="/js/api-service.js"></script>
+    <script src="/js/pages/search-result-page.js"></script>
+    <script>
+        // Helper function to trigger the Quick View modal
+        function openQuickView(bookId) {
+            window.dispatchEvent(new CustomEvent('open-quick-view', { detail: { bookId: bookId } }));
+        }
+    </script>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+
+
+</body>
+</html>

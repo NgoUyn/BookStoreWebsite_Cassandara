@@ -1,0 +1,37 @@
+<div th:fragment="voucher_card(coupon)"
+     th:with="discountText=${coupon.type.name() == 'PERCENT'} ? coupon.amount + '%' : 
+              (coupon.amount >= 1000 ? (coupon.amount / 1000) + 'K' : coupon.amount.toString()),
+              discountType=${coupon.type.name() == 'PERCENT'} ? 'HOÀN XU' : 'GIẢM',
+              remaining=${coupon.totalQuantity > 0 ? coupon.totalQuantity - coupon.usedCount : -1}"
+     class="voucher-ticket flex shadow-sm hover:shadow-md transition-shadow"
+     xmlns:th="http://www.thymeleaf.org">
+    <!-- Cột trái: giá trị giảm -->
+    <div class="w-1/3 bg-brand-hero border-r border-dashed border-brand-border flex flex-col items-center justify-center p-4">
+        <div class="text-brand-orange font-black text-2xl" th:text="${discountText}">20K</div>
+        <div class="text-xs font-bold text-brand-dark mt-1" th:text="${discountType}">GIẢM</div>
+    </div>
+    <!-- Cột phải: thông tin -->
+    <div class="w-2/3 p-4 flex flex-col justify-between bg-white">
+        <div>
+            <div class="font-bold text-sm text-brand-dark"
+                 th:text="${coupon.minOrderAmount != null and coupon.minOrderAmount > 0} ? 
+                          'Đơn Tối Thiểu ' + #numbers.formatDecimal(coupon.minOrderAmount, 0, 'COMMA', 0, 'POINT') : 
+                          'Mọi Đơn Hàng'">
+                Đơn Tối Thiểu 150k
+            </div>
+            <div class="text-xs text-gray-500 mt-1">
+                HSD: <span th:text="${#temporals.format(coupon.expiresAt, 'dd/MM/yyyy')}">31/12/2026</span>
+            </div>
+        </div>
+        <div class="mt-3 flex justify-between items-center">
+            <div class="text-[10px] bg-brand-bg px-2 py-1 rounded text-gray-500 border border-brand-border"
+                 th:text="${remaining >= 0 and remaining <= 5} ? 'Sắp hết' : 
+                          (remaining == 0 ? 'Hết mã' : 
+                           (remaining > 0 ? 'Còn ' + remaining + ' mã' : 'Số lượng có hạn'))">
+                Số lượng có hạn
+            </div>
+            <button th:data-code="${coupon.code}"
+                    class="bg-brand-brown text-white text-xs font-bold px-4 py-1.5 rounded hover:bg-brand-brown-dark transition-colors">Lưu mã</button>
+        </div>
+    </div>
+</div>

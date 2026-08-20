@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content, headerType)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOKOM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        /* Bộ màu của Trang chủ */
+                        'brand-brown': '#cda27a',
+                        'brand-dark': '#4a3b32',
+                        'brand-bg': '#fbfaf8',
+                        'brand-orange': '#ea580c',
+                        'brand-border': '#eaddcf',
+                        'brand-hero': '#f4d9c0',
+
+                        /* Bộ màu của Trang Auth / Cart để giữ nguyên thiết kế cũ */
+                        'brand-peach': '#F8D9C0',
+                        'brand-cream': '#FAF5E8',
+                        'brand-biscuit': '#D19C74',
+                        'brand-accent': '#E5CBB5',
+                        'brand-orange-light': '#ffedd5',
+                        'brand-green': '#16a34a'
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(74, 59, 50, 0.05)',
+                        'hover': '0 10px 25px -5px rgba(74, 59, 50, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Quicksand', sans-serif; background-color: #fbfaf8; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+<div th:replace="~{fragments/buyer_header :: header(${headerType})}"></div>
+
+<main class="flex-grow">
+    <div th:replace="${content}"></div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('accessToken');
+        const authAnonymous = document.getElementById('nav-auth-anonymous');
+        const authLogged = document.getElementById('nav-auth-logged');
+        const userGreeting = document.getElementById('nav-user-greeting');
+        const logoutBtn = document.getElementById('nav-logout-btn');
+
+        if (token && authAnonymous && authLogged) {
+            authAnonymous.classList.add('hidden');
+            authLogged.classList.remove('hidden');
+            authLogged.classList.add('flex');
+
+            // Trích xuất nhẹ thông tin từ localStorage hiển thị lời chào
+            const savedRole = localStorage.getItem('userRole') || 'Thành viên';
+            userGreeting.innerText = `Xin chào, bro (${savedRole})`;
+        }
+
+        logoutBtn?.addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = "/main/auth";
+        });
+    });
+</script>
+</body>
+</html>

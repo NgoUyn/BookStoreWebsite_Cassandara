@@ -1,0 +1,104 @@
+<section th:fragment="shop_recomend" class="bg-white py-10 border-y border-brand-border mt-6">
+    <div class="max-w-[1400px] mx-auto px-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-brand-dark tracking-wide">GỢI Ý TỪ NHÃ NAM</h2>
+            <a href="#" class="text-sm font-bold text-brand-brown hover:underline flex items-center gap-1">
+                Xem tất cả <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+
+            <div class="product-card group cursor-pointer">
+                <div class="product-card-inner bg-white border border-brand-border rounded-xl p-3 h-full flex flex-col">
+                    <div class="relative w-full h-44 bg-brand-bg border border-brand-border rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                        <div class="book-cover w-3/4 h-5/6 bg-brand-dark border-[3px] border-white shadow-sm flex items-center justify-center text-brand-hero text-center font-bold px-2 text-[10px]">CÂY CAM NGỌT</div>
+                    </div>
+                    <div class="flex-grow flex flex-col">
+                        <h3 class="text-sm font-bold text-brand-dark leading-snug mb-1 line-clamp-2 group-hover:text-brand-brown transition-colors">Cây Cam Ngọt Của Tôi</h3>
+                        <div class="mt-auto">
+                            <div class="text-brand-orange font-bold text-base">79.000đ</div>
+                            <div class="text-xs text-gray-400 mt-1">Đã bán 1.2k</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card group cursor-pointer">
+                <div class="product-card-inner bg-white border border-brand-border rounded-xl p-3 h-full flex flex-col">
+                    <div class="relative w-full h-44 bg-brand-bg border border-brand-border rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                        <div class="book-cover w-3/4 h-5/6 bg-[#2c3e50] border-[3px] border-white shadow-sm flex items-center justify-center text-white text-center font-bold px-2 text-[10px]">HOÀNG TỬ BÉ</div>
+                    </div>
+                    <div class="flex-grow flex flex-col">
+                        <h3 class="text-sm font-bold text-brand-dark leading-snug mb-1 line-clamp-2 group-hover:text-brand-brown transition-colors">Hoàng Tử Bé</h3>
+                        <div class="mt-auto">
+                            <div class="text-brand-orange font-bold text-base">55.000đ</div>
+                            <div class="text-xs text-gray-400 mt-1">Đã bán 3.4k</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card group cursor-pointer">
+                <div class="product-card-inner bg-white border border-brand-border rounded-xl p-3 h-full flex flex-col">
+                    <div class="relative w-full h-44 bg-brand-bg border border-brand-border rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                        <div class="book-cover w-3/4 h-5/6 bg-[#8e44ad] border-[3px] border-white shadow-sm flex items-center justify-center text-white text-center font-bold px-2 text-[10px]">SUỐI NGUỒN</div>
+                    </div>
+                    <div class="flex-grow flex flex-col">
+                        <h3 class="text-sm font-bold text-brand-dark leading-snug mb-1 line-clamp-2 group-hover:text-brand-brown transition-colors">Suối Nguồn (Bìa Cứng)</h3>
+                        <div class="mt-auto">
+                            <div class="text-brand-orange font-bold text-base">210.000đ</div>
+                            <div class="text-xs text-gray-400 mt-1">Đã bán 890</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card group cursor-pointer">
+                <div class="product-card-inner bg-white border border-brand-border rounded-xl p-3 h-full flex flex-col">
+                    <div class="relative w-full h-44 bg-brand-bg border border-brand-border rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                        <div class="book-cover w-3/4 h-5/6 bg-[#d35400] border-[3px] border-white shadow-sm flex items-center justify-center text-white text-center font-bold px-2 text-[10px]">LÀNG CỦA TÔI</div>
+                    </div>
+                    <div class="flex-grow flex flex-col">
+                        <h3 class="text-sm font-bold text-brand-dark leading-snug mb-1 line-clamp-2 group-hover:text-brand-brown transition-colors">Một Thoáng Ta Rực Rỡ Ở Nhân Gian</h3>
+                        <div class="mt-auto">
+                            <div class="text-brand-orange font-bold text-base">125.000đ</div>
+                            <div class="text-xs text-gray-400 mt-1">Đã bán 456</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card group cursor-pointer hidden md:block">
+                <div class="product-card-inner bg-white border border-brand-border rounded-xl p-3 h-full flex flex-col">
+                    <div class="relative w-full h-44 bg-brand-bg border border-brand-border rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                        <div class="book-cover w-3/4 h-5/6 bg-[#27ae60] border-[3px] border-white shadow-sm flex items-center justify-center text-white text-center font-bold px-2 text-[10px]">THIÊN TÀI</div>
+                    </div>
+                    <div class="flex-grow flex flex-col">
+                        <h3 class="text-sm font-bold text-brand-dark leading-snug mb-1 line-clamp-2 group-hover:text-brand-brown transition-colors">Thiên Tài Bên Trái Kẻ Điên Bên Phải</h3>
+                        <div class="mt-auto">
+                            <div class="text-brand-orange font-bold text-base">89.000đ</div>
+                            <div class="text-xs text-gray-400 mt-1">Đã bán 2.1k</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card group cursor-pointer hidden lg:block">
+                <div class="product-card-inner bg-white border border-brand-border rounded-xl p-3 h-full flex flex-col">
+                    <div class="relative w-full h-44 bg-brand-bg border border-brand-border rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                        <div class="book-cover w-3/4 h-5/6 bg-[#c0392b] border-[3px] border-white shadow-sm flex items-center justify-center text-white text-center font-bold px-2 text-[10px]">ĐI TÌM LẼ SỐNG</div>
+                    </div>
+                    <div class="flex-grow flex flex-col">
+                        <h3 class="text-sm font-bold text-brand-dark leading-snug mb-1 line-clamp-2 group-hover:text-brand-brown transition-colors">Đi Tìm Lẽ Sống</h3>
+                        <div class="mt-auto">
+                            <div class="text-brand-orange font-bold text-base">65.000đ</div>
+                            <div class="text-xs text-gray-400 mt-1">Đã bán 5.5k</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>

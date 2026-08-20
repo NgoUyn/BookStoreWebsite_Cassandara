@@ -1,0 +1,18 @@
+<div th:fragment="notifications()">
+    <div id="notificationRoot" class="relative">
+        <button id="notifBtn" class="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100">
+            <svg id="notifBell" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 1 0-3 0v.68C7.64 5.36 6 7.929 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h11z"></path></svg>
+            <span id="notifBadge" class="hidden text-xs font-bold bg-red-600 text-white rounded-full px-2 py-0.5">0</span>
+        </button>
+
+        <div id="notifDrop" class="hidden absolute right-0 mt-2 w-96 bg-white border rounded-lg shadow-lg z-50">
+            <div class="p-3 border-b flex items-center justify-between">
+                <div class="font-bold">Thông báo</div>
+                <button id="markAllReadBtn" class="text-sm text-gray-600">Đánh dấu đã đọc</button>
+            </div>
+            <div id="notifList" class="max-h-80 overflow-auto"></div>
+            <div class="p-3 border-t text-center text-sm text-gray-500">Xem tất cả tại <a href="/notifications">trang thông báo</a></div>
+        </div>
+    </div>
+    <script src="/static/js/notifications.js"></script>
+</div>

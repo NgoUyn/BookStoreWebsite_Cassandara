@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Yêu cầu trở thành người bán</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: {} } };
+    </script>
+    <script src="/js/api-service.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { background: linear-gradient(180deg, #f8f5ef 0%, #f4efe6 100%); color: #111827; }
+        .panel { max-width: 840px; margin: 3rem auto; background: rgba(255,255,255,.94); border-radius: 1rem; padding: 2rem; box-shadow: 0 12px 30px rgba(17,24,39,.06);} 
+        .input, .textarea { width:100%; padding:.75rem 1rem; border-radius:.6rem; border:1px solid rgba(17,24,39,.08); }
+        .label { font-weight:700; color:#111827; margin-bottom:.35rem; display:block; }
+        .muted { color:#6b7280; font-size:.95rem }
+        .btn { display:inline-flex; gap:.5rem; align-items:center; padding:.6rem 1rem; border-radius:.6rem; font-weight:700 }
+        .btn-primary { background:#2E6F73; color:#fff }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1 class="text-2xl font-black">Yêu cầu trở thành người bán</h1>
+        <p class="muted">Gửi thông tin cửa hàng để admin xét duyệt. Sau khi admin duyệt, tài khoản của bạn sẽ được nâng lên Seller.</p>
+
+        <form id="becomeSellerForm" class="mt-6 space-y-4">
+            <div>
+                <label class="label" for="shopName">Tên cửa hàng</label>
+                <input id="shopName" name="shopName" class="input" required placeholder="Ví dụ: Nhà Sách Ngọc Lan">
+            </div>
+
+            <div>
+                <label class="label" for="slug">Đường dẫn (slug) — tuỳ chọn</label>
+                <input id="slug" name="slug" class="input" placeholder="ví dụ: nha-sach-ngoc-lan">
+                <div class="muted">Nếu để trống, hệ thống sẽ tự sinh slug khi admin duyệt.</div>
+            </div>
+
+            <div>
+                <label class="label" for="address">Địa chỉ</label>
+                <input id="address" name="address" class="input" placeholder="Địa chỉ cửa hàng">
+            </div>
+            <div>
+                <label class="label" for="city">Tỉnh / Thành phố</label>
+                <input id="city" name="city" class="input" required placeholder="Ví dụ: Hồ Chí Minh">
+            </div>
+
+            <div>
+                <label class="label" for="contactEmail">Email liên hệ</label>
+                <input id="contactEmail" name="contactEmail" type="email" class="input" placeholder="email@domain.com">
+            </div>
+
+            <div>
+                <label class="label" for="contactPhone">Số điện thoại</label>
+                <input id="contactPhone" name="contactPhone" class="input" placeholder="0123 456 789">
+            </div>
+
+            <div class="flex items-center gap-3 pt-3">
+                <button id="submitBtn" type="submit" class="btn btn-primary">Gửi yêu cầu</button>
+                <button id="cancelBtn" type="button" class="btn">Huỷ</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="/js/become-seller.js"></script>
+</body>
+</html>

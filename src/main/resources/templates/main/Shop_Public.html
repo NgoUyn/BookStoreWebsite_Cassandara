@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOKOM - Cửa hàng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@1.7.0/dist/flowbite.bundle.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-brown': '#cda27a',
+                        'brand-brown-dark': '#b58d67',
+                        'brand-dark': '#4a3b32',
+                        'brand-hero': '#f4d9c0',
+                        'brand-bg': '#fbfaf8',
+                        'brand-orange': '#d96a4a',
+                        'brand-border': '#eaddcf',
+                        'brand-white': '#ffffff',
+                    },
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'premium': '0 4px 20px -2px rgba(74, 59, 50, 0.08)',
+                        'premium-hover': '0 15px 35px -5px rgba(74, 59, 50, 0.15)',
+                        'float': '0 10px 30px 0 rgba(0, 0, 0, 0.05)',
+                        'inner-light': 'inset 0 2px 4px 0 rgba(255, 255, 255, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #fbfaf8; }
+        ::-webkit-scrollbar-thumb { background: #cda27a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b58d67; }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .product-card-inner {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .product-card:hover .product-card-inner {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px -5px rgba(74, 59, 50, 0.12);
+            border-color: #cda27a;
+        }
+        .book-cover { transition: transform 0.6s ease; }
+        .product-card:hover .book-cover { transform: scale(1.08) rotate(-1deg); }
+        .quick-action-group {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.3s ease-in-out;
+        }
+        .product-card:hover .quick-action-group {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        input[type="checkbox"].custom-cb {
+            appearance: none; background-color: #fff; margin: 0;
+            width: 1.2em; height: 1.2em;
+            border: 1.5px solid #eaddcf; border-radius: 4px;
+            display: grid; place-content: center; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        input[type="checkbox"].custom-cb:hover { border-color: #cda27a; }
+        input[type="checkbox"].custom-cb::before {
+            content: ""; width: 0.7em; height: 0.7em;
+            transform: scale(0); transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em #ffffff; background-color: #ffffff;
+            transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        input[type="checkbox"].custom-cb:checked { background-color: #cda27a; border-color: #cda27a; }
+        input[type="checkbox"].custom-cb:checked::before { transform: scale(1); }
+        .shop-banner-mask {
+            background: linear-gradient(to top, rgba(74, 59, 50, 0.9) 0%, rgba(74, 59, 50, 0.4) 50%, rgba(74, 59, 50, 0.1) 100%);
+        }
+        .voucher-ticket {
+            position: relative;
+            background: #ffffff;
+            border: 1px solid #eaddcf;
+        }
+        .voucher-ticket::before, .voucher-ticket::after {
+            content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; background-color: #fbfaf8; border-radius: 50%;
+            border: 1px solid #eaddcf;
+        }
+        .voucher-ticket::before { left: -9px; border-right-color: transparent; border-top-color: transparent; transform: translateY(-50%) rotate(45deg); }
+        .voucher-ticket::after { right: -9px; border-left-color: transparent; border-bottom-color: transparent; transform: translateY(-50%) rotate(45deg); }
+    </style>
+</head>
+<body class="bg-brand-bg font-sans text-brand-dark flex flex-col min-h-screen selection:bg-brand-brown selection:text-white">
+
+<div id="shop-host" th:attr="data-slug=${shopSlug}" style="display:none"></div>
+
+<!-- No auth injection needed - public page -->
+
+<!--shop_header-->
+<div th:replace="~{seller/shop_seller/shop_header :: shop_header}"></div>
+
+<main class="flex-grow">
+    <!--shop_info-->
+    <div th:replace="~{seller/shop_seller/shop_info :: shop_info}"></div>
+
+    <!--shop_tag-->
+    <div th:replace="~{seller/shop_seller/shop_tag :: shop_tag}"></div>
+
+    <!--shop_voucher-->
+    <div th:replace="~{seller/shop_seller/shop_voucher}"></div>
+
+    <!--shop_category-->
+    <div th:replace="~{seller/shop_seller/shop_categoty :: shop_categoty}"></div>
+
+    <!--shop_footer-->
+    <div th:replace="~{seller/shop_seller/shop_footer :: shop_footer}"></div>
+
+    
+
+</main>
+
+<script>
+(() => {
+    const API_BASE = '/api';
+    const host = document.getElementById('shop-host');
+    const slug = host ? host.dataset.slug : null;
+
+    // ==========================================
+    // DOM ELEMENTS
+    // ==========================================
+    const displayName = document.getElementById('shop-display-name');
+    const displayStatus = document.getElementById('shop-display-status');
+    const displayInitials = document.getElementById('shop-display-initials');
+    const displayLogo = document.getElementById('shop-display-logo');
+    const bannerHost = document.getElementById('shop-banner-host');
+    const productCountEl = document.getElementById('shop-product-count');
+
+    // ==========================================
+    // HELPERS
+    // ==========================================
+    function getAuthHeaders() {
+        const token = localStorage.getItem('token') || localStorage.getItem('jwt') || localStorage.getItem('accessToken');
+        const userId = localStorage.getItem('userId');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (userId) headers['X-User-Id'] = userId;
+        return headers;
+    }
+
+    function getInitials(name) {
+        const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return 'NN';
+        return parts.slice(0, 2).map((p) => p[0].toUpperCase()).join('');
+    }
+
+    function syncHero(shop) {
+        if (!shop) return;
+        displayName.textContent = shop.shopName || 'Cửa hàng';
+        displayInitials.textContent = getInitials(shop.shopName);
+
+        if (shop.logoUrl && displayLogo) {
+            displayLogo.src = shop.logoUrl;
+            displayLogo.classList.remove('hidden');
+            displayInitials.classList.add('hidden');
+        } else {
+            if (displayLogo) displayLogo.classList.add('hidden');
+            displayInitials.classList.remove('hidden');
+        }
+
+        // Status
+        const status = (shop.approvalStatus || 'APPROVED').toUpperCase();
+        if (status === 'APPROVED') {
+            displayStatus.innerHTML = '<svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Gian hàng chính hãng';
+        } else if (status === 'REJECTED') {
+            displayStatus.innerHTML = '<svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Gian hàng bị từ chối';
+        } else {
+            displayStatus.innerHTML = '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Đang chờ duyệt';
+        }
+
+        if (shop.bannerUrl) {
+            bannerHost.style.backgroundImage = `url('${shop.bannerUrl}')`;
+            bannerHost.style.backgroundSize = 'cover';
+            bannerHost.style.backgroundPosition = 'center';
+        } else {
+            bannerHost.style.backgroundImage = '';
+            bannerHost.style.backgroundSize = '';
+            bannerHost.style.backgroundPosition = '';
+        }
+    }
+
+    // ==========================================
+    // UPDATE SHOP HEADER NAME
+    // ==========================================
+    function updateHeaderName(shopName) {
+        const headerNameEls = document.querySelectorAll('#shop-header-name');
+        headerNameEls.forEach(el => {
+            if (el) el.textContent = shopName || 'Cửa hàng';
+        });
+    }
+
+    // ==========================================
+    // LOAD SHOP INFO (public API only)
+    // ==========================================
+    async function loadShopInfo() {
+        try {
+            // Public: dùng API public
+            if (!slug) throw new Error('Không có slug');
+            const res = await fetch('/api/shops/' + encodeURIComponent(slug));
+            if (!res.ok) throw new Error('Không tải được cửa hàng');
+            const shop = await res.json();
+
+            syncHero(shop);
+            updateHeaderName(shop.shopName);
+
+            // Update product count
+            const sellerId = shop.sellerId || (shop.seller && shop.seller.id) || shop.id;
+            if (productCountEl && sellerId) {
+                try {
+                    const bookRes = await fetch(`/api/books/search?sellerIds=${sellerId}&size=1`);
+                    if (bookRes.ok) {
+                        const bookData = await bookRes.json();
+                        const total = bookData.totalElements || bookData.total || 0;
+                        productCountEl.textContent = total.toLocaleString('vi-VN');
+                    }
+                } catch (e) {
+                    console.warn('Không thể tải số lượng sản phẩm:', e);
+                }
+            }
+
+            return shop;
+        } catch (e) {
+            console.error(e);
+            displayName.textContent = 'Lỗi tải cửa hàng';
+            return null;
+        }
+    }
+
+    // ==========================================
+    // INIT
+    // ==========================================
+    loadShopInfo();
+})();
+</script>
+<script th:src="@{/js/api-service.js}"></script>
+<script th:src="@{/js/pages/shop-voucher-fetch.js}"></script>
+<script th:src="@{/js/pages/shop-product-fetch.js}"></script>
+
+</body>
+</html>

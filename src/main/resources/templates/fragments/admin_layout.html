@@ -1,0 +1,161 @@
+<style>
+    /* Sidebar Base Styles */
+    aside.sidebar {
+        width: 18rem;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+    }
+
+    /* Collapsed State Styles */
+    aside.sidebar.collapsed {
+        width: 5rem !important;
+    }
+
+    /* Transition for child elements */
+    aside.sidebar .menu-label,
+    aside.sidebar .logo-text-display,
+    aside.sidebar .footer-content {
+        transition: opacity 0.2s ease;
+        white-space: nowrap;
+    }
+
+    aside.sidebar.collapsed .menu-label,
+    aside.sidebar.collapsed .logo-text-display,
+    aside.sidebar.collapsed .footer-content {
+        opacity: 0;
+        pointer-events: none;
+        width: 0;
+        overflow: hidden;
+    }
+
+    /* Adjust padding when collapsed */
+    aside.sidebar.collapsed {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    aside.sidebar.collapsed .sidebar-header {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        justify-content: center;
+    }
+
+    aside.sidebar.collapsed nav a {
+        justify-content: center;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    aside.sidebar.collapsed #sidebarToggle {
+        margin-left: 0 !important;
+    }
+</style>
+
+<aside th:fragment="sidebar(activeMenu)" id="mainSidebar" class="sidebar sticky top-0 h-screen z-50 border-r bg-white px-5 overflow-hidden">
+    <div class="sidebar-header h-20 px-6 flex items-center border-b shrink-0">
+        <a th:href="@{/admin}" class="flex items-center gap-2 overflow-hidden">
+            <span class="logo-text-display font-bold text-gray-800">BOOKOM ADMIN</span>
+        </a>
+        <button id="sidebarToggle" aria-label="Toggle sidebar" class="ml-auto p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+    </div>
+
+    <nav class="flex-1 py-6 space-y-2 text-sm font-extrabold tracking-wide overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <a th:href="@{/admin}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+           th:classappend="${activeMenu == 'admin-dashboard'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
+            <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-dashboard'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
+            <span class="menu-label">Tổng quan sàn</span>
+        </a>
+
+        <a th:href="@{/admin/users}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+           th:classappend="${activeMenu == 'admin-users'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
+            <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-users'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
+            <span class="menu-label">Người dùng</span>
+        </a>
+
+        <a th:href="@{/admin/shops}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+           th:classappend="${activeMenu == 'admin-shops'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
+            <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-shops'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
+            <span class="menu-label">Gian hàng</span>
+        </a>
+
+        <a th:href="@{/admin/categories}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+           th:classappend="${activeMenu == 'admin-categories'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
+            <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-categories'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
+            <span class="menu-label">Danh mục sách</span>
+        </a>
+
+        <a th:href="@{/admin/coupons}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+           th:classappend="${activeMenu == 'admin-coupons'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
+            <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-coupons'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
+            <span class="menu-label">Mã khuyến mãi</span>
+        </a>
+
+          <a th:href="@{/admin/seller-applications}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+              th:classappend="${activeMenu == 'admin-seller-applications'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
+                <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-seller-applications'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
+                <span class="menu-label">Duyệt người bán</span>
+          </a>
+
+        <a th:href="@{/admin/books}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+           th:classappend="${activeMenu == 'admin-books'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
+            <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-books'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
+            <span class="menu-label">Kiểm duyệt sách</span>
+        </a>
+
+    </nav>
+
+    <script th:inline="javascript">
+        (function () {
+            function initSidebar() {
+                const btn = document.getElementById('sidebarToggle');
+                const sidebar = document.getElementById('mainSidebar');
+                const collapsedClass = 'collapsed';
+
+                if (!btn || !sidebar) return;
+
+                // Load state from localStorage
+                const persisted = localStorage.getItem('sidebarCollapsed');
+                if (persisted === 'true') {
+                    sidebar.classList.add(collapsedClass);
+                }
+
+                // Remove fixed classes if present in some templates
+                sidebar.classList.remove('fixed', 'left-0', 'top-0');
+                sidebar.classList.add('sticky', 'top-0');
+
+                btn.onclick = function (e) {
+                    e.preventDefault();
+                    const isCollapsed = sidebar.classList.toggle(collapsedClass);
+                    localStorage.setItem('sidebarCollapsed', isCollapsed);
+                    
+                    // Trigger a window resize event to redraw charts if any
+                    window.dispatchEvent(new Event('resize'));
+                };
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSidebar);
+            } else {
+                initSidebar();
+            }
+        })();
+    </script>
+</aside>
+
+<header th:fragment="header(pageTitle, pageSubtitle)" class="h-20 bg-white border-b border-[#E5CBB5] px-6 md:px-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-xl md:text-2xl font-black text-[#5D4037]" th:text="${pageTitle}">Tổng quan sàn</h1>
+        <p class="text-xs md:text-sm text-[#5D4037]/70 font-bold" th:text="${pageSubtitle}">Điều hướng bằng Thymeleaf Fragments</p>
+    </div>
+    <div class="flex items-center gap-3">
+        <a th:href="@{/}" class="hidden sm:inline-flex text-sm font-black text-[#5D4037]/70 hover:text-[#5D4037]">Về trang mua sắm</a>
+        <div th:replace="fragments/notifications_fragment :: notifications()"></div>
+        <div class="h-10 w-10 rounded-full bg-[#D19C74] text-white flex items-center justify-center text-xs font-black shadow-sm">AD</div>
+    </div>
+</header>

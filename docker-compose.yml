@@ -1,0 +1,106 @@
+services:
+  # SQL Server staging database used by the containerized Spring Boot app
+  bookom-mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: bookom-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-BookomStaging!123}"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - bookom-network
+    healthcheck:
+      test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/localhost/1433'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  # Load Balancer Nginx
+  nginx-lb:
+    image: nginx:latest
+    container_name: bookom-nginx-lb
+    ports:
+      - "80:80"
+    volumes:
+      # Nginx CHỈ CẦN file cấu hình này thôi
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    extra_hosts:
+      # Cho phép container Nginx gọi được Python ML service chạy trên máy thật (host)
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - bookom-app-1
+      - bookom-app-2
+      - bookom-app-3
+    networks:
+      - bookom-network
+
+  # Bản sao Spring Boot số 1
+  bookom-app-1:
+    image: eclipse-temurin:17-jdk-alpine
+    container_name: bookom-app-1
+    depends_on:
+      bookom-mssql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://bookom-mssql:1433;databaseName=BookstoreDB;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-BookomStaging!123}
+    volumes:
+      # TRỎ ĐÚNG FILE JAR CHO APP JAVA
+      - ./target/BookStore-0.0.1-SNAPSHOT.jar:/app/bookom.jar
+    command: ["java", "-jar", "/app/bookom.jar"]
+    networks:
+      - bookom-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Bản sao Spring Boot số 2
+  bookom-app-2:
+    image: eclipse-temurin:17-jdk-alpine
+    container_name: bookom-app-2
+    depends_on:
+      bookom-mssql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://bookom-mssql:1433;databaseName=BookstoreDB;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-BookomStaging!123}
+    volumes:
+      # TRỎ ĐÚNG FILE JAR CHO APP JAVA
+      - ./target/BookStore-0.0.1-SNAPSHOT.jar:/app/bookom.jar
+    command: ["java", "-jar", "/app/bookom.jar"]
+    networks:
+      - bookom-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Bản sao Spring Boot số 3
+  bookom-app-3:
+    image: eclipse-temurin:17-jdk-alpine
+    container_name: bookom-app-3
+    depends_on:
+      bookom-mssql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://bookom-mssql:1433;databaseName=BookstoreDB;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-BookomStaging!123}
+    volumes:
+      # TRỎ ĐÚNG FILE JAR CHO APP JAVA
+      - ./target/BookStore-0.0.1-SNAPSHOT.jar:/app/bookom.jar
+    command: ["java", "-jar", "/app/bookom.jar"]
+    networks:
+      - bookom-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+# Tạo mạng nội bộ để các container tự nói chuyện với nhau
+networks:
+  bookom-network:
+    driver: bridge
+
+volumes:
+  mssql-data:

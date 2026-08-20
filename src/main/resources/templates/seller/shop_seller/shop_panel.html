@@ -1,0 +1,85 @@
+<section th:fragment="shop_panel" class="fixed bottom-4 right-4 z-50 w-[92vw] max-w-md">
+    <details id="seller-shop-panel" class="rounded-2xl border border-brand-border bg-white shadow-premium">
+        <summary class="cursor-pointer list-none px-4 py-3 flex items-center justify-between">
+            <span class="text-sm font-bold text-brand-dark">Quản lí hồ sơ</span>
+        </summary>
+        <div class="px-4 pb-4 pt-1 border-t border-brand-border">
+            <div id="shop-panel-alert" class="hidden mb-3 rounded-lg border px-3 py-2 text-xs font-semibold"></div>
+            <form id="shop-panel-form" class="space-y-2">
+                <div>
+                    <label for="shopName" class="text-xs font-bold">Tên cửa hàng*</label>
+                    <input id="shopName" class="mt-1 w-full rounded-md border border-brand-border px-3 py-2 text-sm" required maxlength="120" placeholder="Nha Nam Official">
+                </div>
+                <div>
+                    <label for="slug" class="text-xs font-bold">Slug *</label>
+                    <input id="slug" class="mt-1 w-full rounded-md border border-brand-border px-3 py-2 text-sm" required placeholder="nha-nam-official">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label for="contactEmail" class="text-xs font-bold">Email</label>
+                        <input id="contactEmail" type="email" class="mt-1 w-full rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="shop@email.com">
+                    </div>
+                    <div>
+                        <label for="contactPhone" class="text-xs font-bold">Điện thoại</label>
+                        <input id="contactPhone" type="tel" inputmode="numeric" class="mt-1 w-full rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="090xxxxxxx" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    </div>
+                </div>
+                <div>
+                    <label for="description" class="text-xs font-bold">Mô tả</label>
+                    <textarea id="description" rows="2" class="mt-1 w-full rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="Gioi thieu ngan ve shop"></textarea>
+                </div>
+
+                <!-- Logo upload -->
+                <div>
+                    <label class="text-xs font-bold">Logo</label>
+                    <div class="mt-1 flex items-center gap-3">
+                        <div id="logo-preview" class="w-14 h-14 rounded-full border border-brand-border bg-gray-50 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                            <img id="logo-preview-img" src="" alt="Logo preview" class="w-full h-full object-cover hidden" />
+                            <span id="logo-preview-placeholder" class="text-gray-400 text-[10px]">Logo</span>
+                        </div>
+                        <div class="flex-1">
+                            <input type="file" id="logo-file-input" accept="image/*" class="hidden" />
+                            <button type="button" id="logo-choose-btn" class="w-full rounded-md border border-brand-border px-3 py-2 text-xs font-bold hover:bg-brand-bg transition text-left">
+                                Chọn ảnh logo
+                            </button>
+                            <button type="button" id="logo-clear-btn" class="hidden text-[10px] text-red-500 hover:text-red-700 mt-1">Xóa ảnh</button>
+                        </div>
+                    </div>
+                    <!-- Hidden field to store the URL (for form submit) -->
+                    <input id="logoUrl" type="hidden" />
+                </div>
+
+                <!-- Banner upload -->
+                <div>
+                    <label class="text-xs font-bold">Banner</label>
+                    <div class="mt-1 flex items-center gap-3">
+                        <div id="banner-preview" class="w-20 h-12 rounded-md border border-brand-border bg-gray-50 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                            <img id="banner-preview-img" src="" alt="Banner preview" class="w-full h-full object-cover hidden" />
+                            <span id="banner-preview-placeholder" class="text-gray-400 text-[10px]">Banner</span>
+                        </div>
+                        <div class="flex-1">
+                            <input type="file" id="banner-file-input" accept="image/*" class="hidden" />
+                            <button type="button" id="banner-choose-btn" class="w-full rounded-md border border-brand-border px-3 py-2 text-xs font-bold hover:bg-brand-bg transition text-left">
+                                Chọn ảnh banner
+                            </button>
+                            <button type="button" id="banner-clear-btn" class="hidden text-[10px] text-red-500 hover:text-red-700 mt-1">Xóa ảnh</button>
+                        </div>
+                    </div>
+                    &lt;!&ndash; Hidden field to store the URL (for form submit) &ndash;&gt;
+                    <input id="bannerUrl" type="hidden" />
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <input id="address" class="rounded-md border border-brand-border px-3 py-2 text-sm sm:col-span-2" placeholder="Địa chỉ">
+                    <input id="city" class="rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="Thành phố">
+                </div>
+                <input id="province" class="w-full rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="Tỉnh/Thành">
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <button id="shop-panel-save" type="submit" class="rounded-md bg-brand-brown text-white px-3 py-2 text-xs font-bold hover:bg-brand-brown-dark transition">Lưu</button>
+                    <button id="shop-panel-cancel" type="button" class="rounded-md border border-brand-border px-3 py-2 text-xs font-bold hover:bg-brand-bg transition">Hủy</button>
+                    <button id="shop-panel-delete" type="button" class="rounded-md border border-red-300 text-red-600 px-3 py-2 text-xs font-bold hover:bg-red-50 transition" disabled>Xóa cửa hàng</button>
+                </div>
+            </form>
+        </div>
+    </details>
+</section>

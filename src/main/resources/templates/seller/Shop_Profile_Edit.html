@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOKOM - Quản Lý Cửa Hàng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@1.7.0/dist/flowbite.bundle.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-brown': '#cda27a',
+                        'brand-brown-dark': '#b58d67',
+                        'brand-dark': '#4a3b32',
+                        'brand-hero': '#f4d9c0',
+                        'brand-bg': '#fbfaf8',
+                        'brand-orange': '#d96a4a',
+                        'brand-border': '#eaddcf',
+                        'brand-white': '#ffffff',
+                    },
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'premium': '0 4px 20px -2px rgba(74, 59, 50, 0.08)',
+                        'premium-hover': '0 15px 35px -5px rgba(74, 59, 50, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #fbfaf8; }
+        ::-webkit-scrollbar-thumb { background: #cda27a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b58d67; }
+    </style>
+</head>
+<body class="bg-brand-bg font-sans text-brand-dark flex flex-col min-h-screen">
+
+<!-- Header -->
+<header class="bg-white sticky top-0 z-50 shadow-sm border-b border-brand-border">
+    <div class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between gap-8">
+        <a th:href="@{/}" class="text-3xl font-extrabold text-brand-dark hover:opacity-90 transition flex items-center gap-2">
+            <div class="bg-brand-brown text-white p-1.5 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+            </div>
+            BOOKOM
+        </a>
+        <div class="flex-1"></div>
+        <a th:href="@{/seller/dashboard}" class="text-brand-brown hover:text-brand-brown-dark transition font-bold">← Quay lại</a>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="flex-grow max-w-[1200px] mx-auto px-6 py-8 w-full">
+    
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-brand-dark mb-2">Quản Lý Thông Tin Cửa Hàng</h1>
+        <p class="text-gray-600">Cập nhật thông tin cửa hàng của bạn để thu hút khách hàng</p>
+    </div>
+
+    <!-- Form Container -->
+    <div class="bg-white rounded-lg shadow-premium border border-brand-border p-8">
+        
+        <!-- Alert Messages -->
+        <div id="success-alert" class="hidden mb-6 p-4 bg-green-100 border border-green-300 text-green-700 rounded-lg">
+            <strong>Thành công!</strong> Thông tin cửa hàng đã được cập nhật.
+        </div>
+        <div id="error-alert" class="hidden mb-6 p-4 bg-red-100 border border-red-300 text-red-700 rounded-lg">
+            <strong>Lỗi!</strong> <span id="error-message"></span>
+        </div>
+
+        <form id="shop-form" class="space-y-6">
+            
+            <!-- Section: Thông Tin Cơ Bản -->
+            <div>
+                <h2 class="text-xl font-bold text-brand-dark mb-4 pb-3 border-b-2 border-brand-border">Thông Tin Cơ Bản</h2>
+                
+                <!-- Tên Cửa Hàng -->
+                <div class="mb-6">
+                    <label for="shop-name" class="block text-sm font-bold text-brand-dark mb-2">
+                        Tên Cửa Hàng <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="shop-name" name="shopName" required 
+                        class="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                        placeholder="VD: Nhã Nam Official">
+                </div>
+
+                <!-- Slug (Đường dẫn) -->
+                <div class="mb-6">
+                    <label for="shop-slug" class="block text-sm font-bold text-brand-dark mb-2">
+                        Đường dẫn Shop <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center">
+                        <span class="px-4 py-2.5 bg-brand-hero border border-brand-border border-r-0 rounded-l-lg text-gray-600 font-medium">bookom.vn/shop/</span>
+                        <input type="text" id="shop-slug" name="slug" required 
+                            class="flex-1 px-4 py-2.5 border border-brand-border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                            placeholder="ten-cua-hang">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Chỉ chứa chữ cái, số, dấu gạch ngang. Không thể thay đổi sau khi tạo.</p>
+                </div>
+
+                <!-- Mô Tả Shop -->
+                <div class="mb-6">
+                    <label for="shop-description" class="block text-sm font-bold text-brand-dark mb-2">
+                        Mô Tả Cửa Hàng
+                    </label>
+                    <textarea id="shop-description" name="description" rows="5"
+                        class="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                        placeholder="Giới thiệu về cửa hàng của bạn, sản phẩm chuyên bán, v.v..."></textarea>
+                    <p class="text-xs text-gray-500 mt-1"><span id="desc-count">0</span>/500 ký tự</p>
+                </div>
+            </div>
+
+            <!-- Section: Hình Ảnh -->
+            <div>
+                <h2 class="text-xl font-bold text-brand-dark mb-4 pb-3 border-b-2 border-brand-border">Hình Ảnh</h2>
+                
+                <!-- Logo Cửa Hàng -->
+                <div class="mb-6">
+                    <label for="shop-logo" class="block text-sm font-bold text-brand-dark mb-2">
+                        Logo Cửa Hàng (URL)
+                    </label>
+                    <input type="url" id="shop-logo" name="logoUrl"
+                        class="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                        placeholder="https://...">
+                    <div id="logo-preview" class="mt-3">
+                        <img id="logo-img" src="" alt="Logo preview" class="h-20 w-20 object-contain rounded border border-brand-border hidden">
+                    </div>
+                </div>
+
+                <!-- Banner Cửa Hàng -->
+                <div class="mb-6">
+                    <label for="shop-banner" class="block text-sm font-bold text-brand-dark mb-2">
+                        Banner Cửa Hàng (URL)
+                    </label>
+                    <input type="url" id="shop-banner" name="bannerUrl"
+                        class="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                        placeholder="https://...">
+                    <div id="banner-preview" class="mt-3">
+                        <img id="banner-img" src="" alt="Banner preview" class="w-full h-32 object-cover rounded border border-brand-border hidden">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Thông Tin Liên Hệ -->
+            <div>
+                <h2 class="text-xl font-bold text-brand-dark mb-4 pb-3 border-b-2 border-brand-border">Thông Tin Liên Hệ</h2>
+                
+                <!-- Email -->
+                <div class="mb-6">
+                    <label for="shop-email" class="block text-sm font-bold text-brand-dark mb-2">
+                        Email Liên Hệ <span class="text-red-500">*</span>
+                    </label>
+                    <input type="email" id="shop-email" name="contactEmail" required
+                        class="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                        placeholder="shop@example.com">
+                </div>
+
+                <!-- Điện Thoại -->
+                <div class="mb-6">
+                    <label for="shop-phone" class="block text-sm font-bold text-brand-dark mb-2">
+                        Số Điện Thoại <span class="text-red-500">*</span>
+                    </label>
+                    <input type="tel" id="shop-phone" name="contactPhone" required
+                        class="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                        placeholder="0123456789">
+                </div>
+
+                <!-- Địa Chỉ -->
+                <div class="mb-6">
+                    <label for="shop-address" class="block text-sm font-bold text-brand-dark mb-2">
+                        Địa Chỉ <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="shop-address" name="address" required
+                        class="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                        placeholder="123 Đường ABC, Quận XYZ">
+                </div>
+
+                <!-- Thành Phố -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="shop-city" class="block text-sm font-bold text-brand-dark mb-2">
+                            Thành Phố <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="shop-city" name="city" required
+                            class="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                            placeholder="VD: Hà Nội">
+                    </div>
+                    
+                    <!-- Tỉnh/Thành Phố (Province) -->
+                    <div>
+                        <label for="shop-province" class="block text-sm font-bold text-brand-dark mb-2">
+                            Tỉnh/Thành Phố <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="shop-province" name="province" required
+                            class="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition" 
+                            placeholder="VD: Hà Nội">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex gap-4 pt-6 border-t border-brand-border">
+                <button type="submit" id="submit-btn" class="flex items-center justify-center gap-2 bg-brand-brown text-white font-bold px-8 py-3 rounded-lg hover:bg-brand-brown-dark transition-colors shadow-md">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Lưu Thay Đổi
+                </button>
+                <button type="reset" class="flex items-center justify-center gap-2 bg-white border border-brand-border text-brand-dark font-bold px-8 py-3 rounded-lg hover:bg-brand-hero transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Hủy
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Status Section -->
+    <div class="mt-8 bg-white rounded-lg shadow-premium border border-brand-border p-6">
+        <h3 class="text-lg font-bold text-brand-dark mb-4">Trạng Thái Cửa Hàng</h3>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 bg-brand-hero rounded-lg">
+                <span class="font-medium text-brand-dark">Trạng thái duyệt:</span>
+                <span id="approval-status" class="text-sm font-bold px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">Chờ duyệt</span>
+            </div>
+            <p class="text-xs text-gray-600">Cửa hàng của bạn cần được Admin duyệt trước khi công khai với khách hàng.</p>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-brand-dark text-brand-bg py-6 mt-12">
+    <div class="max-w-[1400px] mx-auto px-6 text-center text-sm">
+        <p>&copy; 2026 BOOKOM - Kênh bán sách trực tuyến uy tín</p>
+    </div>
+</footer>
+
+<script src="/js/api-service.js"></script>
+<script src="/js/shop_profile.js"></script>
+</body>
+</html>

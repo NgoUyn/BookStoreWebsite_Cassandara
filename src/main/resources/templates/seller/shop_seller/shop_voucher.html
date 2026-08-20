@@ -1,0 +1,30 @@
+<section class="max-w-[1400px] mx-auto px-6 pt-10 pb-4">
+    <div class="flex items-center gap-2 mb-6">
+        <svg class="w-6 h-6 text-brand-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+        </svg>
+        <h2 class="text-xl font-bold text-brand-dark uppercase tracking-wide">Mã Giảm Giá Của Shop</h2>
+    </div>
+
+    <!-- Loading state -->
+    <div id="vouchers-loading" class="text-center py-8 text-gray-400 font-semibold">
+        <svg class="animate-spin inline-block w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Đang tải mã giảm giá...
+    </div>
+
+    <!-- Empty state -->
+    <div id="vouchers-empty" class="hidden text-center py-8 text-gray-400 font-semibold border-2 border-dashed border-brand-border rounded-xl">
+        Shop chưa có mã giảm giá nào.
+    </div>
+
+    <!-- Error state -->
+    <div id="vouchers-error" class="hidden text-center py-8 text-red-400 font-semibold border-2 border-dashed border-red-200 rounded-xl">
+        Không thể tải mã giảm giá.
+    </div>
+
+    <!-- Voucher grid rendered by JS -->
+    <div id="vouchers-container" class="hidden flex gap-4 overflow-x-auto pb-2 scrollbar-thin"></div>
+</section>

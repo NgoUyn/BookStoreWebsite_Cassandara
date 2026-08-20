@@ -1,0 +1,1674 @@
+<!doctype html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${book.title} + ' - BOOKOM (Premium Edition)'">
+      BOOKOM - Chi Tiết Sản Phẩm (Premium Edition)
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "brand-brown": "#cda27a" /* Nâu chủ đạo (Nút phụ, viền) */,
+              "brand-brown-dark": "#b58d67" /* Nâu đậm */,
+              "brand-dark": "#4a3b32" /* Text chính */,
+              "brand-hero": "#f4d9c0" /* Nền sáng / Cam nhạt */,
+              "brand-bg": "#fbfaf8" /* Nền tổng thể trang rất sáng và sạch */,
+              "brand-orange": "#ea580c" /* Màu Cam Mua Ngay (Giống mockup) */,
+              "brand-orange-light":
+                "#ffedd5" /* Màu Cam Nhạt (Thêm vào giỏ hàng) */,
+              "brand-border": "#eaddcf" /* Viền nhạt */,
+              "brand-white": "#ffffff",
+            },
+            fontFamily: {
+              sans: ["Quicksand", "sans-serif"],
+            },
+            boxShadow: {
+              premium: "0 4px 20px -2px rgba(74, 59, 50, 0.08)",
+              "premium-hover": "0 15px 35px -5px rgba(74, 59, 50, 0.15)",
+              float: "0 10px 30px 0 rgba(0, 0, 0, 0.05)",
+              "inner-light": "inset 0 2px 4px 0 rgba(255, 255, 255, 0.3)",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      /* Tùy chỉnh thanh cuộn tổng thể */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #fbfaf8;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cda27a;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #b58d67;
+      }
+
+      /* Zoom ảnh sản phẩm */
+      .img-zoom-container {
+        overflow: hidden;
+        position: relative;
+        cursor: crosshair;
+      }
+      .img-zoom-container img {
+        transition: transform 0.3s ease;
+      }
+      .img-zoom-container:hover img {
+        transform: scale(1.1);
+      }
+
+      /* Custom Radio Buttons cho Phân loại (Loại 1, Loại 2...) */
+      .variation-radio:checked + label {
+        border-color: #ea580c;
+        color: #ea580c;
+        background-color: #fffaf0;
+      }
+      .variation-radio:checked + label .check-icon {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      /* Hiệu ứng thẻ sản phẩm Premium (Kế thừa từ UI trước) */
+      .product-card-inner {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .product-card:hover .product-card-inner {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px -5px rgba(74, 59, 50, 0.12);
+        border-color: #cda27a;
+      }
+      .book-cover {
+        transition: transform 0.6s ease;
+      }
+      .product-card:hover .book-cover {
+        transform: scale(1.08) rotate(-1deg);
+      }
+
+      .quick-action-group {
+        opacity: 0;
+        transform: translateY(15px);
+        transition: all 0.3s ease-in-out;
+      }
+      .product-card:hover .quick-action-group {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Progress Bar Đánh giá */
+      .progress-bar-fill {
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    </style>
+  </head>
+  <body
+    class="bg-brand-bg font-sans text-brand-dark flex flex-col min-h-screen selection:bg-brand-brown selection:text-white"
+  >
+    <header
+      class="bg-white sticky top-0 z-50 shadow-sm border-b border-brand-border"
+    >
+      <div
+        class="bg-brand-dark text-brand-bg text-xs py-2 px-6 hidden md:block"
+      >
+        <div
+          class="max-w-[1400px] mx-auto flex justify-between items-center font-medium tracking-wide"
+        >
+          <div class="flex items-center gap-4">
+            <a
+              href="#"
+              class="hover:text-brand-hero transition flex items-center gap-1"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              Kênh Người Bán
+            </a>
+            <span class="text-gray-500">|</span>
+            <a
+              href="#"
+              class="hover:text-brand-hero transition flex items-center gap-1"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                ></path>
+              </svg>
+              Tải ứng dụng
+            </a>
+          </div>
+          <div class="flex gap-5">
+            <a href="#" class="hover:text-brand-hero transition">Thông báo</a>
+            <a href="#" class="hover:text-brand-hero transition">Hỗ trợ</a>
+            <div
+              class="flex items-center gap-1 cursor-pointer hover:text-brand-hero transition"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                ></path>
+              </svg>
+              Tiếng Việt
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="max-w-[1400px] mx-auto px-6 py-4 lg:py-5 flex items-center justify-between gap-8"
+      >
+        <a
+          th:href="@{/}"
+          class="text-3xl lg:text-4xl font-extrabold tracking-tighter text-brand-dark hover:opacity-90 transition flex items-center gap-2 flex-shrink-0"
+        >
+          <div
+            class="bg-brand-brown text-white p-1.5 rounded-lg shadow-inner-light"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+          </div>
+          BOOKOM
+        </a>
+
+        <div class="hidden lg:flex flex-1 max-w-3xl">
+          <form
+            th:action="@{/main/search}"
+            method="get"
+            class="flex w-full items-center bg-brand-bg border-2 border-brand-border rounded-full overflow-hidden focus-within:border-brand-brown focus-within:shadow-premium transition-all duration-300"
+          >
+            <div class="pl-4 text-gray-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              class="px-3 py-2.5 w-full outline-none text-sm text-brand-dark bg-transparent font-medium"
+              placeholder="Tìm kiếm sách, tác giả, nhà xuất bản..."
+            />
+            <button
+              type="submit"
+              class="bg-brand-brown text-white px-8 py-2.5 text-sm font-bold hover:bg-brand-brown-dark transition-colors h-full"
+            >
+              Tìm Kiếm
+            </button>
+          </form>
+        </div>
+
+        <div class="flex items-center gap-6 text-brand-dark flex-shrink-0">
+          <a
+            href="#"
+            class="hover:text-brand-brown transition flex flex-col items-center gap-1 group"
+          >
+            <div
+              class="relative p-2 rounded-full group-hover:bg-brand-hero transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+            </div>
+          </a>
+          <a
+            th:href="@{/main/cart}"
+            class="hover:text-brand-brown transition flex flex-col items-center gap-1 group"
+          >
+            <div
+              class="relative p-2 rounded-full group-hover:bg-brand-hero transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              <span
+                class="absolute top-1 right-1 bg-brand-orange text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold border border-white"
+                >3</span
+              >
+            </div>
+          </a>
+          <div class="h-8 w-px bg-brand-border hidden md:block"></div>
+          <a
+            th:href="@{/main/auth}"
+            class="hover:text-brand-brown transition flex items-center gap-2 group font-bold text-sm"
+          >
+            <div
+              class="p-1.5 rounded-full bg-brand-bg border border-brand-border group-hover:border-brand-brown transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+            <span class="hidden md:block">Đăng nhập</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-grow">
+      <div class="bg-brand-bg border-b border-brand-border">
+        <div class="max-w-[1400px] mx-auto px-6 py-3">
+          <nav
+            class="flex text-sm text-gray-500 font-medium whitespace-nowrap overflow-x-auto no-scrollbar"
+          >
+            <a th:href="@{/}" class="hover:text-brand-brown transition-colors"
+              >Trang chủ</a
+            >
+            <span class="mx-2 text-gray-400">/</span>
+            <a href="#" class="hover:text-brand-brown transition-colors"
+              >Sách Tiếng Việt</a
+            >
+            <span class="mx-2 text-gray-400">/</span>
+            <a href="#" class="hover:text-brand-brown transition-colors"
+              >Tiểu Thuyết</a
+            >
+            <span class="mx-2 text-gray-400">/</span>
+            <a href="#" class="hover:text-brand-brown transition-colors"
+              >Văn Học Nước Ngoài</a
+            >
+            <span class="mx-2 text-gray-400">/</span>
+            <span
+              class="text-brand-dark font-bold truncate"
+              th:text="${book.title}"
+              >Đại Gia Gatsby (The Great Gatsby) - Bản Đặc Biệt</span
+            >
+          </nav>
+        </div>
+      </div>
+
+      <section class="max-w-[1400px] mx-auto px-6 py-8">
+        <div
+          class="bg-white rounded-2xl shadow-premium border border-brand-border p-6 md:p-8 flex flex-col lg:flex-row gap-10"
+        >
+          <div class="w-full lg:w-5/12 flex flex-col gap-6 flex-shrink-0">
+            <div class="bg-brand-bg border border-brand-border rounded-xl p-4">
+              <div
+                class="w-full aspect-square bg-brand-brown/10 rounded-lg border border-brand-brown/20 flex items-center justify-center overflow-hidden mb-4 img-zoom-container relative cursor-pointer"
+              >
+                <img
+                        th:src="${book.largeimageUrl != null ? book.largeimageUrl : book.imageUrl}"
+                        onerror="this.src='https://via.placeholder.com/400x500?text=No+Cover'"
+                        class="w-3/4 h-[85%] object-cover border-8 border-white shadow-xl"
+                        alt="Book Cover"
+                />
+
+                <div
+                  class="absolute bottom-4 right-4 bg-white/80 p-2 rounded-full text-brand-dark shadow-sm backdrop-blur-sm"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                    ></path>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-4 gap-3">
+                <div
+                  class="aspect-square bg-[#2c3e50]/80 rounded border-2 border-brand-orange cursor-pointer flex items-center justify-center shadow-sm"
+                >
+                  <span class="text-white text-[8px] font-bold">MẶT TRƯỚC</span>
+                </div>
+                <div
+                  class="aspect-square bg-brand-brown/20 rounded border border-brand-border cursor-pointer flex items-center justify-center hover:border-brand-brown transition"
+                >
+                  <span class="text-brand-dark text-[8px] font-bold"
+                    >MẶT SAU</span
+                  >
+                </div>
+                <div
+                  class="aspect-square bg-brand-brown/20 rounded border border-brand-border cursor-pointer flex items-center justify-center hover:border-brand-brown transition"
+                >
+                  <span class="text-brand-dark text-[8px] font-bold"
+                    >BÊN TRONG</span
+                  >
+                </div>
+                <div
+                  class="aspect-square bg-brand-brown/20 rounded border border-brand-border cursor-pointer flex items-center justify-center hover:border-brand-brown transition"
+                >
+                  <span class="text-brand-dark text-[8px] font-bold"
+                    >QUÀ TẶNG</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="border-2 border-brand-border bg-brand-hero/10 rounded-xl p-5 flex items-center gap-4 hover:border-brand-brown transition-colors"
+            >
+              <div
+                class="w-16 h-16 rounded-full bg-brand-hero border-2 border-white shadow-sm flex-shrink-0 flex items-center justify-center"
+              >
+                <span class="font-bold text-brand-dark text-lg">NN</span>
+              </div>
+
+              <div class="flex-grow flex flex-col justify-center">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="font-bold text-lg text-brand-dark">
+                    Nhã Nam Official
+                  </h3>
+                  <span
+                    class="bg-brand-orange text-white text-[9px] font-bold px-1.5 py-0.5 rounded"
+                    >SHOPEE MALL</span
+                  >
+                </div>
+                <div
+                  class="flex items-center gap-1 text-sm text-brand-dark mb-3"
+                >
+                  <svg
+                    class="w-4 h-4 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
+                  </svg>
+                  <span class="text-gray-600 text-sm"
+                    >Gian hàng chính hãng</span
+                  >
+                </div>
+                <div class="flex gap-2">
+                  <button
+                    id="chat-now-btn"
+                    type="button"
+                    th:attr="data-product-id=${book.id}, data-seller-id=${book.seller != null ? book.seller.id : ''}, data-product-title=${book.title}, data-product-image=${book.imageUrl}, data-product-price=${book.price}"
+                    class="flex-1 border border-brand-brown text-brand-brown text-[12px] font-bold py-2 px-4 rounded-full hover:bg-brand-brown/5 transition shadow-sm uppercase flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01M8 8h.01M12 8h.01M16 8h.01M6 8h.01M6 12h.01M6 16h.01M18 8h.01M18 12h.01M18 16h.01"
+                      ></path>
+                    </svg>
+                    Chat Ngay
+                  </button>
+                  <a
+                    th:href="@{/shop/{sellerId}(sellerId=${book.seller.id})}"
+                    class="flex-1 bg-brand-brown text-white text-[12px] font-bold py-2 px-4 rounded-full hover:bg-brand-brown-dark transition shadow flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                      ></path>
+                    </svg>
+                    Xem Shop
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full lg:w-7/12 flex flex-col">
+            <div class="mb-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span
+                  class="bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase"
+                  >Mall</span
+                >
+                <span
+                  class="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase"
+                  >Mới Xuất Bản</span
+                >
+              </div>
+              <h1
+                class="text-2xl md:text-3xl font-bold text-brand-dark leading-snug"
+                th:text="${book.title}"
+              >
+                Đại Gia Gatsby (The Great Gatsby) - Bản Đặc Biệt Bìa Cứng Kèm
+                Bookmark
+              </h1>
+            </div>
+
+            <div
+              class="flex items-center text-sm mb-6 pb-6 border-b border-brand-border/60"
+            >
+              <div
+                class="flex items-center gap-1 text-brand-orange border-r border-brand-border pr-4"
+              >
+                <span class="font-bold text-lg border-b border-brand-orange"
+                  >5.0</span
+                >
+                <div class="flex text-brand-orange text-sm tracking-tighter">
+                  ★★★★★
+                </div>
+              </div>
+              <div
+                class="px-4 border-r border-brand-border flex items-center gap-1"
+              >
+                <span
+                  class="font-bold text-brand-dark border-b border-brand-dark"
+                  >920</span
+                >
+                <span class="text-gray-500">Đánh Giá</span>
+              </div>
+              <div class="px-4 flex items-center gap-1">
+                <span class="font-bold text-brand-dark">3.5k</span>
+                <span class="text-gray-500">Đã bán</span>
+              </div>
+              <a
+                href="#"
+                class="ml-auto text-xs text-gray-400 hover:text-brand-orange transition"
+                >Tố cáo</a
+              >
+            </div>
+
+            <div
+              class="bg-brand-bg rounded-xl p-6 mb-6 flex flex-col gap-2 border border-brand-border shadow-inner"
+            >
+              <div class="flex items-baseline gap-4">
+                <span class="text-brand-dark font-medium text-lg">Giá:</span>
+                <span
+                  class="text-gray-400 text-lg line-through decoration-1"
+                  th:text="${#numbers.formatDecimal(book.price * 1.5, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                  >150.000đ</span
+                >
+                <span
+                  class="text-4xl font-extrabold text-brand-orange"
+                  th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                  >100.000đ</span
+                >
+                <span
+                  class="bg-brand-orange text-white text-xs font-bold px-2 py-1 rounded-sm ml-2"
+                  >-33% GIẢM</span
+                >
+              </div>
+              <div class="flex items-center gap-2 mt-2 text-sm">
+                <span
+                  class="bg-yellow-100 text-yellow-800 border border-yellow-200 text-[10px] font-bold px-2 py-0.5 rounded"
+                  >RẺ VÔ ĐỊCH</span
+                >
+                <span class="text-gray-500 text-xs"
+                  >Ở đâu rẻ hơn hoàn tiền</span
+                >
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4 mb-6">
+              <span class="text-gray-500 text-sm font-medium w-24 flex-shrink-0"
+                >Mã Giảm Giá</span
+              >
+              <div class="flex flex-wrap gap-2">
+                <div
+                  class="bg-brand-orange-light border border-brand-orange/30 text-brand-orange text-xs font-bold px-3 py-1 rounded relative cursor-pointer hover:bg-brand-orange/20 transition"
+                >
+                  Giảm 10k
+                  <span
+                    class="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-white rounded-full border-r border-brand-orange/30"
+                  ></span
+                  ><span
+                    class="absolute -right-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-white rounded-full border-l border-brand-orange/30"
+                  ></span>
+                </div>
+                <div
+                  class="bg-brand-orange-light border border-brand-orange/30 text-brand-orange text-xs font-bold px-3 py-1 rounded relative cursor-pointer hover:bg-brand-orange/20 transition"
+                >
+                  Giảm 5%
+                  <span
+                    class="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-white rounded-full border-r border-brand-orange/30"
+                  ></span
+                  ><span
+                    class="absolute -right-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-white rounded-full border-l border-brand-orange/30"
+                  ></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-4 mb-6">
+              <span class="text-gray-500 text-sm font-medium w-24 flex-shrink-0"
+                >Vận Chuyển</span
+              >
+              <div class="flex flex-col gap-2 text-sm text-brand-dark">
+                <div class="flex items-center gap-2">
+                  <svg
+                    class="w-5 h-5 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                  </svg>
+                  <span>Miễn phí vận chuyển cho đơn từ 50.000đ</span>
+                </div>
+                <div class="flex items-start gap-2 mt-1">
+                  <svg
+                    class="w-5 h-5 text-gray-400 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    ></path>
+                  </svg>
+                  <div>
+                    <div class="flex gap-4">
+                      <span class="text-gray-500">Vận chuyển tới</span>
+                      <span
+                        class="font-medium cursor-pointer flex items-center gap-1"
+                        >Phường Bến Nghé, Quận 1
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                          ></path></svg
+                      ></span>
+                    </div>
+                    <div class="flex gap-4 mt-1">
+                      <span class="text-gray-500">Phí vận chuyển</span>
+                      <span class="font-medium">15.000đ - 22.000đ</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-4 mb-4 items-center">
+              <span class="text-gray-500 text-sm font-medium w-24 flex-shrink-0"
+                >Loại Bìa</span
+              >
+              <div class="flex flex-wrap gap-3">
+                <div class="relative">
+                  <input
+                    type="radio"
+                    name="cover_type"
+                    id="cover_hard"
+                    class="hidden variation-radio"
+                    checked
+                  />
+                  <label
+                    for="cover_hard"
+                    class="cursor-pointer border border-brand-border rounded text-sm font-medium px-4 py-2 flex items-center gap-2 transition-colors relative overflow-hidden bg-white hover:border-brand-brown"
+                  >
+                    <div
+                      class="w-6 h-6 bg-[#2c3e50] border border-gray-200"
+                    ></div>
+                    Bìa Cứng
+                    <div
+                      class="check-icon absolute bottom-0 right-0 bg-brand-orange text-white w-4 h-4 flex items-center justify-center opacity-0 transform translate-x-full transition-all"
+                      style="clip-path: polygon(100% 0, 0% 100%, 100% 100%)"
+                    >
+                      <svg
+                        class="w-2 h-2 absolute bottom-0.5 right-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="3"
+                          d="M5 13l4 4L19 7"
+                        ></path>
+                      </svg>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="relative">
+                  <input
+                    type="radio"
+                    name="cover_type"
+                    id="cover_soft"
+                    class="hidden variation-radio"
+                  />
+                  <label
+                    for="cover_soft"
+                    class="cursor-pointer border border-brand-border rounded text-sm font-medium px-4 py-2 flex items-center gap-2 transition-colors relative overflow-hidden bg-white hover:border-brand-brown"
+                  >
+                    <div
+                      class="w-6 h-6 bg-brand-brown/40 border border-gray-200"
+                    ></div>
+                    Bìa Mềm (Tiêu chuẩn)
+                    <div
+                      class="check-icon absolute bottom-0 right-0 bg-brand-orange text-white w-4 h-4 flex items-center justify-center opacity-0 transform translate-x-full transition-all"
+                      style="clip-path: polygon(100% 0, 0% 100%, 100% 100%)"
+                    >
+                      <svg
+                        class="w-2 h-2 absolute bottom-0.5 right-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="3"
+                          d="M5 13l4 4L19 7"
+                        ></path>
+                      </svg>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4 mt-8 mb-6">
+              <span
+                class="text-brand-dark font-bold uppercase tracking-wider text-sm"
+                >Số lượng</span
+              >
+
+              <div
+                class="flex items-center border-2 border-brand-accent rounded-full bg-white overflow-hidden w-36 shadow-sm"
+              >
+                <button
+                  type="button"
+                  id="btn-decrease-qty"
+                  class="w-12 h-10 flex items-center justify-center text-brand-dark hover:bg-brand-peach transition-colors font-black text-xl select-none outline-none"
+                >
+                  -
+                </button>
+
+                <input
+                  type="text"
+                  id="detail-qty-input"
+                  value="1"
+                  readonly
+                  class="w-12 h-10 text-center text-brand-dark font-black text-lg outline-none border-x-2 border-brand-accent bg-brand-bg select-none"
+                />
+
+                <button
+                  type="button"
+                  id="btn-increase-qty"
+                  class="w-12 h-10 flex items-center justify-center text-brand-dark hover:bg-brand-peach transition-colors font-black text-xl select-none outline-none"
+                >
+                  +
+                </button>
+              </div>
+
+              <span
+                class="text-sm text-gray-500 font-medium ml-2"
+                th:text="${book.stockQuantity} + ' sản phẩm có sẵn'"
+                >Kho: 0</span
+              >
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 mt-auto">
+              <button
+                id="detail-add-to-cart-btn"
+                type="button"
+                th:disabled="${book.stockQuantity <= 0}"
+                th:classappend="${book.stockQuantity <= 0 ? 'opacity-50 cursor-not-allowed bg-gray-300 border-gray-400 text-gray-600' : 'bg-brand-orange-light border-brand-orange text-brand-orange hover:bg-orange-100 group'}"
+                th:attr="data-book-id=${book.id}"
+                class="flex-1 text-lg font-bold py-3.5 px-6 rounded-lg transition shadow-sm flex items-center justify-center gap-2 border"
+              >
+                <svg
+                  th:if="${book.stockQuantity > 0}"
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                  ></path>
+                </svg>
+                <svg
+                  th:if="${book.stockQuantity <= 0}"
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                  ></path>
+                </svg>
+
+                <span
+                  th:text="${book.stockQuantity <= 0 ? 'Tạm Hết Hàng' : 'Thêm Vào Giỏ Hàng'}"
+                ></span>
+              </button>
+              <button
+                id="detail-toggle-wishlist-btn"
+                type="button"
+                th:attr="data-book-id=${book.id}, data-book-title=${book.title}, data-book-author=${book.author}, data-book-price=${book.price}, data-book-image=${book.imageUrl}, data-book-category=${book.category != null ? book.category.name : 'Sach'}"
+                class="flex-1 border border-brand-orange text-brand-orange text-lg font-bold py-3.5 px-6 rounded-lg hover:bg-brand-orange-light transition shadow-sm flex items-center justify-center gap-2"
+              >
+                <svg
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  ></path>
+                </svg>
+                Luu Yeu Thich
+              </button>
+              <button
+                id="detail-buy-now-btn"
+                type="button"
+                th:disabled="${book.stockQuantity <= 0}"
+                th:classappend="${book.stockQuantity <= 0 ? 'bg-gray-400 text-gray-100 cursor-not-allowed' : 'bg-brand-orange text-white hover:bg-orange-700'}"
+                th:attr="data-book-id=${book.id}"
+                class="flex-1 text-lg font-bold py-3.5 px-6 rounded-lg transition shadow-md shadow-brand-orange/30"
+              >
+                Mua Ngay
+              </button>
+            </div>
+
+            <div
+              class="mt-6 pt-4 border-t border-brand-border flex flex-wrap gap-6 text-xs text-brand-dark font-medium"
+            >
+              <div class="flex items-center gap-1.5">
+                <svg
+                  class="w-4 h-4 text-brand-orange"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  ></path>
+                </svg>
+                Bảo vệ người mua 100%
+              </div>
+              <div class="flex items-center gap-1.5">
+                <svg
+                  class="w-4 h-4 text-brand-orange"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"
+                  ></path>
+                </svg>
+                Đổi trả miễn phí 7 ngày
+              </div>
+              <div class="flex items-center gap-1.5">
+                <svg
+                  class="w-4 h-4 text-brand-orange"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                Sách chính hãng
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 mb-20 border-t border-brand-accent pt-12"
+      >
+        <div class="flex items-center gap-3 mb-8">
+          <div
+            class="w-10 h-10 bg-brand-orange-light rounded-full flex items-center justify-center text-brand-orange"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              ></path>
+            </svg>
+          </div>
+          <h2
+            class="text-2xl md:text-3xl font-black text-brand-dark uppercase tracking-wide"
+          >
+            Thường được mua kèm
+          </h2>
+        </div>
+
+        <div
+          id="bought-together-loading"
+          class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
+        >
+          <div class="animate-pulse bg-brand-accent/30 h-72 rounded-2xl"></div>
+          <div
+            class="animate-pulse bg-brand-accent/30 h-72 rounded-2xl hidden md:block"
+          ></div>
+          <div
+            class="animate-pulse bg-brand-accent/30 h-72 rounded-2xl hidden md:block"
+          ></div>
+          <div
+            class="animate-pulse bg-brand-accent/30 h-72 rounded-2xl hidden lg:block"
+          ></div>
+          <div
+            class="animate-pulse bg-brand-accent/30 h-72 rounded-2xl hidden lg:block"
+          ></div>
+        </div>
+
+        <div
+          id="bought-together-container"
+          class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 hidden"
+        ></div>
+      </div>
+      <section class="max-w-[1400px] mx-auto px-6 pb-8">
+        <div
+          class="bg-white border border-brand-border rounded-2xl shadow-sm overflow-hidden flex flex-col lg:flex-row"
+        >
+          <div
+            class="w-full lg:w-3/4 p-8 border-b lg:border-b-0 lg:border-r border-brand-border"
+          >
+            <h2
+              class="text-xl font-bold text-brand-dark bg-brand-bg px-4 py-3 border-l-4 border-brand-orange mb-6 uppercase tracking-wide"
+            >
+              Chi Tiết Sản Phẩm
+            </h2>
+
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 mb-10 text-sm"
+            >
+              <div class="flex border-b border-brand-border/50 pb-2">
+                <span class="text-gray-500 w-32 flex-shrink-0">Danh Mục</span>
+                <a href="#" class="text-brand-brown font-medium hover:underline"
+                  >Sách > Tiểu Thuyết > Văn Học Nước Ngoài</a
+                >
+              </div>
+              <div class="flex border-b border-brand-border/50 pb-2">
+                <span class="text-gray-500 w-32 flex-shrink-0">Tác giả</span>
+                <span
+                  class="text-brand-dark font-medium"
+                  th:text="${book.author}"
+                  >F. Scott Fitzgerald</span
+                >
+              </div>
+              <div class="flex border-b border-brand-border/50 pb-2">
+                <span class="text-gray-500 w-32 flex-shrink-0"
+                  >Nhà Xuất Bản</span
+                >
+                <span
+                  class="text-brand-dark font-medium"
+                  th:text="${book.publisher}"
+                  >Nhà Xuất Bản Hội Nhà Văn</span
+                >
+              </div>
+              <div class="flex border-b border-brand-border/50 pb-2">
+                <span class="text-gray-500 w-32 flex-shrink-0"
+                  >Công Ty Phát Hành</span
+                >
+                <span class="text-brand-dark font-medium">Nhã Nam</span>
+              </div>
+              <div class="flex border-b border-brand-border/50 pb-2">
+                <span class="text-gray-500 w-32 flex-shrink-0"
+                  >Năm Xuất Bản</span
+                >
+                <span
+                  class="text-brand-dark font-medium"
+                  th:text="${book.publishYear}"
+                  >2023</span
+                >
+              </div>
+              <div class="flex border-b border-brand-border/50 pb-2">
+                <span class="text-gray-500 w-32 flex-shrink-0">Số Trang</span>
+                <span class="text-brand-dark font-medium">256 trang</span>
+              </div>
+              <div class="flex border-b border-brand-border/50 pb-2">
+                <span class="text-gray-500 w-32 flex-shrink-0">Kích Thước</span>
+                <span class="text-brand-dark font-medium">14.5 x 20.5 cm</span>
+              </div>
+              <div class="flex border-b border-brand-border/50 pb-2">
+                <span class="text-gray-500 w-32 flex-shrink-0">Loại Bìa</span>
+                <span class="text-brand-dark font-medium">Bìa cứng</span>
+              </div>
+            </div>
+
+            <h2
+              class="text-xl font-bold text-brand-dark bg-brand-bg px-4 py-3 border-l-4 border-brand-orange mb-6 uppercase tracking-wide"
+            >
+              Mô Tả Sản Phẩm (Do AI Viết)
+            </h2>
+
+            <div class="prose max-w-none text-brand-dark text-sm leading-loose">
+              <p
+                class="mb-4 whitespace-pre-line"
+                th:text="${book.description != null ? book.description : 'Đang cập nhật mô tả cho sản phẩm này...'}"
+              >
+                <strong>Đại Gia Gatsby</strong> (The Great Gatsby) là kiệt tác
+                của nhà văn F. Scott Fitzgerald...
+              </p>
+            </div>
+          </div>
+
+          <div class="w-full lg:w-1/4 bg-brand-bg p-6 flex flex-col gap-6">
+            <h3
+              class="font-bold text-brand-dark uppercase tracking-wide border-b border-brand-border pb-2"
+            >
+              Top Bán Chạy Từ Shop
+            </h3>
+
+            <a href="#" class="flex gap-4 group cursor-pointer">
+              <div
+                class="w-16 h-20 bg-[#f1c40f] border-2 border-white shadow-sm flex-shrink-0 flex items-center justify-center text-[8px] font-bold text-center group-hover:scale-105 transition-transform"
+              >
+                NHÀ GIẢ KIM
+              </div>
+              <div class="flex flex-col justify-center">
+                <div
+                  class="text-sm font-bold text-brand-dark line-clamp-2 group-hover:text-brand-brown transition"
+                >
+                  Nhà Giả Kim (Tái bản 2023)
+                </div>
+                <div class="text-brand-orange font-bold text-sm mt-1">
+                  79.000đ
+                </div>
+              </div>
+            </a>
+
+            <a href="#" class="flex gap-4 group cursor-pointer">
+              <div
+                class="w-16 h-20 bg-[#27ae60] border-2 border-white shadow-sm flex-shrink-0 flex items-center justify-center text-[8px] text-white font-bold text-center group-hover:scale-105 transition-transform"
+              >
+                RỪNG NA UY
+              </div>
+              <div class="flex flex-col justify-center">
+                <div
+                  class="text-sm font-bold text-brand-dark line-clamp-2 group-hover:text-brand-brown transition"
+                >
+                  Rừng Na Uy
+                </div>
+                <div class="text-brand-orange font-bold text-sm mt-1">
+                  105.000đ
+                </div>
+              </div>
+            </a>
+
+            <a href="#" class="flex gap-4 group cursor-pointer">
+              <div
+                class="w-16 h-20 bg-[#e74c3c] border-2 border-white shadow-sm flex-shrink-0 flex items-center justify-center text-[8px] text-white font-bold text-center group-hover:scale-105 transition-transform"
+              >
+                TUỔI TRẺ
+              </div>
+              <div class="flex flex-col justify-center">
+                <div
+                  class="text-sm font-bold text-brand-dark line-clamp-2 group-hover:text-brand-brown transition"
+                >
+                  Tuổi Trẻ Đáng Giá Bao Nhiêu
+                </div>
+                <div class="text-brand-orange font-bold text-sm mt-1">
+                  65.000đ
+                </div>
+              </div>
+            </a>
+
+            <div
+              class="mt-4 w-full h-64 bg-brand-brown rounded-xl shadow-inner relative overflow-hidden flex items-end p-4 group cursor-pointer"
+            >
+              <div
+                class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] opacity-20 group-hover:scale-110 transition-transform duration-700"
+              ></div>
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"
+              ></div>
+              <div class="relative z-10 text-white">
+                <div
+                  class="text-[10px] bg-red-600 px-2 py-0.5 inline-block font-bold rounded-sm mb-2 uppercase"
+                >
+                  Siêu Sale
+                </div>
+                <div class="font-black text-xl leading-tight mb-1">
+                  Tuần Lễ Văn Học Cổ Điển
+                </div>
+                <div class="text-xs text-brand-hero">Giảm thêm 15%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="max-w-[1400px] mx-auto px-6 pb-12">
+        <div
+          class="bg-white border border-brand-border rounded-2xl shadow-sm p-8"
+        >
+          <h2
+            class="text-xl font-bold text-brand-dark uppercase tracking-wide mb-6"
+          >
+            Đánh Giá Sản Phẩm
+          </h2>
+
+          <div
+            class="bg-brand-bg border border-brand-border rounded-xl p-6 flex flex-col md:flex-row items-center gap-8 mb-8"
+          >
+            <div
+              class="flex flex-col items-center justify-center md:w-1/4 border-b md:border-b-0 md:border-r border-brand-border/60 pb-6 md:pb-0"
+            >
+              <div class="text-5xl font-black text-brand-orange mb-2">
+                <span id="avg-rating-text">0.0</span>
+                <span class="text-xl text-brand-dark">/ 5</span>
+              </div>
+              <div
+                id="avg-stars-container"
+                class="flex text-yellow-400 text-xl mb-1 tracking-widest"
+              >
+                <!-- Stars will be injected by JS -->
+              </div>
+              <div class="text-sm text-gray-500 font-medium">
+                <span id="total-reviews-text">0</span> đánh giá
+              </div>
+            </div>
+
+            <div
+              class="flex-grow w-full flex flex-wrap gap-3"
+              id="rating-filters"
+            >
+              <button
+                class="bg-brand-orange text-white font-bold px-6 py-2 rounded-lg transition shadow-sm text-sm"
+                data-filter="all"
+              >
+                Tất Cả
+              </button>
+              <button
+                class="bg-white border border-brand-border text-brand-dark font-medium px-6 py-2 rounded-lg hover:border-brand-brown hover:text-brand-brown transition text-sm"
+                data-filter="5"
+              >
+                5 Sao
+              </button>
+              <button
+                class="bg-white border border-brand-border text-brand-dark font-medium px-6 py-2 rounded-lg hover:border-brand-brown hover:text-brand-brown transition text-sm"
+                data-filter="4"
+              >
+                4 Sao
+              </button>
+              <button
+                class="bg-white border border-brand-border text-brand-dark font-medium px-6 py-2 rounded-lg hover:border-brand-brown hover:text-brand-brown transition text-sm"
+                data-filter="3"
+              >
+                3 Sao
+              </button>
+              <button
+                class="bg-white border border-brand-border text-brand-dark font-medium px-6 py-2 rounded-lg hover:border-brand-brown hover:text-brand-brown transition text-sm"
+                data-filter="2"
+              >
+                2 Sao
+              </button>
+              <button
+                class="bg-white border border-brand-border text-brand-dark font-medium px-6 py-2 rounded-lg hover:border-brand-brown hover:text-brand-brown transition text-sm"
+                data-filter="1"
+              >
+                1 Sao
+              </button>
+            </div>
+          </div>
+
+          <!-- Review Form (Hidden by default, shown via JS if eligible) -->
+          <div
+            id="review-form-container"
+            class="hidden mb-10 bg-white border border-brand-orange/20 rounded-xl p-6 shadow-sm"
+          >
+            <h3 class="font-bold text-brand-dark mb-4 flex items-center gap-2">
+              <svg
+                class="w-5 h-5 text-brand-orange"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                ></path>
+              </svg>
+              Viết đánh giá của bạn
+            </h3>
+            <form id="review-form" class="flex flex-col gap-4">
+              <div class="flex items-center gap-4">
+                <span class="text-sm font-medium text-gray-600"
+                  >Đánh giá của bạn:</span
+                >
+                <div
+                  id="star-rating-input"
+                  class="flex text-gray-300 text-2xl cursor-pointer"
+                >
+                  <span
+                    class="star hover:text-yellow-400 transition"
+                    data-value="1"
+                    >★</span
+                  >
+                  <span
+                    class="star hover:text-yellow-400 transition"
+                    data-value="2"
+                    >★</span
+                  >
+                  <span
+                    class="star hover:text-yellow-400 transition"
+                    data-value="3"
+                    >★</span
+                  >
+                  <span
+                    class="star hover:text-yellow-400 transition"
+                    data-value="4"
+                    >★</span
+                  >
+                  <span
+                    class="star hover:text-yellow-400 transition"
+                    data-value="5"
+                    >★</span
+                  >
+                </div>
+                <input
+                  type="hidden"
+                  name="rating"
+                  id="selected-rating"
+                  value="5"
+                />
+              </div>
+              <textarea
+                name="comment"
+                id="review-comment"
+                rows="4"
+                class="w-full border border-brand-border rounded-lg p-4 outline-none focus:border-brand-orange transition text-sm"
+                placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+              ></textarea>
+              <div class="flex justify-end">
+                <button
+                  type="submit"
+                  class="bg-brand-orange text-white font-bold px-8 py-2.5 rounded-lg hover:bg-orange-700 transition shadow-md text-sm"
+                >
+                  Gửi đánh giá
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="flex flex-col" id="reviews-list-container">
+            <!-- Reviews will be injected by JS -->
+            <div
+              class="py-20 text-center text-gray-400 italic"
+              id="reviews-loading"
+            >
+              Đang tải đánh giá...
+            </div>
+          </div>
+
+          <div
+            class="flex justify-center mt-8 hidden"
+            id="load-more-reviews-container"
+          >
+            <button
+              id="load-more-reviews-btn"
+              class="bg-white border border-brand-border text-brand-dark font-medium px-6 py-2 rounded-lg hover:bg-brand-bg transition flex items-center gap-2 text-sm"
+            >
+              Xem thêm đánh giá
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-white py-12 border-t border-brand-border">
+        <div class="max-w-[1400px] mx-auto px-6">
+          <div
+            class="flex items-center justify-between mb-10 border-b-2 border-brand-bg"
+          >
+            <h2
+              class="text-2xl font-bold text-brand-dark uppercase tracking-wide border-b-2 border-brand-orange pb-3 -mb-[2px] inline-block"
+            >
+              Dành Cho Bạn
+            </h2>
+            <a
+              href="#"
+              class="text-sm font-bold text-brand-brown hover:underline"
+              >Xem thêm</a
+            >
+          </div>
+
+          <div
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 xl:gap-8"
+          >
+            <!-- Dynamic Similar Books Grid -->
+            <th:block th:if="${similarBooks != null}">
+              <div
+                class="product-card group cursor-pointer h-full"
+                th:each="simBook : ${similarBooks}"
+              >
+                <a th:href="@{/book/{id}(id=${simBook.id})}" class="contents">
+                  <div
+                    class="product-card-inner bg-white border border-brand-border p-4 h-full flex flex-col relative shadow-sm"
+                  >
+                    <div
+                      class="relative w-full h-56 bg-brand-brown/10 mb-4 flex items-center justify-center overflow-hidden border border-brand-brown/20"
+                    >
+                      <div
+                        class="book-cover w-3/4 h-5/6 bg-[#34495e] border-[3px] border-white shadow-md flex items-center justify-center text-white text-center font-bold px-2 text-[10px]"
+                        th:text="${simBook.title}"
+                        th:style="'background-color:' + (${simBook.id % 3 == 0} ? '#c0392b' : '#2980b9')"
+                      >
+                        BOOK
+                      </div>
+                    </div>
+                    <div class="flex-grow flex flex-col">
+                      <h3
+                        class="text-sm font-bold text-brand-dark leading-tight mb-2 group-hover:text-brand-brown transition-colors line-clamp-2"
+                        th:text="${simBook.title}"
+                      >
+                        Name
+                      </h3>
+                      <div class="mt-auto flex flex-col gap-1">
+                        <div class="text-brand-dark font-medium text-xs">
+                          Giá:
+                          <span
+                            class="text-brand-orange text-base font-bold"
+                            th:text="${#numbers.formatDecimal(simBook.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"
+                            >100.000đ</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </th:block>
+          </div>
+        </div>
+      </section>
+
+      <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/js/api-service.js?v=2"></script>
+    <script src="/js/chat-service.js?v=2"></script>
+    <script src="/js/chat-ui.js?v=2"></script>
+    <script src="/js/pages/details-page.js?v=2"></script>
+
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      // Inject authentication data from server into localStorage for chat-service.js
+      var serverAuthUserId = /*[[${authUserId}]]*/ null;
+      var serverAuthRole = /*[[${authUserRole}]]*/ null;
+      var serverAuthToken = /*[[${authAccessToken}]]*/ null;
+
+      if (serverAuthUserId) {
+        localStorage.setItem('userId', serverAuthUserId);
+      }
+      if (serverAuthRole) {
+        localStorage.setItem('userRole', serverAuthRole);
+      }
+      if (serverAuthToken) {
+        localStorage.setItem('accessToken', serverAuthToken);
+      }
+
+      // Log để debug - kiểm tra token đã được lưu chưa
+      console.log('[Chat Debug] Auth data injected:', {
+        userId: serverAuthUserId,
+        role: serverAuthRole,
+        hasToken: !!serverAuthToken
+      });
+      /*]]>*/
+    </script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+        // --- LOGIC 1: NÚT TĂNG/GIẢM SỐ LƯỢNG ---
+        const qtyInput = document.getElementById('detail-qty-input');
+        const btnIncrease = document.getElementById('btn-increase-qty');
+        const btnDecrease = document.getElementById('btn-decrease-qty');
+        const addToCartBtn = document.getElementById('detail-add-to-cart-btn');
+        const buyNowBtn = document.getElementById('detail-buy-now-btn');
+
+        // Lấy kho tối đa (Dùng Thymeleaf nhúng thẳng vào JS, nếu null thì mặc định 999)
+        const maxStock = parseInt('[[${book.stockQuantity}]]', 10) || 999;
+        const currentBookId = addToCartBtn ? addToCartBtn.dataset.bookId : null;
+
+        if (btnIncrease && btnDecrease && qtyInput) {
+          btnIncrease.addEventListener('click', () => {
+            let currentVal = parseInt(qtyInput.value, 10);
+            if (currentVal < maxStock) {
+              qtyInput.value = currentVal + 1;
+            } else {
+              alert('Số lượng vượt quá tồn kho hiện tại!');
+            }
+          });
+
+          btnDecrease.addEventListener('click', () => {
+            let currentVal = parseInt(qtyInput.value, 10);
+            if (currentVal > 1) {
+              qtyInput.value = currentVal - 1;
+            }
+          });
+        }
+
+        // --- LOGIC 2: GỌI API LẤY SÁCH MUA KÈM ---
+        if (currentBookId) {
+          loadBoughtTogetherRecommendations(currentBookId);
+        }
+
+        // --- LOGIC 3: CHAT - KHỞI TẠO POPUP VÀ XỬ LÝ NÚT CHAT NGAY ---
+        if (window.ChatUI && typeof window.ChatUI.initBuyerPopup === 'function') {
+          window.ChatUI.initBuyerPopup();
+        } else {
+          console.warn('[Chat Debug] ChatUI.initBuyerPopup not available, retrying...');
+          // Retry after a short delay in case scripts are still loading
+          setTimeout(() => {
+            if (window.ChatUI && typeof window.ChatUI.initBuyerPopup === 'function') {
+              window.ChatUI.initBuyerPopup();
+            } else {
+              console.error('[Chat Debug] ChatUI still not available after retry');
+            }
+          }, 500);
+        }
+
+        // Xử lý sự kiện click nút "Chat Ngay"
+        const chatNowBtn = document.getElementById('chat-now-btn');
+        if (chatNowBtn) {
+          chatNowBtn.addEventListener('click', async () => {
+            // Kiểm tra đăng nhập
+            const { userId } = window.ChatService.getAuth();
+            if (!userId) {
+              window.location.href = '/main/auth';
+              return;
+            }
+
+            const productId = chatNowBtn.dataset.productId;
+            const sellerId = chatNowBtn.dataset.sellerId;
+            const productTitle = chatNowBtn.dataset.productTitle;
+            const productImage = chatNowBtn.dataset.productImage;
+            const productPrice = parseFloat(chatNowBtn.dataset.productPrice || '0');
+
+            if (!sellerId) {
+              alert('Không tìm thấy thông tin người bán');
+              return;
+            }
+
+            try {
+              // Tạo hoặc lấy room chat
+              const result = await window.ChatService.createRoom(
+                      productId, sellerId, productTitle, productImage, productPrice
+              );
+
+              if (result.success && result.data) {
+                const chatId = result.data.chatId || result.data;
+                // Mở popup chat với room này
+                if (window.ChatUI && typeof window.ChatUI.openBuyerChat === 'function') {
+                  await window.ChatUI.openBuyerChat(chatId);
+                }
+              } else {
+                alert('Không thể tạo phòng chat');
+              }
+            } catch (err) {
+              console.error('Chat error:', err);
+              alert('Lỗi kết nối chat: ' + err.message);
+            }
+          });
+        }
+
+        // --- LOGIC 4: KHỞI TẠO ICON CHAT TOÀN CỤC ---
+        if (window.ChatUI && typeof window.ChatUI.initGlobalChatIcon === 'function') {
+          window.ChatUI.initGlobalChatIcon();
+        }
+      });
+
+      // HÀM RENDER SÁCH GỢI Ý (ĐÃ SỬA: KHÔNG DÙNG THYMELEAF, KHÔNG TRÙNG ID)
+      async function loadBoughtTogetherRecommendations(bookId) {
+        const loadingEl = document.getElementById('bought-together-loading');
+        const containerEl = document.getElementById('bought-together-container');
+
+        if (!loadingEl || !containerEl) return;
+
+        try {
+          const books = await ApiService.Recommendation.getBoughtTogether(bookId);
+
+          loadingEl.classList.add('hidden');
+          containerEl.classList.remove('hidden');
+
+          if (!books || books.length === 0) {
+            containerEl.innerHTML = '<p class="text-gray-500 italic col-span-full">Chưa có gợi ý mua kèm cho sách này.</p>';
+            return;
+          }
+
+          let htmlString = '';
+          books.forEach((book, index) => {
+            const price = typeof ApiService.formatVND === 'function' ? ApiService.formatVND(book.price) : (book.price ? book.price.toLocaleString('vi-VN') + 'đ' : '0đ');
+            const imgUrl = book.imageUrl || '/images/default-book.png';
+            const sellerName = book.seller ? book.seller.username || book.seller.shopName || 'Shop' : 'Shop';
+            const sellerInitial = sellerName.substring(0, 1).toUpperCase();
+            const sellerId = book.seller ? book.seller.id : '';
+            const productId = book.id;
+
+            // Dùng class thay vì id để tránh duplicate ID
+            htmlString += `
+              <div class="bg-white rounded-xl border border-brand-border overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div class="p-3">
+                  <div class="w-full aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden mb-3">
+                    <img src="${imgUrl}" alt="${book.title || 'Book'}" class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/200x280?text=No+Cover';">
+                  </div>
+                  <h3 class="text-sm font-bold text-gray-800 truncate mb-1">${book.title || 'Unknown'}</h3>
+                  <div class="text-brand-orange font-bold text-sm">${price}</div>
+                  <div class="flex gap-1 mt-2">
+                    <button class="chat-now-btn-rec flex-1 text-[10px] border border-brand-brown text-brand-brown font-bold py-1.5 px-2 rounded hover:bg-brand-brown/5 transition"
+                            data-product-id="${productId}"
+                            data-seller-id="${sellerId}"
+                            data-product-title="${book.title || ''}"
+                            data-product-image="${imgUrl}"
+                            data-product-price="${book.price || 0}">
+                      Chat Ngay
+                    </button>
+                    <a href="/shop/${sellerId}" class="flex-1 text-[10px] bg-brand-brown text-white font-bold py-1.5 px-2 rounded hover:bg-brand-brown-dark transition text-center">
+                      Xem Shop
+                    </a>
+                  </div>
+                </div>
+              </div>`;
+          });
+
+          containerEl.innerHTML = htmlString;
+
+          // Bind events cho các nút "Chat Ngay" trong recommendations (dùng class, không dùng id)
+          containerEl.querySelectorAll('.chat-now-btn-rec').forEach(btn => {
+            btn.addEventListener('click', async function() {
+              const { userId } = window.ChatService.getAuth();
+              if (!userId) {
+                window.location.href = '/main/auth';
+                return;
+              }
+
+              const pId = this.dataset.productId;
+              const sId = this.dataset.sellerId;
+              const pTitle = this.dataset.productTitle;
+              const pImg = this.dataset.productImage;
+              const pPrice = parseFloat(this.dataset.productPrice || '0');
+
+              if (!sId) {
+                alert('Không tìm thấy thông tin người bán');
+                return;
+              }
+
+              try {
+                const result = await window.ChatService.createRoom(pId, sId, pTitle, pImg, pPrice);
+                if (result.success && result.data) {
+                  const chatId = result.data.chatId || result.data;
+                  if (window.ChatUI && typeof window.ChatUI.openBuyerChat === 'function') {
+                    await window.ChatUI.openBuyerChat(chatId);
+                  }
+                } else {
+                  alert('Không thể tạo phòng chat');
+                }
+              } catch (err) {
+                console.error('Chat error:', err);
+                alert('Lỗi kết nối chat: ' + err.message);
+              }
+            });
+          });
+
+        } catch (error) {
+          console.error("Lỗi tải gợi ý mua kèm:", error);
+          loadingEl.classList.add('hidden');
+        }
+      }
+    </script>
+
+  </body>
+</html>

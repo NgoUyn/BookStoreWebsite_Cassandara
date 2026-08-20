@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/panel_head :: head('BOOKOM SELLER - Tổng quan', true)}"></head>
+<body class="font-sans bg-[#fbfaf8] text-[#5D4037]">
+<div class="flex min-h-screen">
+    <div th:replace="~{fragments/seller_layout :: sidebar(${activeMenu})}"></div>
+    <div class="flex-1 min-w-0">
+        <div th:replace="~{fragments/seller_layout :: header(${pageTitle}, ${pageSubtitle})}"></div>
+        <main class="p-4 md:p-8 space-y-6">
+
+            <!-- ============================================ -->
+            <!-- SECTION 1: STAT CARDS (4 cards hàng ngang)   -->
+            <!-- ============================================ -->
+            <section class="dash-section grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+                <!-- Card 1: Dashboard -->
+                <article class="stat-card rounded-xl border border-[#E5CBB5] bg-white p-5">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#FAF5E8] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-[#D19C74]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-black text-[#5D4037]/60 uppercase tracking-wider">Doanh thu</p>
+                            <p id="stat-revenue" class="mt-1 text-xl md:text-2xl font-black text-[#5D4037] truncate">--</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 2: Order -->
+                <article class="stat-card rounded-xl border border-[#E5CBB5] bg-white p-5">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#FAF5E8] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-[#D19C74]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-black text-[#5D4037]/60 uppercase tracking-wider">Đơn hàng</p>
+                            <p id="stat-orders" class="mt-1 text-xl md:text-2xl font-black text-[#5D4037] truncate">--</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 3: Customer-->
+                <article class="stat-card rounded-xl border border-[#E5CBB5] bg-white p-5">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#FAF5E8] flex items-center justify-center">
+                            <svg class="w-6 h-6 text-[#D19C74]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-black text-[#5D4037]/60 uppercase tracking-wider">Khách hàng</p>
+                            <p id="stat-customers" class="mt-1 text-xl md:text-2xl font-black text-[#5D4037] truncate">--</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 4: Sản phẩm -->
+                <article class="stat-card rounded-xl border border-[#E5CBB5] bg-[#FAF5E8] p-5">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-white flex items-center justify-center">
+                            <svg class="w-6 h-6 text-[#ea580c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-black text-[#5D4037]/60 uppercase tracking-wider">Sản phẩm</p>
+                            <p id="stat-products" class="mt-1 text-xl md:text-2xl font-black text-[#ea580c] truncate">--</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <!-- ============================================ -->
+            <!-- SECTION 2: DOANH THU THEO THỜI GIAN (Bar)    -->
+            <!-- ============================================ -->
+            <section class="dash-section chart-container rounded-xl border border-[#E5CBB5] bg-white p-5 md:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="text-base md:text-lg font-black text-[#5D4037]">📈 Doanh thu theo thời gian</h3>
+                        <p class="text-xs text-[#5D4037]/50 font-bold mt-0.5">Biểu đồ doanh thu theo ngày</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="period-week" class="period-btn active-period px-4 py-1.5 rounded-lg border border-[#E5CBB5] text-xs font-black text-[#5D4037] bg-white">
+                            7 ngày
+                        </button>
+                        <button id="period-month" class="period-btn px-4 py-1.5 rounded-lg border border-[#E5CBB5] text-xs font-black text-[#5D4037] bg-white">
+                            30 ngày
+                        </button>
+                    </div>
+                </div>
+                <div class="relative" style="height: 280px;">
+                    <canvas id="revenue-bar-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- ============================================ -->
+            <!-- SECTION 3: 2 DOUGHNUT CHARTS CẠNH NHAU       -->
+            <!-- ============================================ -->
+            <section class="dash-section grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <!-- Doughnut 1: Trạng thái đơn hàng -->
+                <article class="chart-container rounded-xl border border-[#E5CBB5] bg-white p-5 md:p-6">
+                    <h3 class="text-base md:text-lg font-black text-[#5D4037] mb-1">🍩 Trạng thái đơn hàng</h3>
+                    <p class="text-xs text-[#5D4037]/50 font-bold mb-4">Phân bố đơn hàng theo trạng thái</p>
+                    <div class="relative" style="height: 260px;">
+                        <canvas id="order-status-doughnut"></canvas>
+                    </div>
+                </article>
+
+                <!-- Doughnut 2: Thể loại sách đã bán -->
+                <article class="chart-container rounded-xl border border-[#E5CBB5] bg-white p-5 md:p-6">
+                    <h3 class="text-base md:text-lg font-black text-[#5D4037] mb-1">🍩 Thể loại sách đã bán</h3>
+                    <p class="text-xs text-[#5D4037]/50 font-bold mb-4">Số lượng sách đã bán theo thể loại</p>
+                    <div class="relative" style="height: 260px;">
+                        <canvas id="category-doughnut"></canvas>
+                    </div>
+                </article>
+            </section>
+
+            <!-- ============================================ -->
+            <!-- SECTION 4: TĂNG TRƯỞNG KHÁCH HÀNG (Bar)     -->
+            <!-- ============================================ -->
+            <section class="dash-section chart-container rounded-xl border border-[#E5CBB5] bg-white p-5 md:p-6">
+                <h3 class="text-base md:text-lg font-black text-[#5D4037] mb-1">👥 Tăng trưởng khách hàng</h3>
+                <p class="text-xs text-[#5D4037]/50 font-bold mb-4">Khách mới vs Khách cũ theo tháng (6 tháng gần nhất)</p>
+                <div class="relative" style="height: 280px;">
+                    <canvas id="customer-growth-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- ============================================ -->
+            <!-- SECTION 5: DOANH THU THEO THÁNG (Line)       -->
+            <!-- ============================================ -->
+            <section class="dash-section chart-container rounded-xl border border-[#E5CBB5] bg-white p-5 md:p-6">
+                <h3 class="text-base md:text-lg font-black text-[#5D4037] mb-1">📈 Tăng trưởng doanh thu theo tháng</h3>
+                <p class="text-xs text-[#5D4037]/50 font-bold mb-4">Doanh thu và số đơn hàng theo từng tháng</p>
+                <div class="relative" style="height: 300px;">
+                    <canvas id="monthly-revenue-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- ============================================ -->
+            <!-- FOOTER: Last refresh info                     -->
+            <!-- ============================================ -->
+            <div class="text-center text-xs text-[#5D4037]/40 font-bold py-2">
+                <span>Cập nhật lần cuối: </span>
+                <span id="last-refresh-time">--:--:--</span>
+                <span class="mx-2">•</span>
+                <span>Tự động làm mới mỗi 60 giây</span>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script th:src="@{/js/api-service.js}"></script>
+<script th:src="@{/js/seller-dashboard-charts.js}"></script>
+<script>
+(function() {
+    'use strict';
+    const API_ROOT = '/api';
+
+    function loadMLData() {
+        var userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        fetch(API_ROOT + '/seller/customers', {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Id': userId
+            }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var customers = Array.isArray(data) ? data : [];
+            if (customers.length > 0) {
+                var churnRisk = customers.filter(function(c) { return c.riskLevel === 'HIGH'; }).length;
+                var safe = customers.filter(function(c) { return c.riskLevel === 'LOW'; }).length;
+                var analyzed = customers.filter(function(c) { return c.predictedLabel !== null && c.predictedLabel !== undefined; }).length;
+
+                console.log('%c🧠 ML Customer Analysis (Seller Dashboard)', 'font-size:16px; font-weight:bold; color:#ea580c;');
+                console.log('📊 Tổng KH: ' + customers.length + ' | Đã phân tích: ' + analyzed + ' | Nguy cơ rời bỏ: ' + churnRisk + ' | An toàn: ' + safe);
+                console.table(customers.map(function(c) {
+                    return {
+                        Name: c.username || 'N/A',
+                        Label: c.predictedLabel,
+                        Risk: c.riskLevel,
+                        ChurnProb: c.churnProbability ? (c.churnProbability * 100).toFixed(1) + '%' : '--',
+                        Strategy: getStrategy(c.predictedLabel, c.riskLevel)
+                    };
+                }));
+            }
+        })
+        .catch(function(err) {
+            console.log('%c⚠ ML data not available: ' + err.message, 'color:orange');
+        });
+    }
+
+    function getStrategy(predictedLabel, riskLevel) {
+        var s = {
+            '0_LOW': '🎁 Voucher tri ân',
+            '0_HIGH': '📧 Gửi email khuyến mãi',
+            '1_LOW': '🔥 Giảm giá đặc biệt',
+            '1_HIGH': '📞 Can thiệp ngay'
+        };
+        return s[predictedLabel + '_' + riskLevel] || '📊 Theo dõi';
+    }
+
+    setTimeout(loadMLData, 2000);
+})();
+</script>
+</body>
+REPLACE
+</html>

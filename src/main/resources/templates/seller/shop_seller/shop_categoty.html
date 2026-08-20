@@ -1,0 +1,77 @@
+<section th:fragment="shop_categoty" class="max-w-[1400px] mx-auto px-6 pb-16 flex flex-col lg:flex-row gap-8">
+
+    <!--Lọc-->
+    <aside class="w-full lg:w-1/4 xl:w-1/5 flex-shrink-0">
+        <div class="bg-white border border-brand-border rounded-2xl p-6 shadow-premium sticky top-36">
+
+            <div class="flex items-center gap-2 mb-6 text-brand-dark border-b-2 border-brand-orange pb-3 inline-flex">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                <h2 class="text-lg font-bold uppercase tracking-wide">Danh Mục Shop</h2>
+            </div>
+
+            <!-- Danh mục - JS render động -->
+            <div class="mb-8">
+                <ul id="category-list" class="space-y-4 text-sm font-semibold text-brand-dark">
+                    <!-- "Tất cả sản phẩm" luôn hiển thị đầu tiên -->
+                    <li>
+                        <a href="#" id="filter-category-all"
+                           class="flex items-center justify-between text-brand-brown group"
+                           data-category-id="all">
+                            <span class="flex items-center gap-3">
+                                <span class="w-1.5 h-1.5 rounded-full bg-brand-brown"></span>
+                                Tất cả sản phẩm
+                            </span>
+                            <span id="category-all-count" class="text-xs bg-brand-hero px-2 py-0.5 rounded-full">0</span>
+                        </a>
+                    </li>
+                    <!-- Các danh mục khác sẽ được JS render vào đây -->
+                </ul>
+            </div>
+
+            <hr class="border-brand-border mb-6">
+
+            <!-- Khoảng Giá -->
+            <div class="mb-8">
+                <h3 class="font-bold text-brand-dark mb-4 text-sm uppercase">Khoảng Giá</h3>
+                <div class="flex items-center gap-2 mb-4">
+                    <input type="number" id="price-min" placeholder="Từ"
+                           class="w-full border border-brand-border rounded px-3 py-2 text-sm outline-none focus:border-brand-brown bg-brand-bg"
+                           min="0">
+                    <span class="text-gray-400">-</span>
+                    <input type="number" id="price-max" placeholder="Đến"
+                           class="w-full border border-brand-border rounded px-3 py-2 text-sm outline-none focus:border-brand-brown bg-brand-bg"
+                           min="0">
+                </div>
+                <button id="btn-apply-price"
+                        class="w-full bg-white border-2 border-brand-brown text-brand-brown font-bold text-sm py-2 rounded hover:bg-brand-brown hover:text-white transition-colors">
+                    Áp Dụng
+                </button>
+            </div>
+
+            <hr class="border-brand-border mb-6">
+
+            <!-- Đánh giá -->
+            <div>
+                <h3 class="font-bold text-brand-dark mb-4 text-sm uppercase">Đánh giá</h3>
+                <ul class="space-y-3">
+                    <li>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" id="rating-5" class="custom-cb" value="5">
+                            <div class="flex text-yellow-400 text-sm tracking-widest">★★★★★</div>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" id="rating-4" class="custom-cb" value="4">
+                            <div class="flex text-yellow-400 text-sm tracking-widest">★★★★<span class="text-gray-300">★</span></div>
+                            <span class="text-sm text-gray-500">trở lên</span>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </aside>
+    <!--shop_product-->
+    <div th:replace="~{seller/shop_seller/shop_product :: shop_product}"></div>
+</section>

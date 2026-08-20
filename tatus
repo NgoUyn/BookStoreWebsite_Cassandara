@@ -1,0 +1,107 @@
+[33mcommit 2e43869b06f74a041135994251a96823de333f63[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32muyen_sp[m[33m)[m
+Merge: 04b7c45 af4e147
+Author: NgoUyn <uyngo1234@gmail.com>
+Date:   Mon May 25 19:55:36 2026 +0700
+
+    Merge remote-tracking branch 'origin/uyen_sp' into uyen_sp
+    
+    # Conflicts:
+    #       src/main/java/com/example/bookstore/controller/OrderController.java
+    #       src/main/java/com/example/bookstore/controller/PanelPageController.java
+    #       src/main/java/com/example/bookstore/dto/SubOrderSummaryResponse.java
+    #       src/main/java/com/example/bookstore/model/Book.java
+    #       src/main/java/com/example/bookstore/model/SubOrder.java
+    #       src/main/java/com/example/bookstore/model/enums/PaymentStatus.java
+    #       src/main/java/com/example/bookstore/service/OrderService.java
+    #       src/main/java/com/example/bookstore/service/SellerShopService.java
+    #       src/main/resources/application.properties
+    #       src/main/resources/static/js/api-service.js
+    #       src/main/resources/static/js/pages/checkout-page.js
+    #       src/main/resources/static/js/panel-data.js
+    #       src/main/resources/templates/fragments/admin_layout.html
+    #       src/main/resources/templates/main/Auth_Page.html
+    #       src/main/resources/templates/seller/Seller_Dashboard.html
+    #       src/main/resources/templates/seller/Seller_Orders.html
+    #       src/test/java/com/example/bookstore/controller/OrderControllerTest.java
+    #       src/test/java/com/example/bookstore/service/OrderServiceSecurityAndOwnershipTest.java
+
+[1mdiff --cc src/main/java/com/example/bookstore/repository/BookRepository.java[m
+[1mindex 6d1ff90,d3662a3..2d6baa0[m
+[1m--- a/src/main/java/com/example/bookstore/repository/BookRepository.java[m
+[1m+++ b/src/main/java/com/example/bookstore/repository/BookRepository.java[m
+[36m@@@ -17,18 -18,9 +17,20 @@@[m [mpublic interface BookRepository extend[m
+      List<Book> findByTitleContaining(String title);[m
+  [m
+      List<Book> findBySeller(User seller);[m
+[32m+     @Query("SELECT b FROM Book b LEFT JOIN FETCH b.category WHERE b.seller = :seller")[m
+[32m+     List<Book> findBySellerWithCategory(@Param("seller") User seller);[m
+  [m
+[32m +    @Query("SELECT b.approvalStatus FROM Book b WHERE b.id = :bookId")[m
+[32m +    ApprovalStatus findApprovalStatusById(@Param("bookId") Long bookId);[m
+[32m +[m
+[32m +    @Query("""[m
+[32m +            SELECT CASE WHEN COUNT(b) > 0 THEN TRUE ELSE FALSE END[m
+[32m +            FROM Book b[m
+[32m +            WHERE b.id = :bookId[m
+[32m +              AND b.seller.id = :sellerId[m
+[32m +            """)[m
+[32m +    boolean existsByIdAndSellerId(@Param("bookId") Long bookId, @Param("sellerId") Long sellerId);[m
+[32m +[m
+      // S02: Lấy sách theo trạng thái (Có phân trang cho Admin)[m
+      Page<Book> findByApprovalStatus(ApprovalStatus approvalStatus, Pageable pageable);[m
+  [m
+[1mdiff --cc src/main/resources/static/js/api-service.js[m
+[1mindex 4cd29c7,20af03d..9a8c6d9[m
+[1m--- a/src/main/resources/static/js/api-service.js[m
+[1m+++ b/src/main/resources/static/js/api-service.js[m
+[36m@@@ -555,10 -555,7 +555,10 @@@[m [mconst ApiService = (() => [m
+          /**[m
+           * Checkout từ giỏ hàng[m
+           */[m
+[31m -        checkout: async (shippingAddress) => {[m
+[32m +        checkout: async (shippingAddress, couponCode = null) => {[m
+[32m +            const body = { shippingAddress };[m
+[32m +            if (couponCode) body.couponCode = couponCode;[m
+[31m-             [m
+[32m++[m
+              const response = await fetch(`${API_BASE}/orders/me/checkout`, {[m
+                  method: 'POST',[m
+                  headers: getHeaders(),[m
+[36m@@@ -612,23 -609,21 +612,36 @@@[m
+              return handleResponse(response);[m
+          },[m
+  [m
+[32m+         /**[m
+[32m+          * Lấy analytics doanh thu và tồn kho của seller[m
+[32m+          */[m
+[32m+         getSellerAnalytics: async (days = 30, sellerId = null) => {[m
+[32m+             const url = sellerId[m
+[32m+                 ? `${API_BASE}/orders/seller/${sellerId}/analytics?days=${days}`[m
+[32m+                 : `${API_BASE}/orders/seller/me/analytics?days=${days}`;[m
+[32m+             const response = await fetch(url, {[m
+[32m+                 headers: getHeaders()[m
+[32m+             });[m
+[32m+             return response.json();[m
+[32m+         },[m
+[32m+ [m
+          /**[m
+[31m -         * Cập nhật trạng thái sub-order[m
+[32m +         * Xác nhận sub-order - tự động chuyển trạng thái theo luồng:[m
+[32m +         * PROCESSING -> CONFIRMED -> SHIPPING -> COMPLETED[m
+[32m +         */[m
+[32m +        confirmSubOrder: async (subOrderId) => {[m
+[32m +            const response = await fetch([m
+[32m +                `${API_BASE}/orders/sub-orders/${subOrderId}/confirm`,[m
+[32m +                {[m
+[32m +                    method: 'POST',[m
+[32m +                    headers: getHeaders()[m
+[32m +                }[m
+[32m +            );[m
+[32m +            return handleResponse(response);[m
+[32m +        },[m
+[32m +[m
+[32m +        /**[m
+[32m +         * Cập nhật trạng thái sub-order (dùng cho hủy đơn)[m
+           */[m
+          updateSubOrderStatus: async (subOrderId, status) => {[m
+              const response = await fetch([m

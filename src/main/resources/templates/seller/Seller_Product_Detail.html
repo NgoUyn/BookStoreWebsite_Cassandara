@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOKOM - Quản lý Sản Phẩm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@1.7.0/dist/flowbite.bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-brown': '#cda27a',
+                        'brand-dark': '#4a3b32',
+                        'brand-bg': '#f1f5f9',
+                        'brand-orange': '#ea580c',
+                        'brand-border': '#e2e8f0',
+                    },
+                    fontFamily: { sans: ['Quicksand', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-bg font-sans text-brand-dark flex h-screen overflow-hidden">
+
+<main class="flex-1 flex flex-col h-full overflow-hidden">
+    <header class="h-20 bg-white border-b border-brand-border flex items-center justify-between px-8 z-10 shadow-sm sticky top-0">
+        <div class="flex items-center gap-4">
+            <a th:href="@{/seller/inventory}" class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200 transition text-slate-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </a>
+            <div>
+                <h1 id="page-title" class="text-xl font-black">Thêm sách mới</h1>
+                <p id="sku-display" class="text-xs font-bold text-slate-400">Hệ thống tự tạo SKU</p>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <a th:href="@{/seller/inventory}" class="px-6 py-2.5 bg-white border border-brand-border text-slate-600 font-bold rounded-lg shadow-sm hover:bg-slate-50 transition">Hủy bỏ</a>
+            <button id="btn-save-book" class="px-6 py-2.5 bg-brand-orange text-white font-bold rounded-lg shadow-md hover:bg-orange-700 transition hover:scale-105 active:scale-95">Lưu sản phẩm</button>
+        </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-8">
+        <form id="book-form" class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+
+            <div class="w-full lg:w-1/3 space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-brand-border shadow-sm">
+                    <h3 class="font-black text-sm uppercase tracking-widest text-slate-500 mb-4">Hình ảnh bìa</h3>
+
+                    <label for="book-image" class="aspect-[3/4] w-full bg-slate-100 border-2 border-dashed border-brand-brown rounded-xl flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-50 transition group relative overflow-hidden">
+
+                        <div id="image-placeholder" class="flex flex-col items-center gap-2">
+                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            <span class="font-bold text-sm">Click để chọn ảnh</span>
+                        </div>
+
+                        <img id="image-preview" src="" alt="Preview" class="absolute inset-0 w-full h-full object-cover hidden">
+
+                        <input type="file" id="book-image" name="file" accept="image/*" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-2/3 space-y-6">
+                <div class="bg-white p-8 rounded-2xl border border-brand-border shadow-sm">
+                    <h3 class="font-black text-sm uppercase tracking-widest text-slate-500 mb-6 border-b pb-4">Thông tin cơ bản</h3>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-500 mb-2">Tên sách <span class="text-red-500">*</span></label>
+                            <input type="text" id="book-title" placeholder="Nhập tên sách..." class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none focus:border-brand-orange font-bold text-brand-dark bg-slate-50 focus:bg-white transition">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-xs font-black uppercase text-slate-500 mb-2">Tác giả</label>
+                                <input type="text" id="book-author" placeholder="Tên tác giả..." class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none focus:border-brand-orange font-bold text-brand-dark bg-slate-50 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black uppercase text-slate-500 mb-2">Danh mục</label>
+                                <select id="book-category" class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none focus:border-brand-orange font-bold text-brand-dark bg-slate-50 focus:bg-white transition">
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-500 mb-2">Mô tả chi tiết</label>
+                            <textarea id="book-description" placeholder="Mô tả nội dung sách..." class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none focus:border-brand-orange font-medium text-sm bg-slate-50 focus:bg-white transition h-32"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl border border-brand-border shadow-sm">
+                    <h3 class="font-black text-sm uppercase tracking-widest text-slate-500 mb-6 border-b pb-4">Giá & Kho</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-500 mb-2">Giá bán (VNĐ) <span class="text-red-500">*</span></label>
+                            <input type="number" id="book-price" placeholder="0" class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none focus:border-brand-orange font-black text-brand-orange bg-orange-50/20">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-500 mb-2">Số lượng tồn kho <span class="text-red-500">*</span></label>
+                            <input type="number" id="book-stock" placeholder="0" class="w-full px-4 py-3 rounded-lg border border-slate-200 outline-none focus:border-brand-orange font-black text-brand-dark bg-slate-50">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script th:src="@{/js/api-service.js}"></script>
+<script th:src="@{/js/product_detail.js}"></script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/panel_head :: head(${pageTitle}, true)}"></head>
+<body class="font-sans bg-[#fbfaf8] text-[#5D4037]">
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/admin_layout :: sidebar(${activeMenu})}"></div>
+
+    <!-- Main Content -->
+    <div class="flex-1 min-w-0">
+        <!-- Header -->
+        <div th:replace="~{fragments/admin_layout :: header(${pageTitle}, ${pageSubtitle})}"></div>
+
+        <main class="p-4 md:p-8 space-y-8 animate-fadeIn">
+            <!-- Alert/Error Box -->
+            <div id="admin-error" class="hidden rounded-lg bg-rose-50 p-4 text-sm text-rose-600 border border-rose-200"></div>
+
+            <!-- Dashboard Controls -->
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-extrabold tracking-tight">Thống kê tổng quan</h2>
+                <div class="flex items-center gap-3">
+                    <div id="admin-loader" class="hidden">
+                        <svg class="animate-spin h-5 w-5 text-[#ea580c]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </div>
+                    <button id="btn-refresh" class="flex items-center gap-2 rounded-xl bg-white border border-[#E5CBB5] px-4 py-2 text-sm font-bold shadow-sm hover:bg-[#FAF5E8] transition-all">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                        Làm mới
+                    </button>
+                </div>
+            </div>
+
+            <!-- Metrics Cards -->
+            <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <!-- GMV Card -->
+                <article class="relative overflow-hidden rounded-2xl border border-[#E5CBB5] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tổng doanh số (GMV)</p>
+                            <p id="metric-gmv" class="text-2xl font-black text-[#5D4037]">--</p>
+                        </div>
+                    </div>
+                    <div class="absolute -right-2 -bottom-2 opacity-5 text-emerald-600">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                </article>
+
+                <!-- Books Card -->
+                <article class="relative overflow-hidden rounded-2xl border border-[#E5CBB5] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tổng số sách</p>
+                            <p id="metric-books" class="text-2xl font-black text-[#5D4037]">--</p>
+                        </div>
+                    </div>
+                    <div class="absolute -right-2 -bottom-2 opacity-5 text-blue-600">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    </div>
+                </article>
+
+                <!-- Categories Card -->
+                <article class="relative overflow-hidden rounded-2xl border border-[#E5CBB5] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Danh mục</p>
+                            <p id="metric-categories" class="text-2xl font-black text-[#5D4037]">--</p>
+                        </div>
+                    </div>
+                    <div class="absolute -right-2 -bottom-2 opacity-5 text-amber-600">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </div>
+                </article>
+
+                <!-- Shops Card -->
+                <article class="relative overflow-hidden rounded-2xl border border-[#E5CBB5] bg-[#FAF5E8] p-6 shadow-sm hover:shadow-md transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#ea580c]/10 text-[#ea580c]">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-[#ea580c]/70 uppercase tracking-wider">Gian hàng</p>
+                            <p id="metric-shops" class="text-2xl font-black text-[#ea580c]">--</p>
+                        </div>
+                    </div>
+                    <div class="absolute -right-2 -bottom-2 opacity-5 text-[#ea580c]">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <!-- Bar Chart -->
+                <article class="rounded-2xl border border-[#E5CBB5] bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-black tracking-tight">Số lượng sách theo danh mục</h3>
+                        <span class="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-black uppercase text-blue-600">Thống kê thực tế</span>
+                    </div>
+                    <div class="relative h-[300px]">
+                        <canvas id="admin-category-chart"></canvas>
+                    </div>
+                </article>
+
+                <!-- Pie Chart -->
+                <article class="rounded-2xl border border-[#E5CBB5] bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-black tracking-tight">Trạng thái tồn kho</h3>
+                        <span class="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-black uppercase text-amber-600">Phân loại kho</span>
+                    </div>
+                    <div class="relative h-[300px] flex items-center justify-center">
+                        <canvas id="admin-stock-chart"></canvas>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Top Shops Table -->
+            <section class="rounded-2xl border border-[#E5CBB5] bg-white shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-[#E5CBB5] flex items-center justify-between bg-[#FAF5E8]/30">
+                    <div>
+                        <h3 class="text-lg font-black tracking-tight">Danh sách gian hàng tiêu biểu</h3>
+                        <p class="text-xs font-bold text-gray-500 mt-1">Dựa trên dữ liệu tác giả từ kho sách</p>
+                    </div>
+                    <a th:href="@{/admin/shops}" class="rounded-xl border border-[#E5CBB5] bg-white px-4 py-2 text-xs font-black text-[#ea580c] hover:bg-[#FAF5E8] transition-all flex items-center gap-2 shadow-sm">
+                        Xem tất cả
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-[#FAF5E8] text-[#5D4037]/70 border-b border-[#E5CBB5]">
+                        <tr>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Tên gian hàng</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Chủ sở hữu</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Mã số thuế</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Ngày gia nhập</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px] text-right">Trạng thái</th>
+                        </tr>
+                        </thead>
+                        <tbody id="admin-dashboard-shops" class="divide-y divide-[#E5CBB5]">
+                            <tr><td colspan="5" class="px-6 py-10 text-center text-gray-400 font-bold">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+</style>
+
+<script th:src="@{/js/panel-data.js}"></script>
+<script>
+  (function(){
+    function showLoading(v){ 
+        var el = document.getElementById('admin-loader'); 
+        if(el) el.classList.toggle('hidden', !v); 
+    }
+    function showError(msg){ 
+        var el = document.getElementById('admin-error'); 
+        if(el) {
+            el.textContent = msg || '';
+            el.classList.toggle('hidden', !msg);
+        }
+    }
+    function load(notify){ 
+        showError(''); 
+        showLoading(true); 
+        return BookomPanelData.initAdminDashboard().then(function(){ 
+            if(notify) window.BookomToast.success('Dữ liệu đã được cập nhật mới nhất'); 
+        }).catch(function(e){ 
+            var msg = e && e.message ? e.message : 'Lỗi khi tải dữ liệu từ hệ thống'; 
+            showError(msg); 
+            window.BookomToast.error(msg); 
+        }).finally(function(){ 
+            showLoading(false); 
+        }); 
+    }
+    document.getElementById('btn-refresh')?.addEventListener('click', function(){ load(true); });
+    load();
+  })();
+</script>
+</body>
+</html>

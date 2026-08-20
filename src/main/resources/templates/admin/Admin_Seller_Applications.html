@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Duyệt người bán</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: '#111827',
+                        cream: '#F8F5EF',
+                        sand: '#E8DCC6',
+                        gold: '#B97A2A',
+                        coral: '#C75D4B',
+                        sea: '#2E6F73'
+                    },
+                    boxShadow: {
+                        soft: '0 20px 50px rgba(17,24,39,.12)'
+                    }
+                }
+            }
+        };
+    </script>
+    <script src="/js/api-service.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(185,122,42,.16), transparent 30%),
+                radial-gradient(circle at top right, rgba(46,111,115,.12), transparent 26%),
+                linear-gradient(180deg, #f8f5ef 0%, #f4efe6 100%);
+            color: #111827;
+        }
+        .panel-card {
+            backdrop-filter: blur(12px);
+            background: rgba(255,255,255,.78);
+            border: 1px solid rgba(17,24,39,.08);
+        }
+        .table-head th {
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            font-size: .72rem;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: .35rem .7rem;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .badge-warn { background: #FEF3C7; color: #92400E; }
+        .badge-success { background: #DCFCE7; color: #166534; }
+        .badge-danger { background: #FEE2E2; color: #991B1B; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .4rem;
+            border-radius: .9rem;
+            padding: .62rem .95rem;
+            font-weight: 700;
+            transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+        .btn-primary {
+            background: linear-gradient(135deg, #111827 0%, #2E6F73 100%);
+            color: white;
+            box-shadow: 0 10px 20px rgba(46,111,115,.18);
+        }
+        .btn-ghost {
+            background: white;
+            color: #111827;
+            border: 1px solid rgba(17,24,39,.12);
+        }
+        .input, .select {
+            width: 100%;
+            border: 1px solid rgba(17,24,39,.15);
+            border-radius: .9rem;
+            padding: .8rem 1rem;
+            background: rgba(255,255,255,.92);
+            outline: none;
+        }
+        .input:focus, .select:focus {
+            border-color: #2E6F73;
+            box-shadow: 0 0 0 4px rgba(46,111,115,.12);
+        }
+        tbody tr {
+            transition: background .15s ease;
+        }
+        tbody tr:hover { background: rgba(232,220,198,.18); }
+        .muted-col, .time-col, .mono-col { white-space: nowrap; }
+        .action-col { display: flex; gap: .5rem; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+<div class="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="panel-card shadow-soft rounded-3xl overflow-hidden">
+        <div class="p-6 sm:p-8 border-b border-black/5">
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div class="space-y-3 max-w-3xl">
+                    <div class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 border border-black/5 shadow-sm w-fit">
+                        <span class="h-2.5 w-2.5 rounded-full bg-gold"></span>
+                        <span class="text-sm font-semibold text-ink/75">Admin · Seller approval</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-ink">Duyệt yêu cầu trở thành người bán</h1>
+                    <p class="text-sm sm:text-base text-ink/65 max-w-2xl" id="summary">Đang tải dữ liệu…</p>
+                </div>
+
+                <form id="searchForm" class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto lg:min-w-[760px]">
+                    <div class="flex-1">
+                        <input id="searchInput" class="input" type="text" placeholder="Tìm theo tên shop, slug, email, username…">
+                    </div>
+                    <button id="clearBtn" type="button" class="btn btn-ghost sm:w-auto">Xoá lọc</button>
+                    <button type="submit" class="btn btn-primary sm:w-auto">Tìm kiếm</button>
+                </form>
+            </div>
+
+            <div class="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-semibold text-ink/65">Số dòng / trang</span>
+                    <select id="sizeSelect" class="select w-28">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button id="prevBtn" type="button" class="btn btn-ghost">← Trang trước</button>
+                    <span id="pageInfo" class="px-4 py-2 rounded-full bg-white/90 border border-black/5 text-sm font-semibold">Trang 0 / 0</span>
+                    <button id="nextBtn" type="button" class="btn btn-ghost">Trang sau →</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tableContainer" class="p-4 sm:p-6">
+            <div id="loadingState" class="hidden items-center justify-center py-16 text-ink/60">
+                <div class="flex items-center gap-3">
+                    <div class="h-4 w-4 rounded-full bg-sea animate-pulse"></div>
+                    <span>Đang tải danh sách ứng dụng…</span>
+                </div>
+            </div>
+
+            <div id="emptyState" class="hidden rounded-2xl border border-dashed border-black/10 bg-white/70 px-6 py-14 text-center text-ink/60">
+                Không có yêu cầu nào phù hợp.
+            </div>
+
+            <div id="tableWrap" class="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-black/5">
+                        <thead class="table-head bg-ink text-white">
+                            <tr>
+                                <th class="px-4 py-4 text-left">#</th>
+                                <th class="px-4 py-4 text-left">Shop</th>
+                                <th class="px-4 py-4 text-left">Người gửi</th>
+                                <th class="px-4 py-4 text-left">Email</th>
+                                <th class="px-4 py-4 text-left">Slug</th>
+                                <th class="px-4 py-4 text-left">Địa chỉ</th>
+                                <th class="px-4 py-4 text-left">Trạng thái</th>
+                                <th class="px-4 py-4 text-left">Lý do từ chối</th>
+                                <th class="px-4 py-4 text-left">Ngày gửi</th>
+                                <th class="px-4 py-4 text-left">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applicationsTbody" class="divide-y divide-black/5 bg-white"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Reject Reason Modal -->
+<div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full">
+        <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+            <h2 class="text-lg font-bold">Từ chối yêu cầu</h2>
+            <button id="rejectModalClose" class="text-gray-500 hover:text-black">✕</button>
+        </div>
+        <div class="p-6 space-y-4">
+            <p class="text-sm text-gray-600">Nhập lý do từ chối (không bắt buộc). Người bán sẽ nhận email và thông báo trong ứng dụng.</p>
+            <textarea id="rejectReasonInput" rows="6" class="input p-3 w-full" placeholder="Lý do từ chối..."></textarea>
+            <div id="rejectFeedback" class="text-sm text-red-600"></div>
+            <div class="flex gap-3 justify-end">
+                <button id="rejectModalCancel" class="btn btn-ghost">Hủy</button>
+                <button id="rejectModalSubmit" class="btn btn-primary">Gửi & Từ chối</button>
+            </div>
+            <div id="resendOptions" class="mt-4 hidden">
+                <p class="text-sm font-semibold">Không gửi được email. Bạn có thể:</p>
+                <div class="flex gap-2 mt-2">
+                    <button id="resendEmailBtn" class="btn btn-primary">Gửi lại Email</button>
+                    <button id="resendNotificationBtn" class="btn btn-ghost">Gửi lại Thông báo</button>
+                </div>
+                <div id="resendStatus" class="text-sm mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/js/admin-seller-apps.js"></script>
+<script>
+    // Gọi trực tiếp hàm khởi tạo
+    window.initSellerApplicationsPage();
+</script>
+</body>
+</html>

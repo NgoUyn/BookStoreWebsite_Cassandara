@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOKOM - Cửa Hàng Sách Nhã Nam (Premium Shop)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@1.7.0/dist/flowbite.bundle.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-brown': '#cda27a',    /* Nâu chủ đạo */
+                        'brand-brown-dark': '#b58d67', /* Nâu đậm khi hover */
+                        'brand-dark': '#4a3b32',     /* Text chính */
+                        'brand-hero': '#f4d9c0',     /* Nền sáng */
+                        'brand-bg': '#fbfaf8',       /* Nền tổng thể trang rất sáng và sạch */
+                        'brand-orange': '#d96a4a',   /* Giá tiền, Nổi bật */
+                        'brand-border': '#eaddcf',   /* Viền nhạt */
+                        'brand-white': '#ffffff',
+                    },
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'premium': '0 4px 20px -2px rgba(74, 59, 50, 0.08)',
+                        'premium-hover': '0 15px 35px -5px rgba(74, 59, 50, 0.15)',
+                        'float': '0 10px 30px 0 rgba(0, 0, 0, 0.05)',
+                        'inner-light': 'inset 0 2px 4px 0 rgba(255, 255, 255, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Tùy chỉnh thanh cuộn tổng thể */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #fbfaf8; }
+        ::-webkit-scrollbar-thumb { background: #cda27a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b58d67; }
+
+        /* Tùy chỉnh thanh cuộn cho Sidebar */
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+
+        /* Hiệu ứng thẻ sản phẩm Premium */
+        .product-card-inner {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .product-card:hover .product-card-inner {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px -5px rgba(74, 59, 50, 0.12);
+            border-color: #cda27a;
+        }
+
+        /* Hiệu ứng ảnh bìa sách */
+        .book-cover { transition: transform 0.6s ease; }
+        .product-card:hover .book-cover { transform: scale(1.08) rotate(-1deg); }
+
+        /* Nút thao tác nhanh (Add to cart, Quick View) */
+        .quick-action-group {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.3s ease-in-out;
+        }
+        .product-card:hover .quick-action-group {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Checkbox Custom Premium */
+        input[type="checkbox"].custom-cb {
+            appearance: none; background-color: #fff; margin: 0;
+            width: 1.2em; height: 1.2em;
+            border: 1.5px solid #eaddcf; border-radius: 4px;
+            display: grid; place-content: center; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        input[type="checkbox"].custom-cb:hover { border-color: #cda27a; }
+        input[type="checkbox"].custom-cb::before {
+            content: ""; width: 0.7em; height: 0.7em;
+            transform: scale(0); transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em #ffffff; background-color: #ffffff;
+            transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        input[type="checkbox"].custom-cb:checked { background-color: #cda27a; border-color: #cda27a; }
+        input[type="checkbox"].custom-cb:checked::before { transform: scale(1); }
+
+        /* Banner Shop Mask */
+        .shop-banner-mask {
+            background: linear-gradient(to top, rgba(74, 59, 50, 0.9) 0%, rgba(74, 59, 50, 0.4) 50%, rgba(74, 59, 50, 0.1) 100%);
+        }
+
+        /* Ticket Voucher Shape */
+        .voucher-ticket {
+            position: relative;
+            background: #ffffff;
+            border: 1px solid #eaddcf;
+        }
+        .voucher-ticket::before, .voucher-ticket::after {
+            content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; background-color: #fbfaf8; border-radius: 50%;
+            border: 1px solid #eaddcf;
+        }
+        .voucher-ticket::before { left: -9px; border-right-color: transparent; border-top-color: transparent; transform: translateY(-50%) rotate(45deg); }
+        .voucher-ticket::after { right: -9px; border-left-color: transparent; border-bottom-color: transparent; transform: translateY(-50%) rotate(45deg); }
+    </style>
+</head>
+<body class="bg-brand-bg font-sans text-brand-dark flex flex-col min-h-screen selection:bg-brand-brown selection:text-white">
+
+<div id="shop-host" th:attr="data-slug=${shopSlug}" style="display:none"></div>
+
+<!-- Auth data injected from server for JS -->
+<script th:inline="javascript">
+/*<![CDATA[*/
+(function() {
+    var authUserId = /*[[${authUserId}]]*/ null;
+    var authUserRole = /*[[${authUserRole}]]*/ null;
+    var authAccessToken = /*[[${authAccessToken}]]*/ null;
+    
+    if (authUserId) {
+        localStorage.setItem('userId', String(authUserId));
+    }
+    if (authUserRole) {
+        localStorage.setItem('userRole', authUserRole);
+    }
+    if (authAccessToken) {
+        localStorage.setItem('accessToken', authAccessToken);
+    }
+})();
+/*]]>*/
+</script>
+<!--shop_header-->
+<div th:replace="~{seller/shop_seller/shop_header :: shop_header}"></div>
+
+<main class="flex-grow">
+    <!--shop_info-->
+    <div th:replace="~{seller/shop_seller/shop_info :: shop_info}"></div>
+
+    <!--shop_tag-->
+    <div th:replace="~{seller/shop_seller/shop_tag :: shop_tag}"></div>
+
+    <!--shop_voucher-->
+    <div th:replace="~{seller/shop_seller/shop_voucher}"></div>
+
+   <!--shop_recomend-->
+   <!-- <div th:replace="~{seller/shop_seller/shop_recomend :: shop_recomend}"></div>-->
+
+    <!--shop_category-->
+    <div th:replace="~{seller/shop_seller/shop_categoty :: shop_categoty}"></div>
+
+    <!--shop_footer-->
+    <div th:replace="~{seller/shop_seller/shop_footer :: shop_footer}"></div>
+
+    <!--shop_panel-->
+    <div th:replace="~{seller/shop_seller/shop_panel :: shop_panel}"></div>
+
+</main>
+
+
+<script>
+(() => {
+    const API_BASE = '/api/seller/me/shop';
+    const UPLOAD_API = '/api/seller/me/shop/upload-image';
+    const fields = ['shopName', 'slug', 'description', 'logoUrl', 'bannerUrl', 'contactEmail', 'contactPhone', 'address', 'city', 'province'];
+
+    const form = document.getElementById('shop-panel-form');
+    const btnSave = document.getElementById('shop-panel-save');
+    const btnCancel = document.getElementById('shop-panel-cancel');
+    const btnDelete = document.getElementById('shop-panel-delete');
+    const alertBox = document.getElementById('shop-panel-alert');
+    const panel = document.getElementById('seller-shop-panel');
+
+    const displayName = document.getElementById('shop-display-name');
+    const displayStatus = document.getElementById('shop-display-status');
+    const displayInitials = document.getElementById('shop-display-initials');
+    const displayLogo = document.getElementById('shop-display-logo');
+    const bannerHost = document.getElementById('shop-banner-host');
+
+    // File upload elements
+    const logoFileInput = document.getElementById('logo-file-input');
+    const logoChooseBtn = document.getElementById('logo-choose-btn');
+    const logoClearBtn = document.getElementById('logo-clear-btn');
+    const logoPreviewImg = document.getElementById('logo-preview-img');
+    const logoPreviewPlaceholder = document.getElementById('logo-preview-placeholder');
+    const bannerFileInput = document.getElementById('banner-file-input');
+    const bannerChooseBtn = document.getElementById('banner-choose-btn');
+    const bannerClearBtn = document.getElementById('banner-clear-btn');
+    const bannerPreviewImg = document.getElementById('banner-preview-img');
+    const bannerPreviewPlaceholder = document.getElementById('banner-preview-placeholder');
+
+    // Pending files to upload (before save)
+    let pendingLogoFile = null;
+    let pendingBannerFile = null;
+
+    let currentShop = null;
+    let initialState = null;
+    let loading = false;
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('token') || localStorage.getItem('jwt') || localStorage.getItem('accessToken');
+        const userId = localStorage.getItem('userId');
+        const headers = { 'Content-Type': 'application/json' };
+        
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        if (userId) {
+            headers['X-User-Id'] = userId;
+        }
+        return headers;
+    }
+
+    function readForm() {
+        const payload = {};
+        for (const key of fields) {
+            const value = document.getElementById(key).value.trim();
+            payload[key] = value || null;
+        }
+        return payload;
+    }
+
+    function normalized(input) {
+        return {
+            shopName: input.shopName || '',
+            slug: input.slug || '',
+            description: input.description || '',
+            logoUrl: input.logoUrl || '',
+            bannerUrl: input.bannerUrl || '',
+            contactEmail: input.contactEmail || '',
+            contactPhone: input.contactPhone || '',
+            address: input.address || '',
+            city: input.city || '',
+            province: input.province || ''
+        };
+    }
+
+    function hasChanged() {
+        if (!initialState) {
+            return true;
+        }
+        return JSON.stringify(normalized(readForm())) !== JSON.stringify(initialState);
+    }
+
+    function closePanel() {
+        if (panel) {
+            panel.removeAttribute('open');
+        }
+    }
+
+    function setLoading(isLoading) {
+        loading = isLoading;
+        btnSave.disabled = isLoading || !hasChanged() || !form.checkValidity();
+        btnCancel.disabled = isLoading;
+        btnDelete.disabled = isLoading || !currentShop;
+    }
+
+    function showAlert(type, message) {
+        alertBox.classList.remove('hidden', 'border-red-200', 'bg-red-50', 'text-red-700', 'border-green-200', 'bg-green-50', 'text-green-700');
+        if (type === 'success') {
+            alertBox.classList.add('border-green-200', 'bg-green-50', 'text-green-700');
+        } else {
+            alertBox.classList.add('border-red-200', 'bg-red-50', 'text-red-700');
+        }
+        alertBox.textContent = message;
+    }
+
+    function clearAlert() {
+        alertBox.classList.add('hidden');
+        alertBox.textContent = '';
+    }
+
+    function fillForm(data) {
+        const values = normalized(data);
+        for (const key of fields) {
+            document.getElementById(key).value = values[key];
+        }
+        initialState = values;
+    }
+
+    function getInitials(name) {
+        const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) {
+            return 'NN';
+        }
+        return parts.slice(0, 2).map((p) => p[0].toUpperCase()).join('');
+    }
+
+    function updateHeaderName(shopName) {
+        const headerNameEls = document.querySelectorAll('#shop-header-name');
+        headerNameEls.forEach(el => {
+            if (el) el.textContent = shopName || 'Cửa hàng';
+        });
+    }
+
+    function syncHero(shop) {
+        if (!shop) {
+            return;
+        }
+        displayName.textContent = shop.shopName || 'Nha Nam Official';
+        displayInitials.textContent = getInitials(shop.shopName);
+        updateHeaderName(shop.shopName);
+
+        // Show logo image if available, otherwise show initials
+        if (shop.logoUrl && displayLogo) {
+            displayLogo.src = shop.logoUrl;
+            displayLogo.classList.remove('hidden');
+            displayInitials.classList.add('hidden');
+        } else {
+            if (displayLogo) displayLogo.classList.add('hidden');
+            displayInitials.classList.remove('hidden');
+        }
+
+        const status = (shop.approvalStatus || 'PENDING').toUpperCase();
+        if (status === 'APPROVED') {
+            displayStatus.innerHTML = '<svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"></path></svg>Gian hang da duoc duyet';
+        } else if (status === 'REJECTED') {
+            displayStatus.innerHTML = '<svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>Gian hang bi tu choi';
+        } else {
+            displayStatus.innerHTML = '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0"></path></svg>Dang cho duyet';
+        }
+
+        if (shop.bannerUrl) {
+            bannerHost.style.backgroundImage = `url('${shop.bannerUrl}')`;
+            bannerHost.style.backgroundSize = 'cover';
+            bannerHost.style.backgroundPosition = 'center';
+        } else {
+            bannerHost.style.backgroundImage = '';
+            bannerHost.style.backgroundSize = '';
+            bannerHost.style.backgroundPosition = '';
+        }
+    }
+
+    async function parseError(res) {
+        const text = await res.text();
+        if (!text) {
+            return `Yeu cau that bai (${res.status})`;
+        }
+        return text;
+    }
+
+    async function request(url, options = {}) {
+        const response = await fetch(url, { ...options, headers: { ...getAuthHeaders(), ...(options.headers || {}) } });
+        if (!response.ok) {
+            throw new Error(await parseError(response));
+        }
+        return response.status === 204 ? null : response.json();
+    }
+
+    // ==========================================
+    // FILE UPLOAD HELPERS
+    // ==========================================
+
+    /**
+     * Upload a single image file to the server
+     * @param {File} file - The image file
+     * @param {string} type - 'logo' or 'banner'
+     * @returns {Promise<string>} The URL of the uploaded image
+     */
+    async function uploadImage(file, type) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', type);
+
+        const token = localStorage.getItem('token') || localStorage.getItem('jwt') || localStorage.getItem('accessToken');
+        const userId = localStorage.getItem('userId');
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (userId) headers['X-User-Id'] = userId;
+
+        const response = await fetch(UPLOAD_API, {
+            method: 'POST',
+            headers,
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(errText || 'Upload thất bại');
+        }
+
+        return await response.text();
+    }
+
+    /**
+     * Set up file picker for logo/banner
+     */
+    function setupFilePicker(fileInput, chooseBtn, clearBtn, previewImg, previewPlaceholder, type) {
+        // Click choose button -> open file dialog
+        chooseBtn.addEventListener('click', () => fileInput.click());
+
+        // File selected -> show preview
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showAlert('error', 'Vui lòng chọn file ảnh.');
+                fileInput.value = '';
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('error', 'Ảnh không được quá 5MB.');
+                fileInput.value = '';
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('hidden');
+                previewPlaceholder.classList.add('hidden');
+                clearBtn.classList.remove('hidden');
+                chooseBtn.textContent = 'Chọn ảnh khác';
+            };
+            reader.readAsDataURL(file);
+
+            // Store pending file
+            if (type === 'logo') {
+                pendingLogoFile = file;
+            } else {
+                pendingBannerFile = file;
+            }
+        });
+
+        // Clear button -> remove file
+        clearBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            previewImg.src = '';
+            previewImg.classList.add('hidden');
+            previewPlaceholder.classList.remove('hidden');
+            clearBtn.classList.add('hidden');
+            chooseBtn.textContent = type === 'logo' ? 'Chon anh logo' : 'Chon anh banner';
+
+            if (type === 'logo') {
+                pendingLogoFile = null;
+                document.getElementById('logoUrl').value = '';
+            } else {
+                pendingBannerFile = null;
+                document.getElementById('bannerUrl').value = '';
+            }
+        });
+    }
+
+    // Initialize file pickers
+    setupFilePicker(logoFileInput, logoChooseBtn, logoClearBtn, logoPreviewImg, logoPreviewPlaceholder, 'logo');
+    setupFilePicker(bannerFileInput, bannerChooseBtn, bannerClearBtn, bannerPreviewImg, bannerPreviewPlaceholder, 'banner');
+
+    /**
+     * Update preview when form is filled with existing data
+     */
+    function updateImagePreviews(data) {
+        // Logo preview
+        if (data.logoUrl) {
+            logoPreviewImg.src = data.logoUrl;
+            logoPreviewImg.classList.remove('hidden');
+            logoPreviewPlaceholder.classList.add('hidden');
+            logoClearBtn.classList.remove('hidden');
+            logoChooseBtn.textContent = 'Chọn ảnh khác';
+        } else {
+            logoPreviewImg.src = '';
+            logoPreviewImg.classList.add('hidden');
+            logoPreviewPlaceholder.classList.remove('hidden');
+            logoClearBtn.classList.add('hidden');
+            logoChooseBtn.textContent = 'Chọn ảnh logo';
+        }
+
+        // Banner preview
+        if (data.bannerUrl) {
+            bannerPreviewImg.src = data.bannerUrl;
+            bannerPreviewImg.classList.remove('hidden');
+            bannerPreviewPlaceholder.classList.add('hidden');
+            bannerClearBtn.classList.remove('hidden');
+            bannerChooseBtn.textContent = 'Chọn ảnh khác';
+        } else {
+            bannerPreviewImg.src = '';
+            bannerPreviewImg.classList.add('hidden');
+            bannerPreviewPlaceholder.classList.remove('hidden');
+            bannerClearBtn.classList.add('hidden');
+            bannerChooseBtn.textContent = 'Chọn ảnh banner';
+        }
+    }
+
+    /**
+     * Nhận dữ liệu shop từ sự kiện do shop-seller-integration.js phát ra
+     * để tránh gọi API trùng lặp
+     */
+    function onShopLoaded(shop) {
+        if (shop) {
+            currentShop = shop;
+            fillForm(shop);
+            updateImagePreviews(shop);
+            syncHero(shop);
+            setLoading(false);
+        } else {
+            currentShop = null;
+            fillForm({});
+            updateImagePreviews({});
+            showAlert('error', 'Chua co shop hoac ban chua dang nhap role SELLER.');
+            setLoading(false);
+        }
+    }
+
+    // Lắng nghe sự kiện từ shop-seller-integration.js
+    window.addEventListener('shop:loaded', (e) => {
+        onShopLoaded(e.detail);
+    });
+
+    // Fallback: nếu shop-seller-integration.js không kịp phát event trong 3 giây,
+    // tự gọi API để đảm bảo panel luôn có dữ liệu
+    setTimeout(() => {
+        if (currentShop === null && !loading) {
+            console.warn('⚠️ shop:loaded event not received, falling back to direct API call');
+            loadShopFallback();
+        }
+    }, 3000);
+
+    async function loadShopFallback() {
+        clearAlert();
+        setLoading(true);
+        try {
+            const data = await request(API_BASE, { method: 'GET' });
+            onShopLoaded(data);
+        } catch (error) {
+            onShopLoaded(null);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function saveShop(event) {
+        event.preventDefault();
+        clearAlert();
+
+        if (!form.reportValidity()) {
+            showAlert('error', 'Vui long kiem tra lai du lieu bat buoc.');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Step 1: Upload pending images first (if any)
+            let logoUrl = document.getElementById('logoUrl').value;
+            let bannerUrl = document.getElementById('bannerUrl').value;
+
+            if (pendingLogoFile) {
+                try {
+                    logoUrl = await uploadImage(pendingLogoFile, 'logo');
+                    document.getElementById('logoUrl').value = logoUrl;
+                    pendingLogoFile = null;
+                } catch (err) {
+                    showAlert('error', 'Upload logo that bai: ' + err.message);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            if (pendingBannerFile) {
+                try {
+                    bannerUrl = await uploadImage(pendingBannerFile, 'banner');
+                    document.getElementById('bannerUrl').value = bannerUrl;
+                    pendingBannerFile = null;
+                } catch (err) {
+                    showAlert('error', 'Upload banner that bai: ' + err.message);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // Step 2: Save shop data
+            const method = currentShop ? 'PUT' : 'POST';
+            const data = await request(API_BASE, {
+                method,
+                body: JSON.stringify(readForm())
+            });
+            currentShop = data;
+            fillForm(data);
+            updateImagePreviews(data);
+            syncHero(data);
+            showAlert('success', method === 'POST' ? 'Da tao shop thanh cong.' : 'Da cap nhat shop thanh cong.');
+            closePanel();
+        } catch (error) {
+            showAlert('error', error.message || 'Khong the luu thong tin shop.');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function deleteShop() {
+        if (!currentShop) {
+            return;
+        }
+        if (!window.confirm('Bạn có chắc chắn muốn xóa cửa hàng này? Hành động này không thể hoàn tác.')) {
+            return;
+        }
+        clearAlert();
+        setLoading(true);
+        try {
+            await request(API_BASE, { method: 'DELETE' });
+            currentShop = null;
+            fillForm({});
+            updateImagePreviews({});
+            showAlert('success', 'Đã xóa cửa hàng.');
+            closePanel();
+        } catch (error) {
+            showAlert('error', error.message || 'Khong the xoa shop.');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    form.addEventListener('submit', saveShop);
+    btnCancel.addEventListener('click', () => {
+        closePanel();
+    });
+    btnDelete.addEventListener('click', deleteShop);
+
+    fields.forEach((field) => {
+        const input = document.getElementById(field);
+        input.addEventListener('input', () => {
+            if (field === 'slug') {
+                input.value = input.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            }
+            setLoading(false);
+        });
+    });
+
+    // ==========================================
+    // AUTO-COLLAPSE: Click outside panel -> close
+    // ==========================================
+    if (panel) {
+        document.addEventListener('click', (e) => {
+            // If panel is open and click is outside the panel
+            if (panel.hasAttribute('open') && !panel.contains(e.target)) {
+                panel.removeAttribute('open');
+            }
+        });
+    }
+
+    // Không gọi loadShop() ở đây nữa - dữ liệu được nhận qua sự kiện 'shop:loaded'
+    // từ shop-seller-integration.js. Nếu sự kiện không đến trong 3 giây,
+    // fallback loadShopFallback() sẽ tự động được gọi.
+})();
+</script>
+<script th:src="@{/js/api-service.js}"></script>
+<script th:src="@{/js/shop-seller-integration.js}"></script>
+<script th:src="@{/js/pages/shop-voucher-fetch.js}"></script>
+<script th:src="@{/js/pages/shop-product-fetch.js}"></script>
+</body>

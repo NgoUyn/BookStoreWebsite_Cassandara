@@ -1,0 +1,70 @@
+-- ============================================================================
+-- V32: Cập nhật bảng customer_ml cho mô hình mới final-gauss-lightgbm
+-- ============================================================================
+-- Model mới chỉ dùng 10 raw features (bỏ 4 features cũ) và output 2 classes (0/1)
+-- 
+-- Thay đổi:
+-- 1. BỎ 4 cột input không còn dùng:
+--    - days_since_last_purchase
+--    - discount_usage_rate
+--    - return_rate
+--    - engagement_score
+-- 2. ĐỔI TÊN predicted_class → predicted_label
+-- 3. THU HẸP risk_level: chỉ còn "LOW" hoặc "HIGH" (thay vì LOW/MEDIUM/HIGH/CRITICAL)
+-- ============================================================================
+
+-- 1. Bỏ 4 cột input không còn dùng trong model mới
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[customer_ml]') AND name = 'days_since_last_purchase')
+BEGIN
+    ALTER TABLE customer_ml DROP COLUMN days_since_last_purchase;
+    PRINT 'Đã xoá cột days_since_last_purchase';
+END
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[customer_ml]') AND name = 'discount_usage_rate')
+BEGIN
+    ALTER TABLE customer_ml DROP COLUMN discount_usage_rate;
+    PRINT 'Đã xoá cột discount_usage_rate';
+END
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[customer_ml]') AND name = 'return_rate')
+BEGIN
+    ALTER TABLE customer_ml DROP COLUMN return_rate;
+    PRINT 'Đã xoá cột return_rate';
+END
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[customer_ml]') AND name = 'engagement_score')
+BEGIN
+    ALTER TABLE customer_ml DROP COLUMN engagement_score;
+    PRINT 'Đã xoá cột engagement_score';
+END
+
+-- 2. Đổi tên predicted_class → predicted_label
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[customer_ml]') AND name = 'predicted_class')
+BEGIN
+    EXEC sp_rename 'customer_ml.predicted_class', 'predicted_label', 'COLUMN';
+    PRINT 'Đã đổi tên cột predicted_class → predicted_label';
+END
+
+-- 3. Chuẩn hoá risk_level: cập nhật dữ liệu cũ về dạng mới (LOW/HIGH)
+-- MEDIUM và CRITICAL không còn dùng trong model mới
+UPDATE customer_ml
+SET risk_level = 'LOW'
+WHERE risk_level IN ('MEDIUM', 'CRITICAL') OR risk_level IS NULL;
+
+-- Đảm bảo risk_level chỉ là LOW hoặc HIGH
+UPDATE customer_ml
+SET risk_level = 'LOW'
+WHERE risk_level NOT IN ('LOW', 'HIGH');
+
+-- 4. Chuẩn hoá predicted_label: model cũ có 3 classes (0,1,2), model mới chỉ có 2 (0,1)
+-- Class 2 (Cao) cũ → label 1 (Churn) mới
+UPDATE customer_ml
+SET predicted_label = 1
+WHERE predicted_label = 2;
+
+PRINT 'Đã cập nhật bảng customer_ml cho mô hình final-gauss-lightgbm thành công';
+GO
+
+-- ============================================================================
+-- END V32
+-- ============================================================================

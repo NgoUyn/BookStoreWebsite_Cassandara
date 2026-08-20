@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/panel_head :: head('BOOKOM SELLER - Phan tich', true)}"></head>
+<bogeminidy class="font-sans bg-[#fbfaf8] text-[#5D4037]">
+<div class="flex min-h-screen">
+    <div th:replace="~{fragments/seller_layout :: sidebar(${activeMenu})}"></div>
+    <div class="flex-1 min-w-0">
+        <div th:replace="~{fragments/seller_layout :: header(${pageTitle}, ${pageSubtitle})}"></div>
+        <main class="p-4 md:p-8 space-y-6">
+            <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+                <article class="rounded-xl border border-[#E5CBB5] bg-white p-5"><p class="text-sm font-black text-[#5D4037]/70">Tong gia tri uoc tinh</p><p id="seller-ana-revenue" class="mt-2 text-2xl md:text-3xl font-black">--</p></article>
+                <article class="rounded-xl border border-[#E5CBB5] bg-white p-5"><p class="text-sm font-black text-[#5D4037]/70">Gia trung binh</p><p id="seller-ana-avg" class="mt-2 text-2xl md:text-3xl font-black">--</p></article>
+                <article class="rounded-xl border border-[#E5CBB5] bg-white p-5"><p class="text-sm font-black text-[#5D4037]/70">So dau sach</p><p id="seller-ana-count" class="mt-2 text-2xl md:text-3xl font-black">--</p></article>
+                <article class="rounded-xl border border-[#E5CBB5] bg-[#FAF5E8] p-5"><p class="text-sm font-black text-[#5D4037]/70">Sap het hang</p><p id="seller-ana-low" class="mt-2 text-2xl md:text-3xl font-black text-[#ea580c]">--</p></article>
+            </section>
+            <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <article class="rounded-xl border border-[#E5CBB5] bg-white p-5"><h2 class="text-lg font-black mb-4">Doanh thu theo danh muc</h2><canvas id="seller-category-chart" height="120"></canvas></article>
+                <article class="rounded-xl border border-[#E5CBB5] bg-white p-5"><h2 class="text-lg font-black mb-4">Trang thai don hang</h2><canvas id="seller-order-status-chart" height="120"></canvas></article>
+            </section>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/panel-data.js}"></script>
+<script>BookomPanelData.initSellerAnalytics();</script>
+</bogeminidy>
+</html>

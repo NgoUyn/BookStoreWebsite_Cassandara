@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/panel_head :: head(${pageTitle}, false)}"></head>
+<body class="font-sans bg-[#fbfaf8] text-[#5D4037]">
+<div class="flex min-h-screen">
+    <div th:replace="~{fragments/admin_layout :: sidebar(${activeMenu})}"></div>
+    <div class="flex-1 min-w-0">
+        <div th:replace="~{fragments/admin_layout :: header(${pageTitle}, ${pageSubtitle})}"></div>
+        <main class="p-4 md:p-8 space-y-6">
+            <!-- Search and Filters Section -->
+            <section class="rounded-2xl border border-[#E5CBB5] bg-white p-6 shadow-sm flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px] relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </span>
+                    <input id="coupon-q" class="w-full rounded-xl border border-[#E5CBB5] pl-10 pr-4 py-2.5 font-bold focus:ring-2 focus:ring-[#D19C74] focus:outline-none transition-all" placeholder="Tìm mã khuyến mãi...">
+                </div>
+                <select id="coupon-status" class="rounded-xl border border-[#E5CBB5] px-4 py-2.5 font-bold text-[#5D4037] focus:ring-2 focus:ring-[#D19C74] focus:outline-none transition-all cursor-pointer bg-white">
+                    <option value="all">Tất cả trạng thái</option>
+                    <option value="active">Đang hoạt động</option>
+                    <option value="inactive">Đã vô hiệu hóa</option>
+                </select>
+                <button id="btn-add-coupon" class="rounded-xl bg-[#D19C74] hover:bg-[#c08856] text-white px-6 py-2.5 font-bold transition-all shadow-sm">
+                    + Tạo khuyến mãi
+                </button>
+            </section>
+
+            <!-- Coupons Table -->
+            <section class="rounded-2xl border border-[#E5CBB5] bg-white shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-[#FAF5E8] text-[#5D4037]/70 border-b border-[#E5CBB5]">
+                        <tr>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Mã khuyến mãi</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Loại</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Giá trị</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Đơn tối thiểu</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Hết hạn</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Đã dùng</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Trạng thái</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px] text-right">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="admin-coupons-body" class="divide-y divide-[#E5CBB5]">
+                        <tr><td colspan="8" class="px-6 py-10 text-center text-gray-400 font-bold">Đang tải danh sách khuyến mãi...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<!-- Modal: Add/Edit Coupon -->
+<div id="couponModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-lg max-w-md w-full">
+        <div class="bg-[#FAF5E8] border-b border-[#E5CBB5] px-6 py-4 flex items-center justify-between">
+            <h2 id="modalTitle" class="text-lg font-black text-[#5D4037]">Tạo mã khuyến mãi</h2>
+            <button onclick="closeCouponModal()" class="text-gray-400 hover:text-gray-600">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <form id="couponForm" class="p-6 space-y-4">
+            <input type="hidden" id="couponId">
+
+            <div>
+                <label class="block text-sm font-bold mb-2">Mã khuyến mãi</label>
+                <input id="codeInput" type="text" placeholder="VD: SAVE10, SUMMER50" class="w-full px-4 py-2 border border-[#E5CBB5] rounded-lg focus:ring-2 focus:ring-[#D19C74] focus:outline-none" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold mb-2">Mô tả</label>
+                <input id="descInput" type="text" placeholder="VD: Giảm 10% cho mọi đơn hàng" class="w-full px-4 py-2 border border-[#E5CBB5] rounded-lg focus:ring-2 focus:ring-[#D19C74] focus:outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold mb-2">Loại</label>
+                    <select id="typeInput" class="w-full px-4 py-2 border border-[#E5CBB5] rounded-lg focus:ring-2 focus:ring-[#D19C74] focus:outline-none" required>
+                        <option value="FIXED">Số tiền cố định</option>
+                        <option value="PERCENT">Phần trăm (%)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2">Giá trị</label>
+                    <input id="amountInput" type="number" placeholder="50000 hoặc 10" class="w-full px-4 py-2 border border-[#E5CBB5] rounded-lg focus:ring-2 focus:ring-[#D19C74] focus:outline-none" required>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold mb-2">Đơn hàng tối thiểu (VND)</label>
+                <input id="minInput" type="number" placeholder="150000" class="w-full px-4 py-2 border border-[#E5CBB5] rounded-lg focus:ring-2 focus:ring-[#D19C74] focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold mb-2">Hết hạn</label>
+                <input id="expiresInput" type="datetime-local" class="w-full px-4 py-2 border border-[#E5CBB5] rounded-lg focus:ring-2 focus:ring-[#D19C74] focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold mb-2">Số lượng (-1 = Vô hạn)</label>
+                <input id="qtyInput" type="number" placeholder="-1" class="w-full px-4 py-2 border border-[#E5CBB5] rounded-lg focus:ring-2 focus:ring-[#D19C74] focus:outline-none">
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input id="activeInput" type="checkbox" checked class="rounded border-[#E5CBB5]">
+                <label for="activeInput" class="text-sm font-bold">Đang hoạt động</label>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeCouponModal()" class="flex-1 px-4 py-2 border border-[#E5CBB5] text-[#5D4037] font-bold rounded-lg hover:bg-gray-50 transition-all">
+                    Hủy
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2 bg-[#D19C74] text-white font-bold rounded-lg hover:bg-[#c08856] transition-all">
+                    Lưu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/panel-data.js}"></script>
+<script th:inline="javascript">
+    function loadCoupons(page = 0, size = 20, isActive = 'all') {
+        const params = new URLSearchParams({ page, size });
+        const url = '/api/admin/coupons?' + params.toString();
+
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                const tbody = document.getElementById('admin-coupons-body');
+                if (!data.content || data.content.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-10 text-center text-gray-400 font-bold">Không có khuyến mãi</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.content.map(coupon => `
+                    <tr class="hover:bg-[#FAF5E8] transition-all">
+                        <td class="px-6 py-4 font-bold text-[#ea580c]">${coupon.code}</td>
+                        <td class="px-6 py-4">${coupon.type === 'FIXED' ? 'Số tiền' : 'Phần trăm'}</td>
+                        <td class="px-6 py-4">${coupon.type === 'FIXED' ? coupon.amount.toLocaleString() + ' VND' : coupon.amount + '%'}</td>
+                        <td class="px-6 py-4">${coupon.minOrderAmount ? coupon.minOrderAmount.toLocaleString() + ' VND' : '-'}</td>
+                        <td class="px-6 py-4 text-xs">${coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString('vi-VN') : 'Vô hạn'}</td>
+                        <td class="px-6 py-4">${coupon.usedCount}/${coupon.totalQuantity < 0 ? '∞' : coupon.totalQuantity}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold ${coupon.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                ${coupon.isActive ? 'Hoạt động' : 'Vô hiệu'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <button onclick="editCoupon(${coupon.id})" class="text-blue-600 hover:text-blue-800 font-bold text-sm">Sửa</button>
+                            <button onclick="deactivateCoupon(${coupon.id})" class="text-orange-600 hover:text-orange-800 font-bold text-sm">Vô hiệu</button>
+                            <button onclick="deleteCoupon(${coupon.id})" class="text-red-600 hover:text-red-800 font-bold text-sm">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            })
+            .catch(err => console.error('Error loading coupons:', err));
+    }
+
+    function openCouponModal(couponId = null) {
+        const modal = document.getElementById('couponModal');
+        const form = document.getElementById('couponForm');
+        const titleEl = document.getElementById('modalTitle');
+
+        if (couponId) {
+            titleEl.textContent = 'Chỉnh sửa khuyến mãi';
+            fetch('/api/admin/coupons/' + couponId)
+                .then(r => r.json())
+                .then(coupon => {
+                    document.getElementById('couponId').value = coupon.id;
+                    document.getElementById('codeInput').value = coupon.code;
+                    document.getElementById('descInput').value = coupon.description || '';
+                    document.getElementById('typeInput').value = coupon.type;
+                    document.getElementById('amountInput').value = coupon.amount;
+                    document.getElementById('minInput').value = coupon.minOrderAmount || '';
+                    document.getElementById('expiresInput').value = coupon.expiresAt ? coupon.expiresAt.slice(0, 16) : '';
+                    document.getElementById('qtyInput').value = coupon.totalQuantity;
+                    document.getElementById('activeInput').checked = coupon.isActive;
+                    modal.classList.remove('hidden');
+                });
+        } else {
+            titleEl.textContent = 'Tạo mã khuyến mãi';
+            form.reset();
+            document.getElementById('couponId').value = '';
+            modal.classList.remove('hidden');
+        }
+    }
+
+    function closeCouponModal() {
+        document.getElementById('couponModal').classList.add('hidden');
+    }
+
+    function saveCoupon() {
+        const form = document.getElementById('couponForm');
+        const id = document.getElementById('couponId').value;
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `/api/admin/coupons/${id}` : '/api/admin/coupons';
+
+        const coupon = {
+            code: document.getElementById('codeInput').value,
+            description: document.getElementById('descInput').value,
+            type: document.getElementById('typeInput').value,
+            amount: parseInt(document.getElementById('amountInput').value),
+            minOrderAmount: document.getElementById('minInput').value ? parseInt(document.getElementById('minInput').value) : null,
+            expiresAt: document.getElementById('expiresInput').value,
+            totalQuantity: parseInt(document.getElementById('qtyInput').value),
+            isActive: document.getElementById('activeInput').checked
+        };
+
+        fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(coupon)
+        })
+            .then(r => r.json())
+            .then(data => {
+                alert(id ? 'Cập nhật thành công!' : 'Tạo thành công!');
+                closeCouponModal();
+                loadCoupons();
+            })
+            .catch(err => alert('Lỗi: ' + err.message));
+    }
+
+    function editCoupon(id) {
+        openCouponModal(id);
+    }
+
+    function deactivateCoupon(id) {
+        if (!confirm('Bạn có chắc muốn vô hiệu hóa mã này?')) return;
+        fetch(`/api/admin/coupons/${id}/deactivate`, { method: 'PUT' })
+            .then(r => r.json())
+            .then(() => {
+                alert('Đã vô hiệu hóa!');
+                loadCoupons();
+            })
+            .catch(err => alert('Lỗi: ' + err.message));
+    }
+
+    function deleteCoupon(id) {
+        if (!confirm('Bạn có chắc muốn xóa mã này?')) return;
+        fetch(`/api/admin/coupons/${id}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(() => {
+                alert('Đã xóa!');
+                loadCoupons();
+            })
+            .catch(err => alert('Lỗi: ' + err.message));
+    }
+
+    // Event listeners
+    document.getElementById('btn-add-coupon').addEventListener('click', () => openCouponModal());
+    document.getElementById('couponForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveCoupon();
+    });
+    document.getElementById('coupon-q').addEventListener('input', (e) => {
+        // Could implement search here
+    });
+
+    // Initial load
+    loadCoupons();
+</script>
+</body>
+</html>

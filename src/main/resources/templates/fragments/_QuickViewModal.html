@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div
+        th:fragment="quickViewModal"
+        x-data="{
+        isOpen: false,
+        bookId: null,
+        quantity: 1,
+        bookData: null,
+        isLoading: false,
+        isWished: false,
+
+        async open(id) {
+            this.bookId = id;
+            this.isOpen = true;
+            this.isLoading = true;
+            this.quantity = 1;
+            this.bookData = null;
+            try {
+                // Gọi API lấy dữ liệu trực tiếp từ DB giúp cập nhật tồn kho real-time
+                this.bookData = await ApiService.Book.getById(id);
+                this.isWished = ApiService.Wishlist.isSaved(id);
+            } catch (error) {
+                console.error('Lỗi khi tải thông tin xem nhanh:', error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        close() {
+            this.isOpen = false;
+            this.bookId = null;
+            this.bookData = null;
+        },
+        async addToCart() {
+            const auth = ApiService.getAuth();
+            if (!auth.userId || auth.role !== 'BUYER') {
+                alert('Vui lòng đăng nhập tài khoản khách hàng (BUYER) để mua sách.');
+                window.location.href = '/main/auth';
+                return;
+            }
+            try {
+                await ApiService.Cart.addItem(auth.userId, {
+                    bookId: this.bookId,
+                    quantity: this.quantity
+                });
+                alert(`Đã thêm ${this.quantity} cuốn vào giỏ hàng thành công!`);
+                this.close();
+            } catch (error) {
+                alert('Thêm vào giỏ hàng thất bại: ' + error.message);
+            }
+        },
+        async toggleWishlist() {
+            if (!this.bookData) return;
+            try {
+                const result = await ApiService.Wishlist.toggle(this.bookData);
+                this.isWished = result.saved;
+                alert(result.saved ? 'Đã thêm vào danh sách yêu thích!' : 'Đã xóa khỏi danh sách yêu thích!');
+            } catch (error) {
+                alert(error?.message || 'Vui lòng đăng nhập để dùng tính năng này.');
+            }
+        }
+    }"
+        @open-quick-view.window="open($event.detail.bookId)"
+        @keydown.escape.window="close()"
+        x-cloak
+        class="relative z-50"
+>
+    <div x-show="isOpen" class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" @click="close()"></div>
+
+    <div x-show="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row relative transition-all transform duration-300">
+
+            <button type="button" @click="close()" class="absolute top-4 right-4 z-10 bg-gray-100 text-gray-600 hover:bg-red-500 hover:text-white rounded-full p-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <template x-if="isLoading">
+                <div class="w-full h-96 flex items-center justify-center bg-white col-span-full">
+                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-brand-brown border-t-transparent"></div>
+                </div>
+            </template>
+
+            <template x-if="!isLoading && bookData">
+                <div class="w-full flex flex-col md:flex-row overflow-y-auto">
+                    <div class="relative w-full md:w-2/5 bg-gray-100 flex items-center justify-center p-6 border-r border-gray-100 overflow-hidden">
+
+                        <span class="absolute text-slate-400 text-sm font-medium text-center px-2 select-none z-0">
+                            Không có ảnh bìa
+                        </span>
+
+                        <img :src="bookData.largeimageUrl || bookData.imageUrl || 'https://via.placeholder.com/280x380?text=No+Cover'"
+                             @error="$event.target.style.opacity='0'"
+                             class="relative z-10 max-h-[380px] object-contain drop-shadow-xl rounded-md transition-transform duration-300 hover:scale-105 bg-white">
+                    </div>
+
+                    <div class="w-full md:w-3/5 p-8 flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-brand-orange bg-orange-50 px-2 py-1 rounded mb-2 inline-block" x-text="bookData.category ? bookData.category.name : 'Sách'"></span>
+                            <h2 class="text-2xl font-black text-brand-dark mb-3 leading-tight" x-text="bookData.title"></h2>
+
+                            <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm border-t border-b border-gray-100 py-3 mb-4">
+                                <div class="text-gray-500">Tác giả: <span class="text-brand-dark font-bold" x-text="bookData.author || 'Chưa rõ'"></span></div>
+                                <div class="text-gray-500">Nhà xuất bản: <span class="text-brand-dark font-bold" x-text="bookData.publisher || 'Chưa rõ'"></span></div>
+                                <div class="text-gray-500">Năm xuất bản: <span class="text-brand-dark font-bold" x-text="bookData.publishYear || 'Chưa rõ'"></span></div>
+
+                                <div class="text-gray-500">Trạng thái kho:
+                                    <span :class="bookData.stockQuantity > 0 ? 'text-green-600 font-bold' : 'text-red-500 font-bold'"
+                                          x-text="bookData.stockQuantity > 0 ? 'Còn hàng (' + bookData.stockQuantity + ')' : 'Tạm hết hàng'">
+                                    </span>
+                                </div>
+                            </div>
+
+                            <p class="text-gray-600 text-xs leading-relaxed line-clamp-3 mb-6" x-text="bookData.description || 'Chưa có mô tả cho sản phẩm này.'"></p>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center gap-3 bg-brand-bg p-4 rounded-xl border border-brand-border mb-6">
+                                <template x-if="bookData.discountAmount > 0">
+                                    <span class="text-sm text-gray-400 line-through" x-text="new Intl.NumberFormat('vi-VN').format(bookData.price) + ' đ'"></span>
+                                </template>
+                                <span class="text-3xl font-black text-brand-orange"
+                                      x-text="new Intl.NumberFormat('vi-VN').format(bookData.discountAmount > 0 ? (bookData.price * (100 - bookData.discountAmount) / 100) : bookData.price) + ' đ'"></span>
+                                <template x-if="bookData.discountAmount > 0">
+                                    <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded" x-text="'-' + bookData.discountAmount + '%'"></span>
+                                </template>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-gray-50" x-show="bookData.stockQuantity > 0">
+                                    <button type="button" @click="if(quantity > 1) quantity--" class="px-3 py-2 font-bold hover:bg-gray-200 transition-colors">-</button>
+                                    <input type="text" readonly :value="quantity" class="w-10 text-center bg-transparent font-bold text-sm outline-none">
+                                    <button type="button" @click="if(quantity < bookData.stockQuantity) quantity++" class="px-3 py-2 font-bold hover:bg-gray-200 transition-colors">+</button>
+                                </div>
+
+                                <div class="flex-1 flex gap-2">
+                                    <button type="button" @click="addToCart()" :disabled="bookData.stockQuantity <= 0"
+                                            :class="bookData.stockQuantity <= 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-brand-dark hover:bg-brand-orange text-white transform hover:scale-[1.02]'"
+                                            class="flex-1 font-bold py-3 px-4 rounded-xl transition-all shadow-sm uppercase text-xs tracking-wider"
+                                            x-text="bookData.stockQuantity > 0 ? 'Thêm vào giỏ' : 'Hết hàng sản phẩm'"></button>
+
+                                    <button type="button" @click="toggleWishlist()" class="p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-500">
+                                        <svg class="w-5 h-5" :fill="isWished ? 'currentColor' : 'none'" :class="{'text-red-500': isWished}" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

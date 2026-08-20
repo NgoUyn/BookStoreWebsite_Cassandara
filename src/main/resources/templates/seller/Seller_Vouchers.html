@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOKOM - Quản lý khuyến mãi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-peach': '#F8D9C0',
+                        'brand-cream': '#FAF5E8',
+                        'brand-biscuit': '#D19C74',
+                        'brand-dark': '#5D4037',
+                        'brand-accent': '#E5CBB5',
+                        'brand-orange': '#ea580c',
+                        'brand-orange-light': '#ffedd5',
+                        'brand-green': '#16a34a',
+                    },
+                    fontFamily: { sans: ['Quicksand', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #D19C74; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b88560; }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #D19C74; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-[#fbfaf8] text-[#5D4037] font-sans antialiased flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/seller_layout :: sidebar('seller-vouchers')}"></div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+        <!-- Header -->
+        <div th:replace="~{fragments/seller_layout :: header('Quản lý khuyến mãi', 'Tạo và quản lý mã giảm giá cho cửa hàng')}"></div>
+
+        <!-- Content -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+
+            <!-- Nút tạo mã giảm giá mới -->
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-black text-[#5D4037]">Danh sách mã giảm giá</h2>
+                <button id="create-coupon-btn" class="bg-[#D19C74] hover:bg-[#b88560] text-white font-bold py-2.5 px-5 rounded-lg shadow-md transition text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    Tạo mã giảm giá
+                </button>
+            </div>
+
+            <!-- Form tạo mã giảm giá (ẩn/hiện) -->
+            <div id="coupon-form-container" class="hidden bg-white border border-[#E5CBB5] rounded-2xl p-6 shadow-sm">
+                <h3 class="font-black text-lg mb-4">Thông tin mã giảm giá</h3>
+                <form id="coupon-form" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Mã giảm giá -->
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Mã giảm giá *</label>
+                        <input type="text" id="coupon-code" class="w-full border border-[#E5CBB5] rounded-lg px-4 py-2.5 text-sm font-semibold outline-none focus:border-[#D19C74] focus:ring-2 focus:ring-[#D19C74]/20 uppercase" placeholder="VD: SALE10" required>
+                    </div>
+                    <!-- Loại giảm giá -->
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Loại giảm giá *</label>
+                        <select id="coupon-type" class="w-full border border-[#E5CBB5] rounded-lg px-4 py-2.5 text-sm font-semibold outline-none focus:border-[#D19C74] focus:ring-2 focus:ring-[#D19C74]/20">
+                            <option value="PERCENT">Phần trăm (%)</option>
+                            <option value="FIXED">Số tiền cố định (VNĐ)</option>
+                        </select>
+                    </div>
+                    <!-- Giá trị giảm -->
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Giá trị giảm *</label>
+                        <input type="number" id="coupon-value" class="w-full border border-[#E5CBB5] rounded-lg px-4 py-2.5 text-sm font-semibold outline-none focus:border-[#D19C74] focus:ring-2 focus:ring-[#D19C74]/20" placeholder="VD: 10 (cho 10%)" min="0" required>
+                    </div>
+                    <!-- Điều kiện đơn hàng tối thiểu -->
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Đơn hàng tối thiểu (VNĐ)</label>
+                        <input type="number" id="coupon-min-order" class="w-full border border-[#E5CBB5] rounded-lg px-4 py-2.5 text-sm font-semibold outline-none focus:border-[#D19C74] focus:ring-2 focus:ring-[#D19C74]/20" placeholder="VD: 500000" min="0">
+                    </div>
+                    <!-- Số lượng giới hạn -->
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Số lượng giới hạn</label>
+                        <input type="number" id="coupon-max-uses" class="w-full border border-[#E5CBB5] rounded-lg px-4 py-2.5 text-sm font-semibold outline-none focus:border-[#D19C74] focus:ring-2 focus:ring-[#D19C74]/20" placeholder="Để trống = không giới hạn" min="0">
+                        <p class="text-xs text-gray-400 mt-1">Để trống nếu không giới hạn số lượt sử dụng</p>
+                    </div>
+                    <!-- Ngày bắt đầu -->
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Ngày bắt đầu *</label>
+                        <input type="datetime-local" id="coupon-start-date" class="w-full border border-[#E5CBB5] rounded-lg px-4 py-2.5 text-sm font-semibold outline-none focus:border-[#D19C74] focus:ring-2 focus:ring-[#D19C74]/20" required>
+                    </div>
+                    <!-- Ngày kết thúc -->
+                    <div>
+                        <label class="block text-sm font-bold mb-1">Ngày kết thúc *</label>
+                        <input type="datetime-local" id="coupon-end-date" class="w-full border border-[#E5CBB5] rounded-lg px-4 py-2.5 text-sm font-semibold outline-none focus:border-[#D19C74] focus:ring-2 focus:ring-[#D19C74]/20" required>
+                    </div>
+                    <!-- Nút hành động -->
+                    <div class="md:col-span-2 flex justify-end gap-3 mt-2">
+                        <button type="button" id="cancel-coupon-btn" class="px-6 py-2.5 rounded-lg font-bold text-sm text-gray-600 hover:bg-gray-100 transition border border-transparent">Hủy</button>
+                        <button type="submit" class="px-6 py-2.5 rounded-lg font-bold text-sm bg-[#5D4037] text-white hover:bg-[#4a3329] transition shadow-sm">Lưu mã giảm giá</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Bảng danh sách mã giảm giá -->
+            <div class="bg-white border border-[#E5CBB5] rounded-2xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-[#FAF5E8] text-[#5D4037] text-xs font-black uppercase tracking-wider">
+                            <tr>
+                                <th class="px-4 py-3 text-left">Mã</th>
+                                <th class="px-4 py-3 text-left">Loại</th>
+                                <th class="px-4 py-3 text-left">Giá trị</th>
+                                <th class="px-4 py-3 text-left">Đơn tối thiểu</th>
+                                <th class="px-4 py-3 text-left">Đã dùng / Giới hạn</th>
+                                <th class="px-4 py-3 text-left">Bắt đầu</th>
+                                <th class="px-4 py-3 text-left">Kết thúc</th>
+                                <th class="px-4 py-3 text-left">Trạng thái</th>
+                                <th class="px-4 py-3 text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coupon-table-body" class="divide-y divide-[#E5CBB5]/50">
+                            <tr>
+                                <td colspan="9" class="px-4 py-8 text-center text-gray-400 font-semibold">Đang tải dữ liệu...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/js/api-service.js"></script>
+    <script src="/js/pages/seller-vouchers-integration.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+﻿<header th:fragment="header(headerType)" class="bg-white sticky top-0 z-50 shadow-sm border-b border-brand-border">
+    <div class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between gap-8">
+
+        <div class="flex items-center gap-4 flex-shrink-0">
+            <a th:href="@{/}" class="text-3xl font-extrabold text-brand-dark flex items-center gap-2">
+                BOOKOM
+            </a>
+            <div th:if="${headerType == 'cart'}" class="h-6 w-px bg-brand-border hidden md:block"></div>
+            <h1 th:if="${headerType == 'cart'}" class="text-lg font-bold text-brand-dark hidden md:block uppercase tracking-wider">Giỏ Hàng</h1>
+        </div>
+
+        <th:block th:if="${headerType == 'default'}">
+            <nav class="hidden lg:flex gap-6 font-bold text-sm">
+                <a th:href="@{/}" class="hover:text-brand-brown">Trang chủ</a>
+                <a th:href="@{/main/discovery}" class="hover:text-brand-brown">Sản phẩm</a>
+                <a th:href="@{/main/contact}" class="hover:text-brand-brown">Liên hệ</a>
+            </nav>
+
+            <form th:action="@{/main/search}" method="get" class="hidden md:flex flex-1 max-w-xs items-center bg-brand-bg border border-brand-border rounded-full overflow-hidden focus-within:border-brand-brown transition-all">
+                <input type="text" name="query" class="px-4 py-2 w-full outline-none text-xs text-brand-dark bg-transparent" placeholder="Tìm kiếm sách...">
+                <button type="submit" class="bg-brand-brown text-white px-4 py-2 text-xs font-bold hover:bg-brand-dark transition-colors">Tìm</button>
+            </form>
+        </th:block>
+
+        <th:block th:if="${headerType == 'cart'}">
+            <div class="hidden md:flex flex-1 justify-center items-center gap-3 text-xs font-bold">
+                <div class="text-brand-orange">1. Giỏ Hàng</div>
+                <div class="w-8 h-px bg-brand-border"></div>
+                <div class="text-gray-400">2. Thanh Toán</div>
+                <div class="w-8 h-px bg-brand-border"></div>
+                <div class="text-gray-400">3. Hoàn Tất</div>
+            </div>
+        </th:block>
+
+        <div class="flex items-center gap-5">
+            <a th:href="@{/main/cart}" class="text-brand-dark hover:text-brand-orange transition relative flex items-center gap-1 font-medium text-sm">
+                <span>Giỏ hàng</span>
+            </a>
+
+            <div id="header-auth-wrapper" class="flex items-center text-sm">
+                <a id="nav-auth-anonymous" th:href="@{/main/auth}" class="font-bold text-brand-dark hover:text-brand-brown">Đăng nhập</a>
+
+                <div id="nav-auth-logged" class="hidden items-center gap-2 relative group cursor-pointer">
+                    <span id="nav-user-greeting" class="font-bold text-brand-dark">Xin chào bạn!</span>
+
+                    <div class="absolute right-0 top-full pt-2 w-40 bg-white border border-brand-border rounded-lg shadow-md hidden group-hover:block z-50">
+                        <a th:href="@{/main/orders}" class="block px-4 py-2 text-xs font-semibold hover:bg-brand-bg">Đơn mua</a>
+                        <hr class="border-gray-100">
+                        <button id="nav-logout-btn" class="w-full text-left px-4 py-2 text-xs font-bold text-brand-orange hover:bg-red-50 rounded-b-lg">Đăng xuất</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</header>

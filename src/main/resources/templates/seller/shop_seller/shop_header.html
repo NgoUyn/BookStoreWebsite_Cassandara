@@ -1,0 +1,75 @@
+<header th:fragment="shop_header" class="bg-white sticky top-0 z-50 shadow-sm border-b border-brand-border">
+    <div class="bg-brand-dark text-brand-bg text-xs py-2 px-6 hidden md:block">
+        <div class="max-w-[1400px] mx-auto flex justify-between items-center font-medium tracking-wide">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/seller/dashboard}" class="hover:text-brand-hero transition flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Kênh Người Bán
+                </a>
+                <span class="text-gray-500">|</span>
+                <a href="#" class="hover:text-brand-hero transition flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Tải ứng dụng
+                </a>
+            </div>
+            <div class="flex gap-5">
+                <a href="#" class="hover:text-brand-hero transition">Thông báo</a>
+                <a th:href="@{/main/contact}" class="hover:text-brand-hero transition">Hỗ trợ</a>
+                <div class="flex items-center gap-1 cursor-pointer hover:text-brand-hero transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                    Tiếng Việt
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-6 py-4 lg:py-5 flex items-center justify-between gap-8">
+        <a th:href="@{/}" class="text-3xl lg:text-4xl font-extrabold tracking-tighter text-brand-dark hover:opacity-90 transition flex items-center gap-2 flex-shrink-0">
+            <div class="bg-brand-brown text-white p-1.5 rounded-lg shadow-inner-light">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+            </div>
+            <span class="hidden sm:inline">BOOKOM</span>
+            <span class="sm:hidden text-sm font-bold text-brand-brown ml-1" id="shop-header-name"></span>
+        </a>
+        <div class="hidden sm:flex items-center gap-2 text-sm text-gray-500">
+            <span class="text-brand-brown font-bold" id="shop-header-name"></span>
+        </div>
+
+
+        <div class="hidden lg:flex flex-1 max-w-3xl">
+            <form class="flex w-full items-center bg-brand-bg border-2 border-brand-border rounded-full overflow-hidden focus-within:border-brand-brown focus-within:shadow-premium transition-all duration-300">
+                <div class="pl-4 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <input type="text" class="px-3 py-2.5 w-full outline-none text-sm text-brand-dark bg-transparent font-medium" placeholder="Tìm kiếm trong cửa hàng này...">
+                <button type="submit" class="bg-brand-brown text-white px-8 py-2.5 text-sm font-bold hover:bg-brand-brown-dark transition-colors h-full">
+                    Tìm Shop
+                </button>
+            </form>
+        </div>
+
+        <div class="flex items-center gap-6 text-brand-dark flex-shrink-0">
+            <a th:href="@{/main/cart}" class="hover:text-brand-brown transition flex flex-col items-center gap-1 group">
+                <div class="relative p-2 rounded-full group-hover:bg-brand-hero transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    <span class="absolute top-1 right-1 bg-brand-orange text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold border border-white">2</span>
+                </div>
+            </a>
+            <a href="#" class="hover:text-brand-brown transition flex flex-col items-center gap-1 group">
+                <div class="relative p-2 rounded-full group-hover:bg-brand-hero transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    <span class="absolute top-1 right-1 bg-brand-orange text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold border border-white">15</span>
+                </div>
+            </a>
+            <div class="h-8 w-px bg-brand-border hidden md:block"></div>
+            <a th:href="@{/main/auth}" class="hover:text-brand-brown transition flex items-center gap-2 group font-bold text-sm">
+                <div class="p-1.5 rounded-full bg-brand-bg border border-brand-border group-hover:border-brand-brown transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                </div>
+                <span class="hidden md:block">Đăng nhập</span>
+            </a>
+        </div>
+    </div>
+</header>

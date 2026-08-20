@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/buyer_layout :: layout(~{::main}, 'default')}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOKOM - Flash Sale Giờ Vàng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-brown': '#cda27a',
+                        'brand-dark': '#4a3b32',
+                        'brand-bg': '#fbfaf8',
+                        'brand-orange': '#ea580c',
+                        'brand-red': '#dc2626',
+                        'brand-border': '#eaddcf',
+                    },
+                    fontFamily: { sans: ['Quicksand', 'sans-serif'] },
+                    animation: {
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans text-brand-dark antialiased">
+
+<header class="bg-white border-b border-brand-border sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <div class="flex items-center gap-8">
+                <a th:href="@{/}" class="flex items-center gap-2">
+                    <div class="w-10 h-10 bg-brand-brown rounded-lg flex items-center justify-center text-white font-black text-xl">B</div>
+                    <span class="text-2xl font-black tracking-tight text-brand-dark">BOOKOM</span>
+                </a>
+                <nav class="hidden md:flex space-x-8 font-bold text-[15px]">
+                    <a th:href="@{/}" class="relative group py-2 text-gray-500 hover:text-brand-dark transition-colors">Trang chủ</a>
+                    <a th:href="@{/main/discovery}" class="relative group py-2 text-gray-500 hover:text-brand-dark transition-colors">Sách</a>
+                    <a th:href="@{/main/flash-sale}" class="relative py-2 text-brand-red font-black flex items-center gap-1">
+                        <i class="fas fa-bolt text-yellow-500 animate-pulse-fast"></i> Flash Sale
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-red"></span>
+                    </a>
+                    <a th:href="@{/main/contact}" class="relative group py-2 text-gray-500 hover:text-brand-dark transition-colors">Liên hệ</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="min-h-screen pb-20">
+    <div class="relative bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 32px 32px;"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                <div class="text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white font-bold text-sm mb-4 border border-white/30">
+                        <span class="w-2 h-2 rounded-full bg-green-400 animate-ping"></span>
+                        Đang diễn ra
+                    </div>
+                    <h1 class="text-4xl md:text-6xl font-black text-white mb-2 flex items-center justify-center md:justify-start gap-3 drop-shadow-md">
+                        <i class="fas fa-bolt text-yellow-300"></i>
+                        GIỜ VÀNG GIÁ SỐC
+                    </h1>
+                    <p class="text-red-100 font-medium text-lg">Hàng ngàn đầu sách giảm giá lên đến 70%</p>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-lg border border-white/20 p-5 rounded-2xl shadow-2xl">
+                    <p class="text-white text-center font-bold mb-3 uppercase tracking-wider text-sm">Kết thúc sau</p>
+                    <div class="flex gap-3 justify-center text-white" id="countdown-timer">
+                        <div class="flex flex-col items-center">
+                            <div class="bg-brand-dark/90 text-yellow-400 w-14 h-14 flex items-center justify-center rounded-xl text-2xl font-black shadow-inner border border-yellow-500/30" id="hours">02</div>
+                            <span class="text-[10px] mt-1 font-bold uppercase opacity-80">Giờ</span>
+                        </div>
+                        <div class="text-2xl font-black mt-2 opacity-70">:</div>
+                        <div class="flex flex-col items-center">
+                            <div class="bg-brand-dark/90 text-yellow-400 w-14 h-14 flex items-center justify-center rounded-xl text-2xl font-black shadow-inner border border-yellow-500/30" id="minutes">45</div>
+                            <span class="text-[10px] mt-1 font-bold uppercase opacity-80">Phút</span>
+                        </div>
+                        <div class="text-2xl font-black mt-2 opacity-70">:</div>
+                        <div class="flex flex-col items-center">
+                            <div class="bg-brand-dark/90 text-yellow-400 w-14 h-14 flex items-center justify-center rounded-xl text-2xl font-black shadow-inner border border-yellow-500/30" id="seconds">30</div>
+                            <span class="text-[10px] mt-1 font-bold uppercase opacity-80">Giây</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex overflow-x-auto gap-4 mb-10 pb-2 scrollbar-hide">
+            <button class="min-w-[120px] px-6 py-3 rounded-xl font-bold bg-brand-red text-white shadow-lg shadow-red-500/30 border border-red-600 flex flex-col items-center">
+                <span class="text-lg">09:00</span>
+                <span class="text-xs font-medium opacity-90">Đang bán</span>
+            </button>
+            <button class="min-w-[120px] px-6 py-3 rounded-xl font-bold bg-white text-gray-500 hover:bg-red-50 border border-gray-200 transition flex flex-col items-center">
+                <span class="text-lg">12:00</span>
+                <span class="text-xs font-medium">Sắp diễn ra</span>
+            </button>
+            <button class="min-w-[120px] px-6 py-3 rounded-xl font-bold bg-white text-gray-500 hover:bg-red-50 border border-gray-200 transition flex flex-col items-center">
+                <span class="text-lg">15:00</span>
+                <span class="text-xs font-medium">Sắp diễn ra</span>
+            </button>
+            <button class="min-w-[120px] px-6 py-3 rounded-xl font-bold bg-white text-gray-500 hover:bg-red-50 border border-gray-200 transition flex flex-col items-center">
+                <span class="text-lg">20:00</span>
+                <span class="text-xs font-medium">Sắp diễn ra</span>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+
+            <div class="bg-white rounded-2xl p-3 border border-red-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group flex flex-col h-full cursor-pointer">
+                <div class="absolute top-3 left-3 bg-gradient-to-r from-red-600 to-red-500 text-white text-[11px] font-black px-2 py-1 rounded-br-lg rounded-tl-lg z-10 shadow-md">
+                    -50%
+                </div>
+
+                <div class="relative w-full aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden mb-3">
+                    <img src="https://salt.tikicdn.com/cache/750x750/ts/product/5e/18/24/2a6154ba08df6ce6161c13f4303fa19e.jpg.webp" alt="Book" class="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500">
+                </div>
+
+                <div class="flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-brand-dark text-sm line-clamp-2 mb-2 group-hover:text-brand-red transition-colors">Cây Cam Ngọt Của Tôi</h3>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="font-black text-brand-red text-lg">54.000đ</span>
+                            <span class="text-[11px] text-gray-400 line-through">108.000đ</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="relative w-full h-4 bg-orange-100 rounded-full overflow-hidden mb-3 border border-orange-200">
+                            <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-red-500" style="width: 85%;"></div>
+                            <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white z-10 drop-shadow-md">
+                                    <i class="fas fa-fire mr-1"></i> Đã bán 85%
+                                </span>
+                        </div>
+                        <button class="w-full py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-red-500/30 hover:shadow-red-500/50 transition">Mua Ngay</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-3 border border-red-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group flex flex-col h-full cursor-pointer">
+                <div class="absolute top-3 left-3 bg-gradient-to-r from-red-600 to-red-500 text-white text-[11px] font-black px-2 py-1 rounded-br-lg rounded-tl-lg z-10 shadow-md">-30%</div>
+
+                <div class="relative w-full aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden mb-3">
+                    <img src="https://salt.tikicdn.com/cache/750x750/ts/product/78/db/7f/0088cc5d0e2c2ddb64267caecfb22d10.jpg.webp" alt="Book" class="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500">
+                </div>
+
+                <div class="flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-brand-dark text-sm line-clamp-2 mb-2 group-hover:text-brand-red transition-colors">Tâm Lý Học Tội Phạm</h3>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="font-black text-brand-red text-lg">90.000đ</span>
+                            <span class="text-[11px] text-gray-400 line-through">129.000đ</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="relative w-full h-4 bg-orange-100 rounded-full overflow-hidden mb-3 border border-orange-200">
+                            <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-red-500" style="width: 30%;"></div>
+                            <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white z-10 drop-shadow-md">
+                                    Đã bán 30%
+                                </span>
+                        </div>
+                        <button class="w-full py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-red-500/30 hover:shadow-red-500/50 transition">Mua Ngay</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-3 border border-gray-200 relative flex flex-col h-full grayscale opacity-80 cursor-not-allowed">
+                <div class="absolute top-3 left-3 bg-gray-600 text-white text-[11px] font-black px-2 py-1 rounded-br-lg rounded-tl-lg z-10">-50%</div>
+
+                <div class="relative w-full aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden mb-3">
+                    <img src="https://salt.tikicdn.com/cache/750x750/ts/product/14/b0/02/7693fc18fffc218f2d575456f912cd31.jpg.webp" alt="Book" class="object-cover w-full h-full opacity-60">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="bg-black/70 text-white font-black px-4 py-2 rounded-lg text-sm rotate-[-10deg] border-2 border-white/50">HẾT HÀNG</div>
+                    </div>
+                </div>
+
+                <div class="flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-500 text-sm line-clamp-2 mb-2">Nhà Giả Kim</h3>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="font-black text-gray-500 text-lg">39.000đ</span>
+                            <span class="text-[11px] text-gray-400 line-through">79.000đ</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden mb-3">
+                            <div class="absolute top-0 left-0 h-full bg-gray-400" style="width: 100%;"></div>
+                            <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white z-10">Đã bán 100%</span>
+                        </div>
+                        <button disabled class="w-full py-2.5 bg-gray-300 text-gray-500 rounded-xl font-bold text-sm uppercase">Đã Hết Hàng</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<footer class="bg-brand-dark text-white/80 py-8 border-t-4 border-brand-red">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <p class="font-bold mb-2 text-white">BOOKOM FLASH SALE</p>
+        <p class="text-sm">Ưu đãi độc quyền chỉ có trong khung giờ vàng.</p>
+    </div>
+</footer>
+
+<script>
+    // Tạo thời gian đếm ngược ngẫu nhiên (ví dụ 2h45m30s)
+    let totalSeconds = 2 * 3600 + 45 * 60 + 30;
+
+    function updateTimer() {
+        if (totalSeconds <= 0) return;
+        totalSeconds--;
+
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+
+        document.getElementById('hours').innerText = h.toString().padStart(2, '0');
+        document.getElementById('minutes').innerText = m.toString().padStart(2, '0');
+        document.getElementById('seconds').innerText = s.toString().padStart(2, '0');
+    }
+
+    setInterval(updateTimer, 1000);
+</script>
+</body>
+</html>

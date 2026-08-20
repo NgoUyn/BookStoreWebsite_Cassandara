@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/panel_head :: head(${pageTitle}, false)}"></head>
+<body class="font-sans bg-[#fbfaf8] text-[#5D4037]">
+<div class="flex min-h-screen">
+    <div th:replace="~{fragments/admin_layout :: sidebar(${activeMenu})}"></div>
+    <div class="flex-1 min-w-0">
+        <div th:replace="~{fragments/admin_layout :: header(${pageTitle}, ${pageSubtitle})}"></div>
+        <main class="p-4 md:p-8 space-y-6">
+            <section class="rounded-2xl border border-[#E5CBB5] bg-white p-6 shadow-sm flex flex-col md:flex-row gap-4">
+                <div class="flex-1 relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </span>
+                    <input id="users-q" class="w-full rounded-xl border border-[#E5CBB5] pl-10 pr-4 py-2.5 font-bold focus:ring-2 focus:ring-[#D19C74] focus:outline-none transition-all" placeholder="Tìm tên hoặc email người dùng...">
+                </div>
+                <select id="users-role" class="rounded-xl border border-[#E5CBB5] px-4 py-2.5 font-bold text-[#5D4037] focus:ring-2 focus:ring-[#D19C74] focus:outline-none transition-all cursor-pointer bg-white">
+                    <option value="all">Tất cả vai trò</option>
+                    <option value="BUYER">Người mua (Buyer)</option>
+                    <option value="SELLER">Người bán (Seller)</option>
+                    <option value="ADMIN">Quản trị viên (Admin)</option>
+                </select>
+                <select id="users-status" class="rounded-xl border border-[#E5CBB5] px-4 py-2.5 font-bold text-[#5D4037] focus:ring-2 focus:ring-[#D19C74] focus:outline-none transition-all cursor-pointer bg-white">
+                    <option value="all">Tất cả trạng thái</option>
+                    <option value="Active">Đang hoạt động</option>
+                    <option value="Inactive">Đang bị khóa</option>
+                </select>
+            </section>
+            
+            <section class="rounded-2xl border border-[#E5CBB5] bg-white shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-[#FAF5E8] text-[#5D4037]/70 border-b border-[#E5CBB5]">
+                            <tr>
+                                <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Tên người dùng</th>
+                                <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Email</th>
+                                <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Vai trò</th>
+                                <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Ngày tham gia</th>
+                                <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Trạng thái</th>
+                                <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px] text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users-body" class="divide-y divide-[#E5CBB5]">
+                            <tr><td colspan="6" class="px-6 py-10 text-center text-gray-400 font-bold">Đang tải dữ liệu người dùng...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/panel-data.js}"></script>
+<script th:src="@{/js/api-service.js}"></script>
+<script>
+(function() {
+    'use strict';
+    const API_ROOT = '/api';
+
+    function loadMLData() {
+        fetch(API_ROOT + '/admin/customers', {
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var customers = Array.isArray(data) ? data : [];
+            if (customers.length > 0) {
+                console.log('%c🧠 ML Customer Analysis Data (Admin Users Page)', 'font-size:16px; font-weight:bold; color:#ea580c;');
+                console.table(customers.map(function(c) {
+                    return {
+                        ID: c.id,
+                        Name: c.name || c.username || 'N/A',
+                        Label: c.predictedLabel,
+                        Risk: c.riskLevel,
+                        ChurnProb: c.churnProbability ? (c.churnProbability * 100).toFixed(1) + '%' : '--',
+                        Orders: c.totalOrders || 0,
+                        AvgOrder: c.avgOrderValue ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(c.avgOrderValue) : '--',
+                        LastAnalyzed: c.lastAnalyzedAt || '--'
+                    };
+                }));
+            }
+        })
+        .catch(function(err) {
+            console.log('%c⚠ ML data not available: ' + err.message, 'color:orange');
+        });
+    }
+
+    // Load ML data after page init
+    if (typeof BookomPanelData !== 'undefined') {
+        var origInit = BookomPanelData.initAdminUsers;
+        BookomPanelData.initAdminUsers = function() {
+            var result = origInit.apply(this, arguments);
+            setTimeout(loadMLData, 1000);
+            return result;
+        };
+    }
+
+    BookomPanelData.initAdminUsers();
+})();
+</script>
+</body>
+REPLACE
+</html>
