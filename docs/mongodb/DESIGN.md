@@ -249,6 +249,7 @@ com.example.bookstore
 | 9.13 | `surefire-junit-platform:3.2.5 could not be resolved` ⇒ test **chưa từng chạy** trên máy | `pom.xml` đặt `<skipTests>true</skipTests>` cố định nên provider chưa bao giờ được tải | Đặt `skipTests=false` + `tools\run-tests.bat` (chạy `mvnw -o test`, ghi `logs\test-bg.log`) |
 | 9.14 | `UnnecessaryStubbing` / `PotentialStubbingProblem` hàng loạt khi test bắt đầu chạy | Mockito 5 mặc định `STRICT_STUBS`; nhiều stub cũ không còn được gọi sau khi chuyển Mongo (`anyList()` **không** match `null`) | Thêm `@MockitoSettings(strictness = LENIENT)` cho test legacy + set `favoriteCategoryIds = List.of()` trong request test |
 | 9.15 | Test `AuthorizationTest` báo SELLER chưa duyệt shop vẫn đổi được trạng thái đơn | Khi chuyển `CustomPermissionEvaluator` sang Mongo đã **mất** check `existsBySellerIdAndApprovalStatus` | Khôi phục Check 2 (shop APPROVED) → phát hiện nhờ chạy test |
+| 9.16 | `POST /api/auth/register` → **HTTP 500**: `WriteError{code=121, 'Document failed validation', missingProperties:['createdAt']}` | `@EnableMongoAuditing` **không** tự chạy vì các model giữ field audit tay (không có `@CreatedDate`/`@LastModifiedDate`), mà validator `$jsonSchema` của `users/books/orders…` bắt buộc có `createdAt` | Thêm `config/mongo/MongoAuditCallback.java` (`BeforeConvertCallback`) tự điền `createdAt/updatedAt/schemaVersion` cho mọi `AuditableDocument` (không tiêm bean ⇒ không tạo vòng lặp) |
 
 ---
 
@@ -334,6 +335,7 @@ tools\run-app.bat             REM Spring Boot -> logs\app-run.log
 | `GET /api/health` | ✅ `200 {"app":"BookStore","status":"UP"}` |
 | `GET /api/health/detailed` | ✅ `"database":{"type":"MongoDB","database":"bookom","status":"UP"}` (ping `{ping:1}` thật) |
 | `GET /api/books` | ✅ `200` + JSON phân trang đọc từ collection `books` (kèm getter tương thích `imageUrl`, `averageImageUrl`, `averageRating`, `stats{}`) → chứng minh hợp đồng REST không đổi |
+| **Luồng ghi thật**: `POST /api/auth/otp/request` → `POST /api/auth/otp/verify` → `POST /api/auth/register` | ✅ `200 "Đăng ký thành công"`; user mới có `_id = 1303` kiểu **BSON long** (do collection `counters` cấp) khớp `counters.users.seq = 1303`; `createdAt/updatedAt/schemaVersion` được điền tự động ⇒ **chứng minh cơ chế giữ `Long id` + audit hoạt động ở runtime** |
 | Trang chủ `/` | ✅ render Thymeleaf (1889 dòng HTML) |
 
 > Ghi chú: log khởi động có cảnh báo RabbitMQ `Connection refused: localhost:5672` — do máy dev chưa bật RabbitMQ; đây là hàng đợi tuỳ chọn, **không ảnh hưởng** nghiệp vụ chính (đơn hàng vẫn tạo được).

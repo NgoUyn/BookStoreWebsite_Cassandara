@@ -1,0 +1,28 @@
+fix(mongodb): them MongoAuditCallback (loi 121 Document failed validation) + don sach cau hinh SQL
+
+Phat hien khi chay that luong dang ky:
+  POST /api/auth/register -> HTTP 500
+  WriteError{code=121, 'Document failed validation', missingProperties:['createdAt']}
+
+Nguyen nhan: @EnableMongoAuditing chi hoat dong khi field co
+@CreatedDate/@LastModifiedDate; cac model cua do an giu field audit tay (de
+khop ten field voi du lieu da seed) nen createdAt luon = null, trong khi
+validator $jsonSchema cua users/books/orders... bat buoc co createdAt.
+
+Cach sua: them config/mongo/MongoAuditCallback.java (BeforeConvertCallback)
+tu dong set createdAt (neu null), updatedAt, schemaVersion cho moi document
+implements AuditableDocument - khong phai sua 10 model, khong tiem bean nen
+khong the tao vong lap dependency voi MappingMongoConverter.
+
+Kiem chung lai tren MongoDB that (27018):
+  - OTP request -> verify -> register: HTTP 200 "Dang ky thanh cong"
+  - user moi: _id = 1303 (BSON long do collection counters cap), khop
+    counters.users.seq = 1303
+  - createdAt/updatedAt/schemaVersion duoc dien day du
+
+Don sach:
+  - application.properties: bo not spring.datasource.hikari.* (HikariCP da
+    bi go cung JPA), ghi chu pool MongoDB.
+  - Them tools/smoke-test-api.ps1: kiem tra nhanh health + doc books + luong
+    OTP->dang ky (dung cho demo/bao cao).
+  - DESIGN.md: muc 9.16 (loi 121) va muc 10.4 (ket qua luong ghi that).

@@ -1,0 +1,6 @@
+=== 1) Xin OTP cho cline.mongo.test@example.com
+OTP nhan duoc = 025629
+=== 2) Xac thuc OTP
+Xac thuc OTP thanh cong
+=== 3) Dang ky tai khoan (ghi vao MongoDB, id phai do counters sinh ra)
+HTTP 200 - Dang k¡ th…nh c“ng
