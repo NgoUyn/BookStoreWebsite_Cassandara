@@ -40,8 +40,8 @@ if "%QUERY%"=="" (
 )
 
 echo.
-echo Hoan tat. 5 dong dau tien:
-type "%FILE%" 2>nul | more +1
+echo Hoan tat. Thong tin file xuat:
+for %%F in ("%FILE%") do echo   %%~fF  ^(%%~zF bytes^)
 
 :end
 endlocal

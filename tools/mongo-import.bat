@@ -41,7 +41,7 @@ if /i "%TYPE%"=="csv" (
 
 echo.
 echo So document hien co trong %COLL%:
-"%MONGOSH%" "%MONGO_URI%" --quiet --eval "print(db.getCollection('%%COLL%%').countDocuments({}))"
+"%MONGOSH%" "%MONGO_URI%" --quiet --eval "print(db.getCollection('%COLL%').countDocuments({}))"
 
 :end
 endlocal

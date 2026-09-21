@@ -10,12 +10,21 @@ set "MONGO_SERVER=C:\Program Files\MongoDB\Server\8.3"
 
 REM --- MongoDB Shell (mongosh) --------------------------------------------
 set "MONGOSH=%LOCALAPPDATA%\Programs\mongosh\mongosh.exe"
+if not exist "%MONGOSH%" (
+  for /f "delims=" %%i in ('where mongosh 2^>nul') do set "MONGOSH=%%i"
+)
 
 REM --- MongoDB Database Tools (mongodump/mongorestore/mongoimport/mongoexport)
+REM     Cai bang: winget install --id MongoDB.DatabaseTools -e
 set "MONGO_TOOLS="
 if exist "C:\Program Files\MongoDB\Tools\100\bin\mongodump.exe" set "MONGO_TOOLS=C:\Program Files\MongoDB\Tools\100\bin"
+if exist "C:\Program Files\MongoDB\Tools\101\bin\mongodump.exe" set "MONGO_TOOLS=C:\Program Files\MongoDB\Tools\101\bin"
 if exist "%LOCALAPPDATA%\Programs\MongoDB Tools\100\bin\mongodump.exe" set "MONGO_TOOLS=%LOCALAPPDATA%\Programs\MongoDB Tools\100\bin"
 if defined MONGO_TOOLS set "PATH=%MONGO_TOOLS%;%PATH%"
+
+REM --- MongoDB Compass (GUI tool - tieu chi 3) -----------------------------
+set "COMPASS=%LOCALAPPDATA%\MongoDBCompass\MongoDBCompass.exe"
+if not exist "%COMPASS%" set "COMPASS=C:\Program Files\MongoDB Compass\MongoDBCompass.exe"
 
 REM --- Instance rieng cua do an (replica set single-node) ------------------
 set "PORT=27018"

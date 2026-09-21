@@ -260,11 +260,17 @@ REM 3) Mo shell / GUI
 tools\mongo-shell.bat                  REM mongosh
 REM GUI: MongoDB Compass -> mongodb://127.0.0.1:27018/?replicaSet=rs0
 
-REM 4) Backup / Restore (can MongoDB Database Tools)
-tools\mongo-backup.bat
+REM 4) Backup / Restore (Database Tools da cai: MongoDB Tools 100.18.0)
+tools\mongo-backup.bat                    REM -> backups\bookom_<ngay>_<gio>.archive
+tools\mongo-verify-backup.bat             REM dump + restore vao DB test + DOI CHIEU so document
 tools\mongo-restore.bat backups\bookom_....archive
+tools\mongo-import.bat  <collection> <file> [json|jsonArray|csv] [--drop]
+tools\mongo-export.bat  <collection> <file> [json|csv]
 
-REM 5) Chay ung dung Spring Boot
+REM 5) Mo GUI tool (MongoDB Compass 1.50)
+tools\mongo-open-compass.bat              REM mo Compass voi dung URI (cong 27018!)
+
+REM 6) Chay ung dung Spring Boot
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -274,15 +280,15 @@ REM 5) Chay ung dung Spring Boot
 
 | Tiêu chí | Trạng thái | Minh chứng |
 |---|---|---|
-| **1 (2đ)** DB + dữ liệu + truy vấn | ✅ đã chạy | 20 collection + validator + 100 index; 15 truy vấn cơ bản (`04`), 22 pipeline nâng cao (`05`) |
-| **2 (0.5đ)** Import/Export + Backup/Restore | ⚠️ script xong, chờ cài Database Tools | `tools\mongo-import/export/backup/restore.bat` |
-| **3 (1đ)** Truy vấn trên GUI tool | ⚠️ chờ cài Compass | `docs/mongodb/GUI_TOOL_GUIDE.md` (Phase 5) + ảnh chụp explain/index |
+| **1 (2đ)** DB + dữ liệu + truy vấn | ✅ đã chạy | 20 collection + 19 validator + 100 index; 15 truy vấn cơ bản (`04`), 22 pipeline nâng cao (`05`), `06_verify_db.js` |
+| **2 (0.5đ)** Import/Export + Backup/Restore | ✅ **đã kiểm chứng** | `tools\mongo-verify-backup.bat`: dump 20 collection → restore sang `bookom_restoretest` → **20/20 collection khớp 100%**; `mongo-export.bat` xuất 400 sách (446 KB) + `mongo-import.bat` nhập lại thành công 20 document |
+| **3 (1đ)** Truy vấn trên GUI tool | 🚧 hướng dẫn xong, chờ chụp ảnh | `docs/mongodb/GUI_TOOL_GUIDE.md` (Compass 1.50 ở cổng **27018**): 7 pipeline JSON dán trực tiếp, Explain Plan, Indexes, Schema, Validation, Import/Export + checklist ảnh |
 | **4 (0.5đ)** Kết nối CSDL với ứng dụng | ✅ build OK | `MongoConfig`, `application.properties`, `MongoSequenceService`, `MongoIdAssignmentCallback`, `MongoIndexVerifier`, actuator health |
 | **5 (2đ)** Chức năng ứng dụng | 🚧 Phase 3 | Chưa đổi entity/repository/service sang Mongo |
 
 ### 10.2 Việc còn lại (theo thứ tự)
 
-1. **Phase 2**: cài Database Tools + Compass; import/export dữ liệu thật; viết `GUI_TOOL_GUIDE.md` + ảnh chụp.
+1. **Chụp ảnh Compass** theo `GUI_TOOL_GUIDE.md` (khoảng 15–18 ảnh) → lưu vào `docs/mongodb/screenshots/`.
 2. **Phase 3**: chuyển 22 entity → document/embedded; 21 repository → MongoRepository/Aggregation; ~10 service (OrderService, CartService, BookService, BookReviewService, RecommendationJob, DistributedLockService, DatabaseSeederService…).
 3. **Phase 4**: Backup Manager / Query Explorer / Explain Viewer / Index Manager trong panel admin; GridFS cho ảnh; Change Stream push SSE.
 4. **Phase 5–6**: gỡ JPA + Flyway + mssql-jdbc khỏi `pom.xml`, xoá `db/migration/*.sql`, viết báo cáo + slide + kịch bản demo.
