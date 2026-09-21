@@ -91,6 +91,34 @@ public class BookReview implements SequencedDocument, AuditableDocument {
         return user == null ? null : user.getUsername();
     }
 
+    /**
+     * TUONG THICH (compat): code cu goi {@code review.setBook(book)}.
+     * Nay luu snapshot {@code BookRef} (id, title, imageUrl...) - khong embed
+     * ca document sach vao review.
+     */
+    public void setBook(Book book) {
+        if (book == null) {
+            this.book = null;
+            this.bookId = null;
+            return;
+        }
+        this.bookId = book.getId();
+        this.book = BookRef.builder()
+                .id(book.getId())
+                .title(book.getTitle())
+                .imageUrl(book.getImageUrl())
+                .sellerId(book.getSellerId())
+                .categoryId(book.getCategoryId())
+                .categoryName(book.getCategoryName())
+                .build();
+    }
+
+    /** TUONG THICH: {@code review.setUser(user)} -> luu userId + snapshot. */
+    public void setUser(User user) {
+        this.userId = user == null ? null : user.getId();
+        this.user = UserSnapshot.of(user);
+    }
+
     // ======================================================================
     // EMBED: snapshot sach
     // ======================================================================

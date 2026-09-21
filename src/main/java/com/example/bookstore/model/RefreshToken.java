@@ -30,4 +30,17 @@ public class RefreshToken implements SequencedDocument {
     private String token;
 
     private Instant expiryDate;
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code refreshToken.getUser()}.
+     * Collection refresh_tokens chi giu {@code userId}.
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public User getUser() {
+        return userId == null ? null : User.builder().id(userId).build();
+    }
+
+    public void setUser(User user) {
+        this.userId = user == null ? null : user.getId();
+    }
 }

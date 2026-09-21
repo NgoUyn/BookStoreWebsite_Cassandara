@@ -82,4 +82,14 @@ public interface CouponRepository extends MongoRepository<Coupon, Long> {
     List<Coupon> findBySellerId(Long sellerId);
 
     long countBySellerIdAndIsActiveTrue(Long sellerId);
+
+    // ======================= LOP TUONG THICH (adapter) ======================
+
+    default Page<Coupon> findBySeller_IdOrderByCreatedAtDesc(Long sellerId, Pageable pageable) {
+        return findBySellerIdOrderByCreatedAtDesc(sellerId, pageable);
+    }
+
+    default boolean existsByCodeIgnoreCaseAndSeller_Id(String code, Long sellerId) {
+        return existsByCodeIgnoreCaseAndSellerId(code, sellerId);
+    }
 }

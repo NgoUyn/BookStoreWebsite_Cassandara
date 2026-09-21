@@ -51,4 +51,28 @@ public class CartItem {
                     : book.getSeller().getUsername();
         }
     }
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code cartItem.getBook()}.
+     * Tra ve Book "nhe" tu snapshot (gio hang khong luu ca document sach).
+     * Khi can du lieu "live" (ton kho, trang thai duyet) phai doc lai tu
+     * {@code bookRepository.findById(bookId)}.
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public Book getBook() {
+        return Book.builder()
+                .id(bookId)
+                .title(title)
+                .author(author)
+                .price(unitPrice)
+                .finalPrice(unitPrice)
+                .images(com.example.bookstore.model.embedded.BookImage.builder()
+                        .thumbnail(imageUrl)
+                        .build())
+                .build();
+    }
+
+    public void setBook(Book book) {
+        applyBookSnapshot(book);
+    }
 }

@@ -168,10 +168,10 @@ public class BookService {
         String keyword = (q == null || q.trim().isEmpty()) ? null : q.trim();
         String authorKeyword = (author == null || author.trim().isEmpty()) ? null : author.trim();
 
-        return bookRepository.searchApprovedBooksNative(
+        return bookRepository.searchApprovedBooks(
                 keyword, categoryIds, sellerIds, publishers, authorKeyword,
                 minPrice, maxPrice, minRating, inStock, publishYearFrom, publishYearTo,
-                status.name(), pageable
+                status, pageable
         );
     }
 //    public Page<Book> searchApprovedBooks(

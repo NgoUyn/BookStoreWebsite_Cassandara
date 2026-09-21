@@ -103,7 +103,7 @@ public class DatabaseSeederService {
 
         // Auto-seed a sample order for buyer@gmail.com to help verify buyer dashboard
         try {
-            User buyer = userRepository.findByUsername("buyer@gmail.com");
+            User buyer = userRepository.findByUsername("buyer@gmail.com").orElse(null);
             if (buyer != null && orderRepository.count() == 0) {
                 List<Book> books = bookRepository.findAll();
                 if (!books.isEmpty()) {
@@ -123,7 +123,8 @@ public class DatabaseSeederService {
         if (orderRepository.count() > 0) return;
 
         Order order = Order.builder()
-                .buyer(buyer)
+                .buyerId(buyer.getId())
+                .buyer(com.example.bookstore.model.embedded.UserSnapshot.of(buyer))
                 .shippingAddress(buyer.getShopAddress() != null ? buyer.getShopAddress() : "Địa chỉ mẫu")
                 .shippingFee(30000.0)
                 .discountAmount(0.0)
@@ -132,14 +133,15 @@ public class DatabaseSeederService {
                 .build();
 
         SubOrder sub = SubOrder.builder()
-                .parentOrder(order)
+                .orderId(order.getId())
+                .buyer(com.example.bookstore.model.embedded.UserSnapshot.of(buyer))
                 .seller(sampleBook.getSeller())
                 .status(com.example.bookstore.model.enums.OrderStatus.SHIPPING)
                 .subTotal(sampleBook.getPrice())
                 .build();
 
         com.example.bookstore.model.OrderItem item = com.example.bookstore.model.OrderItem.builder()
-                .subOrder(sub)
+                .subOrderId(sub.getId())
                 .book(sampleBook)
                 .unitPrice(sampleBook.getPrice())
                 .quantity(1)
@@ -307,7 +309,8 @@ public class DatabaseSeederService {
 
         // Create new SellerShop with all default values
         SellerShop newSellerShop = SellerShop.builder()
-                .seller(seller)
+                .sellerId(seller.getId())
+                .seller(com.example.bookstore.model.embedded.UserSnapshot.of(seller))
                 .slug(slug)
                 .shopName(shopName)
                 .description("Cửa hàng sách chính thức của " + shopName)

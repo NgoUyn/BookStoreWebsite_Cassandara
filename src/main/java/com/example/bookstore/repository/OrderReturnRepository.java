@@ -27,4 +27,15 @@ public interface OrderReturnRepository extends MongoRepository<OrderReturn, Long
             "{ $group: { '_id': null, total: { $sum: '$quantityReturned' } } }"
     })
     Long sumReturnedQuantityByUserId(Long userId);
+
+    // ======================= LOP TUONG THICH (adapter) ======================
+
+    default long countByUser(com.example.bookstore.model.User user) {
+        return countByUserId(user.getId());
+    }
+
+    default Long sumReturnedQuantityByUser(com.example.bookstore.model.User user) {
+        Long total = sumReturnedQuantityByUserId(user.getId());
+        return total == null ? 0L : total;
+    }
 }

@@ -110,9 +110,9 @@ public class RecommendationJob {
                 dbRule.setBookB(bookBOpt.get());
                 
                 // Set chính xác support, confidence, lift từ thuật toán
-                dbRule.setSupport(BigDecimal.valueOf(rule.getSupport()).setScale(4, java.math.RoundingMode.HALF_UP));
-                dbRule.setConfidence(BigDecimal.valueOf(rule.getConfidence()).setScale(4, java.math.RoundingMode.HALF_UP));
-                dbRule.setLift(BigDecimal.valueOf(rule.getLift()).setScale(4, java.math.RoundingMode.HALF_UP));
+                dbRule.setSupport(BigDecimal.valueOf(rule.getSupport()).setScale(4, java.math.RoundingMode.HALF_UP).doubleValue());
+                dbRule.setConfidence(BigDecimal.valueOf(rule.getConfidence()).setScale(4, java.math.RoundingMode.HALF_UP).doubleValue());
+                dbRule.setLift(BigDecimal.valueOf(rule.getLift()).setScale(4, java.math.RoundingMode.HALF_UP).doubleValue());
                 dbRule.setUpdatedAt(LocalDateTime.now());
                 
                 dbRules.add(dbRule);

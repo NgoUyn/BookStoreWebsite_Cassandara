@@ -105,4 +105,45 @@ public interface OrderRepository extends MongoRepository<Order, Long>, OrderSear
             + "{ 'buyer.username': { $regex: ?0, $options: 'i' } }, "
             + "{ 'buyer.fullName': { $regex: ?0, $options: 'i' } } ] }")
     Page<Order> searchOrders(String keyword, Pageable pageable);
+
+    // ======================================================================
+    // LOP TUONG THICH (adapter): code cu truyen entity User thay vi userId
+    // ======================================================================
+
+    default long countByBuyer(com.example.bookstore.model.User buyer) {
+        return countByBuyerId(buyer.getId());
+    }
+
+    default Double sumTotalAmountByBuyer(com.example.bookstore.model.User buyer) {
+        Double total = sumTotalAmountByBuyerId(buyer.getId());
+        return total == null ? 0.0 : total;
+    }
+
+    default Double sumDiscountAmountByBuyer(com.example.bookstore.model.User buyer) {
+        Double total = sumDiscountAmountByBuyerId(buyer.getId());
+        return total == null ? 0.0 : total;
+    }
+
+    default long countDiscountedOrdersByBuyer(com.example.bookstore.model.User buyer) {
+        return countDiscountedOrdersByBuyerId(buyer.getId());
+    }
+
+    default LocalDateTime findLastOrderDateByBuyer(com.example.bookstore.model.User buyer) {
+        return findFirstByBuyerIdOrderByCreatedAtDesc(buyer.getId())
+                .map(Order::getCreatedAt)
+                .orElse(null);
+    }
+
+    default List<Order> findByBuyerOrderByCreatedAtDesc(com.example.bookstore.model.User buyer) {
+        return findByBuyerIdOrderByCreatedAtDesc(buyer.getId());
+    }
+
+    default Page<Order> findByBuyerWithFilters(com.example.bookstore.model.User buyer,
+                                              LocalDateTime createdFrom,
+                                              LocalDateTime createdTo,
+                                              Double minPrice,
+                                              Double maxPrice,
+                                              Pageable pageable) {
+        return findBuyerOrdersWithFilters(buyer.getId(), createdFrom, createdTo, minPrice, maxPrice, pageable);
+    }
 }

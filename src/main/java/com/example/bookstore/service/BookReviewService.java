@@ -76,8 +76,8 @@ public class BookReviewService {
 
         // 4. Tạo và lưu đánh giá
         BookReview review = BookReview.builder()
-                .book(book)
-                .user(user)
+                .bookId(book.getId())
+                .userId(user.getId())
                 .rating(rating)
                 .comment(comment != null ? comment.trim() : "")
                 .createdAt(LocalDateTime.now())
@@ -183,7 +183,7 @@ public class BookReviewService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sách"));
 
-        List<Map<String, Object>> results = reviewRepository.countRatingDistributionByBook(book);
+        List<java.util.Map> results = reviewRepository.countRatingDistributionByBook(book);
         
         // Khởi tạo map với tất cả rating từ 1-5 có giá trị mặc định là 0
         Map<Integer, Long> distribution = new HashMap<>();
@@ -231,7 +231,7 @@ public class BookReviewService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sách"));
         
-        return reviewRepository.findByBookAndUser(book, user);
+        return reviewRepository.findByBookAndUser(book, user).orElse(null);
     }
 
     /**

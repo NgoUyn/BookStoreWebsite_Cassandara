@@ -102,4 +102,19 @@ public class Coupon implements SequencedDocument, AuditableDocument {
         }
         return discount;
     }
+
+    // ======================= LOP TUONG THICH (adapter) ======================
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code coupon.getSeller()}.
+     * Collection coupons chi giu {@code sellerId} nen tra ve User "vo".
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public User getSeller() {
+        return sellerId == null ? null : User.builder().id(sellerId).build();
+    }
+
+    public void setSeller(User seller) {
+        this.sellerId = seller == null ? null : seller.getId();
+    }
 }

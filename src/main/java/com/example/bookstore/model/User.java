@@ -109,4 +109,34 @@ public class User implements SequencedDocument, AuditableDocument {
                 + (firstName == null ? "" : firstName)).trim();
         return full.isEmpty() ? username : full;
     }
+
+    // ======================= LOP TUONG THICH (adapter) ======================
+
+    /**
+     * TUONG THICH: code cu goi {@code user.getFavoriteCategories()} (quan he
+     * ManyToMany bang trung gian). Nay chi luu {@code favoriteCategoryIds[]}
+     * nen tra ve cac Category "vo" chi co id.
+     */
+    @JsonIgnore
+    public java.util.Set<Category> getFavoriteCategories() {
+        java.util.Set<Category> set = new java.util.LinkedHashSet<>();
+        if (favoriteCategoryIds != null) {
+            for (Long categoryId : favoriteCategoryIds) {
+                set.add(Category.builder().id(categoryId).build());
+            }
+        }
+        return set;
+    }
+
+    public void setFavoriteCategories(java.util.Set<Category> categories) {
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        if (categories != null) {
+            for (Category category : categories) {
+                if (category != null && category.getId() != null) {
+                    ids.add(category.getId());
+                }
+            }
+        }
+        this.favoriteCategoryIds = ids;
+    }
 }

@@ -29,4 +29,16 @@ public interface AssociationRuleRepository extends MongoRepository<AssociationRu
     List<AssociationRule> findRulesWhereBookIsTarget(Long bookId, Double minConfidence);
 
     long countByBookAIdAndBookBId(Long bookAId, Long bookBId);
+
+    /** TUONG THICH: code cu goi {@code deleteAllRules()} truoc khi tinh lai. */
+    default int deleteAllRules() {
+        long total = count();
+        deleteAll();
+        return (int) total;
+    }
+
+    /** TUONG THICH: minConfidence kieu Double (ban cu dung BigDecimal). */
+    default List<AssociationRule> findBoughtTogetherByBookId(Long bookId, java.math.BigDecimal minConfidence) {
+        return findBoughtTogetherByBookId(bookId, minConfidence.doubleValue());
+    }
 }

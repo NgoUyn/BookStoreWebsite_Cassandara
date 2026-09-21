@@ -73,7 +73,9 @@ public class OrderItem {
         return Book.builder()
                 .id(bookId)
                 .title(title)
-                .imageUrl(imageUrl)
+                .images(com.example.bookstore.model.embedded.BookImage.builder()
+                        .thumbnail(imageUrl)
+                        .build())
                 .build();
     }
 

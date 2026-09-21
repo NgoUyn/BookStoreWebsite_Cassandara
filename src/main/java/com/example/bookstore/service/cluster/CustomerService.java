@@ -270,7 +270,7 @@ public class CustomerService {
         // Build Customer entity với features đã tính
         // ====================================================================
         Customer customer = Customer.builder()
-                .user(user)
+                .userId(user.getId())
                 .accountAgeMonths(accountAgeMonths)
                 .avgOrderValue(avgOrderValue)
                 .totalOrders((double) totalOrders)

@@ -42,4 +42,27 @@ public class AssociationRule implements SequencedDocument {
     /** TTL 30 ngay: rule cu tu dong bi xoa de job tinh lai ghi ban moi. */
     @Field("updatedAt")
     private LocalDateTime updatedAt;
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code rule.getBookA()}.
+     * association_rules chi luu bookAId/bookBId (materialized view) nen tra ve
+     * Book "vo" chi co id - tang service se tu nap chi tiet neu can.
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public Book getBookA() {
+        return bookAId == null ? null : Book.builder().id(bookAId).build();
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public Book getBookB() {
+        return bookBId == null ? null : Book.builder().id(bookBId).build();
+    }
+
+    public void setBookA(Book book) {
+        this.bookAId = book == null ? null : book.getId();
+    }
+
+    public void setBookB(Book book) {
+        this.bookBId = book == null ? null : book.getId();
+    }
 }

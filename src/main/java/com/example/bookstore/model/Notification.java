@@ -58,4 +58,17 @@ public class Notification implements SequencedDocument {
     /** TTL: MongoDB xoa khi het han (tang 90 ngay tu luc tao). */
     @Indexed
     private LocalDateTime expiresAt;
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code notification.getUser().getId()}.
+     * Collection notifications chi giu {@code userId} nen tra ve User "vo".
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public User getUser() {
+        return userId == null ? null : User.builder().id(userId).build();
+    }
+
+    public void setUser(User user) {
+        this.userId = user == null ? null : user.getId();
+    }
 }
