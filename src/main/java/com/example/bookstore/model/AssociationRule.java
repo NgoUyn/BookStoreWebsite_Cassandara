@@ -65,4 +65,13 @@ public class AssociationRule implements SequencedDocument {
     public void setBookB(Book book) {
         this.bookBId = book == null ? null : book.getId();
     }
+
+    /** TUONG THICH: code cu goi {@code rule.getRuleId()} (ban SQL dung rule_id). */
+    public Long getRuleId() {
+        return id;
+    }
+
+    public void setRuleId(Long ruleId) {
+        this.id = ruleId;
+    }
 }
