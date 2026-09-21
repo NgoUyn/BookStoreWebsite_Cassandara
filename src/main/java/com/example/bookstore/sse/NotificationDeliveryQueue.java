@@ -134,7 +134,8 @@ public class NotificationDeliveryQueue {
         log.debug("Enqueueing notification {} to channel {}", notification.getId(), channel);
         
         NotificationDelivery delivery = NotificationDelivery.builder()
-            .notification(notification)
+            .notificationId(notification.getId())
+            .userId(notification.getUserId())
             .channel(channel)
             .status(NotificationDelivery.DeliveryStatus.PENDING)
             .attemptCount(0)

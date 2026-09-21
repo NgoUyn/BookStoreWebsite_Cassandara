@@ -94,19 +94,13 @@ public class BuyerProfileService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         UserAddress address = addressDTO.toEntity();
-        address.setUser(user);
-        
-        // If this is the first address or marked as default, set it as default
+
+        // Dia chi la mang nhung trong users: them bang 1 lan ghi tren document user
         if (userAddressRepository.findByUserId(userId).isEmpty() || Boolean.TRUE.equals(addressDTO.getIsDefault())) {
             address.setIsDefault(true);
-            // Unset any previous default addresses
-            userAddressRepository.findDefaultAddressByUserId(userId).ifPresent(prev -> {
-                prev.setIsDefault(false);
-                userAddressRepository.save(prev);
-            });
         }
-        
-        UserAddress savedAddress = userAddressRepository.save(address);
+
+        UserAddress savedAddress = userAddressRepository.saveForUser(userId, address);
         logSecurityEvent(userId, "ADDRESS_ADDED", "New delivery address added: " + addressDTO.getDistrict());
         
         return UserAddressDTO.fromEntity(savedAddress);
@@ -206,9 +200,10 @@ public class BuyerProfileService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         UserSecurityEvent event = UserSecurityEvent.builder()
-                .user(user)
+                .userId(userId)
                 .eventType(eventType)
                 .eventDescription(description)
+                .createdAt(java.time.LocalDateTime.now())
                 .build();
         
         securityEventRepository.save(event);

@@ -44,6 +44,9 @@ public interface UserRepository extends MongoRepository<User, Long> {
      */
     List<User> findByWishlistBookIdsContaining(Long bookId);
 
+    /** Tim chu so huu cua 1 dia chi (dia chi la mang nhung trong users). */
+    Optional<User> findFirstByAddressesId(Long addressId);
+
     /** Dem nhanh so nguoi quan tam 1 cuon sach (dung counter wishlistCount). */
     @Query(value = "{ 'wishlistBookIds': ?0 }", count = true)
     long countWishlistByBookId(Long bookId);

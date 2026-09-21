@@ -56,4 +56,25 @@ public class NotificationDelivery implements SequencedDocument {
     public enum DeliveryStatus {
         PENDING, SENT, FAILED, DROPPED
     }
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code delivery.getNotification()}.
+     * NotificationDelivery chi giu {@code notificationId} (collection tham chieu)
+     * nen tra ve Notification "vo" (id + userId).
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public Notification getNotification() {
+        if (notificationId == null) {
+            return null;
+        }
+        return Notification.builder().id(notificationId).userId(userId).build();
+    }
+
+    public void setNotification(Notification notification) {
+        if (notification == null) {
+            return;
+        }
+        this.notificationId = notification.getId();
+        this.userId = notification.getUserId();
+    }
 }

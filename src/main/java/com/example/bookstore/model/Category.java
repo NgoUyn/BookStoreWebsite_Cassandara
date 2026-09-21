@@ -53,4 +53,18 @@ public class Category implements SequencedDocument {
 
     @Field("updatedAt")
     private LocalDateTime updatedAt;
+
+    /**
+     * TUONG THICH (compat) cho code cu: {@code new Category(null, name, desc, null)}.
+     * (Constructor 4 tham so cua ban SQL Server: id, name, description, parentId).
+     */
+    public Category(Long id, String name, String description, Long parentId) {
+        this.id = id;
+        this.name = name;
+        this.slug = name == null ? null
+                : name.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+        this.description = description;
+        this.parentId = parentId;
+        this.isActive = true;
+    }
 }

@@ -98,4 +98,39 @@ public class SubOrder {
         private LocalDateTime at;
         private String note;
     }
+
+    // ======================== Getter/SETTER tuong thich =====================
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code subOrder.getParentOrder()}.
+     * Tra ve Order "vo" (chi id + buyer snapshot) vi subOrder nam TRONG
+     * document order - khong con quan he 2 chieu nhu JPA.
+     */
+    @JsonIgnore
+    public Order getParentOrder() {
+        if (orderId == null) {
+            return null;
+        }
+        return Order.builder().id(orderId).buyer(buyer).build();
+    }
+
+    public void setParentOrder(Order order) {
+        if (order == null) {
+            return;
+        }
+        this.orderId = order.getId();
+        if (this.buyer == null) {
+            this.buyer = order.getBuyer();
+        }
+    }
+
+    /** TUONG THICH: code cu truyen entity User - nay luu sellerId + snapshot. */
+    public void setSeller(User user) {
+        this.sellerId = user == null ? null : user.getId();
+        this.seller = UserSnapshot.of(user);
+    }
+
+    public void setBuyerUser(User user) {
+        this.buyer = UserSnapshot.of(user);
+    }
 }

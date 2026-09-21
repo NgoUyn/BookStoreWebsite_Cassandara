@@ -55,4 +55,14 @@ public class PaymentTransaction implements SequencedDocument {
 
     /** TTL: link thanh toan het han (chi ap dung khi status = PENDING). */
     private LocalDateTime expiredAt;
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code transaction.getOrder().getId()}.
+     * PaymentTransaction la collection THAM CHIEU (chi giu orderId), nen tra ve
+     * Order "vo" chi co id - khong doc lai collection orders.
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public Order getOrder() {
+        return orderId == null ? null : Order.builder().id(orderId).build();
+    }
 }

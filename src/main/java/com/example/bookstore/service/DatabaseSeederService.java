@@ -257,7 +257,7 @@ public class DatabaseSeederService {
             String shopAddress,
             AtomicInteger added
     ) {
-        User existing = userRepository.findByUsername(username);
+        User existing = userRepository.findByUsername(username).orElse(null);
         if (existing != null) {
             return existing;
         }

@@ -143,7 +143,7 @@ public class CustomerService {
      */
     public Customer createDefault(User user) {
         Customer customer = Customer.builder()
-                .user(user)
+                .userId(user.getId())
                 .accountAgeMonths(0.0)
                 .avgOrderValue(0.0)
                 .totalOrders(0.0)

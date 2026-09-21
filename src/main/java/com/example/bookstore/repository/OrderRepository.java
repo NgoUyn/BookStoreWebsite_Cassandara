@@ -38,8 +38,6 @@ public interface OrderRepository extends MongoRepository<Order, Long>, OrderSear
 
     Page<Order> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end, Pageable pageable);
 
-    List<Order> findByStatus(OrderStatus status, Pageable pageable);
-
     Page<Order> findByStatus(OrderStatus status, Pageable pageable);
 
     long countByBuyerId(Long buyerId);
@@ -96,6 +94,11 @@ public interface OrderRepository extends MongoRepository<Order, Long>, OrderSear
             "{ $group: { '_id': '$buyerId' } }"
     })
     List<Long> findDistinctBuyerIdsBySellerId(Long sellerId);
+
+    /** Tim order theo id cua subOrder (dung cho SubOrderRepository facade). */
+    java.util.Optional<Order> findFirstBySubOrdersId(Long subOrderId);
+
+    List<Order> findBySubOrdersId(Long subOrderId);
 
     /** Tim kiem don hang (admin) theo ma don hoac ten nguoi mua. */
     @Query("{ $or: [ { 'orderCode': { $regex: ?0, $options: 'i' } }, "

@@ -62,4 +62,22 @@ public class OrderItem {
                     : book.getSeller().getUsername();
         }
     }
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code item.getBook().getTitle()}.
+     * Tra ve Book "nhe" dung tu snapshot - khong doc lai collection books
+     * (hoa don phai giu gia/ten tai thoi diem mua).
+     */
+    @JsonIgnore
+    public Book getBook() {
+        return Book.builder()
+                .id(bookId)
+                .title(title)
+                .imageUrl(imageUrl)
+                .build();
+    }
+
+    public void setBook(Book book) {
+        applyBookSnapshot(book);
+    }
 }

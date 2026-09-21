@@ -69,4 +69,55 @@ public interface BookReviewRepository extends MongoRepository<BookReview, Long> 
             "{ $sort: { '_id': 1 } }"
     })
     List<java.util.Map> countRatingDistributionByBookId(Long bookId);
+
+    // ======================================================================
+    // LOP TUONG THICH (adapter): code cu truyen entity Book/User
+    // ======================================================================
+
+    default Page<BookReview> findByBookAndIsHiddenFalse(com.example.bookstore.model.Book book, Pageable pageable) {
+        return findByBookIdAndIsHiddenFalse(book.getId(), pageable);
+    }
+
+    default Page<BookReview> findByBookAndRatingAndIsHiddenFalse(com.example.bookstore.model.Book book,
+                                                                Integer rating, Pageable pageable) {
+        return findByBookIdAndRatingAndIsHiddenFalse(book.getId(), rating, pageable);
+    }
+
+    default Page<BookReview> findAllByBook(com.example.bookstore.model.Book book, Pageable pageable) {
+        return findByBookId(book.getId(), pageable);
+    }
+
+    default long countByBookAndIsHiddenFalse(com.example.bookstore.model.Book book) {
+        return countByBookIdAndIsHiddenFalse(book.getId());
+    }
+
+    default Double findAverageRatingByBook(com.example.bookstore.model.Book book) {
+        return findAverageRatingByBookId(book.getId());
+    }
+
+    default List<java.util.Map> countRatingDistributionByBook(com.example.bookstore.model.Book book) {
+        return countRatingDistributionByBookId(book.getId());
+    }
+
+    default boolean existsByBookAndUser(com.example.bookstore.model.Book book,
+                                        com.example.bookstore.model.User user) {
+        return existsByBookIdAndUserId(book.getId(), user.getId());
+    }
+
+    default Optional<BookReview> findByBookAndUser(com.example.bookstore.model.Book book,
+                                                   com.example.bookstore.model.User user) {
+        return findByBookIdAndUserId(book.getId(), user.getId());
+    }
+
+    default Page<BookReview> findByUserAndIsHiddenFalse(com.example.bookstore.model.User user, Pageable pageable) {
+        return findByUserIdAndIsHiddenFalse(user.getId(), pageable);
+    }
+
+    default Double findAverageRatingByUser(com.example.bookstore.model.User user) {
+        return findAverageRatingByUserId(user.getId());
+    }
+
+    default long countByUser(com.example.bookstore.model.User user) {
+        return countByUserId(user.getId());
+    }
 }

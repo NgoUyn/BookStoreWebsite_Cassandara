@@ -1,5 +1,6 @@
 package com.example.bookstore.repository;
 
+import com.example.bookstore.dto.CategoryWithCount;
 import com.example.bookstore.model.Book;
 import com.example.bookstore.model.enums.ApprovalStatus;
 import com.example.bookstore.repository.aggregation.BookSearchRepository;
@@ -9,6 +10,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,4 +80,34 @@ public interface BookRepository extends MongoRepository<Book, Long>, BookSearchR
     /** Tim sach theo tag - multikey index {@code idx_books_tags}. */
     @Query("{ 'tags': ?0, 'approvalStatus': 'APPROVED', 'isActive': true }")
     List<Book> findByTag(String tag, Pageable pageable);
+
+    // ======================================================================
+    // LOP TUONG THICH (adapter) cho code cu truyen entity thay vi id
+    // ======================================================================
+
+    default List<Book> findBySeller(com.example.bookstore.model.User seller) {
+        return seller == null || seller.getId() == null ? List.of() : findBySellerId(seller.getId());
+    }
+
+    default List<Book> findBySeller(com.example.bookstore.model.embedded.UserSnapshot seller) {
+        return seller == null || seller.getId() == null ? List.of() : findBySellerId(seller.getId());
+    }
+
+    default long countBySeller(com.example.bookstore.model.User seller) {
+        return seller == null || seller.getId() == null ? 0L : countBySellerId(seller.getId());
+    }
+
+    /**
+     * TUONG THICH: code cu goi {@code countBooksByCategoryAndSeller(sellerId, status.name())}
+     * va doc ket qua theo kieu {@code Object[]} (id, name, count) nhu native SQL.
+     */
+    default List<Object[]> countBooksByCategoryAndSeller(Long sellerId, String statusName) {
+        List<CategoryWithCount> rows = countBooksByCategoryAndSeller(sellerId,
+                ApprovalStatus.valueOf(statusName));
+        List<Object[]> out = new ArrayList<>();
+        for (CategoryWithCount row : rows) {
+            out.add(new Object[]{row.getId(), row.getName(), row.getCount()});
+        }
+        return out;
+    }
 }

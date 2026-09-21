@@ -62,4 +62,13 @@ public class Customer implements SequencedDocument, AuditableDocument {
     private LocalDateTime updatedAt;
 
     private Integer schemaVersion;
+
+    /**
+     * TUONG THICH (compat): code cu goi {@code customer.getUser()}.
+     * Collection {@code customer_ml} chi giu {@code userId} nen tra ve User "vo".
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public User getUser() {
+        return userId == null ? null : User.builder().id(userId).build();
+    }
 }

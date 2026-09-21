@@ -77,7 +77,7 @@ public class VnpayService {
         Long amount = Math.round(order.getTotalAmount()); // Convert to Long (VND)
 
         PaymentTransaction transaction = PaymentTransaction.builder()
-                .order(order)
+                .orderId(order.getId())
                 .amount(amount)
                 .method(request.getPaymentMethod())
                 .status(PaymentStatus.PENDING)

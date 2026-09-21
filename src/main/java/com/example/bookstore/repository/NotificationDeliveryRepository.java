@@ -38,4 +38,14 @@ public interface NotificationDeliveryRepository extends MongoRepository<Notifica
     long countPending();
 
     void deleteByNotificationId(Long notificationId);
+
+    /** TUONG THICH: code cu goi {@code findPendingRetries(pageable)} (dung NOW). */
+    default List<NotificationDelivery> findPendingRetries(Pageable pageable) {
+        return findPendingRetries(LocalDateTime.now(), pageable);
+    }
+
+    /** TUONG THICH: code cu goi {@code findByNotificationId(id)}. */
+    default List<NotificationDelivery> findByNotificationId(Long notificationId) {
+        return findByNotificationIdOrderByCreatedAtDesc(notificationId);
+    }
 }

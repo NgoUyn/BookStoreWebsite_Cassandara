@@ -50,7 +50,8 @@ public class SellerShopService {
 
         // 4. Tạo entity và lưu
         SellerShop newShop = SellerShop.builder()
-                .seller(seller)
+                .sellerId(sellerId)
+                .seller(com.example.bookstore.model.embedded.UserSnapshot.of(seller))
                 .slug(request.getSlug())
                 .shopName(request.getShopName())
                 .description(request.getDescription())
@@ -163,7 +164,8 @@ public class SellerShopService {
                     // Auto-create SellerShop if not exists
                     String slug = generateUniqueSlug(seller.getShopName() != null ? seller.getShopName() : seller.getUsername());
                     SellerShop newShop = SellerShop.builder()
-                            .seller(seller)
+                            .sellerId(sellerId)
+                            .seller(com.example.bookstore.model.embedded.UserSnapshot.of(seller))
                             .slug(slug)
                             .shopName(seller.getShopName() != null ? seller.getShopName() : seller.getUsername())
                             .address(seller.getShopAddress() != null ? seller.getShopAddress() : "Chưa cập nhật")

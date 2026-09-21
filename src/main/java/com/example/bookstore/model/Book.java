@@ -114,6 +114,34 @@ public class Book implements SequencedDocument, AuditableDocument {
 
     // ======================== Getter/SETTER tuong thich frontend ============
 
+    /**
+     * TUONG THICH (compat): code cu goi {@code book.getCategory().getName()}.
+     * Tra ve snapshot nhe tu {@code categoryId}/{@code categoryName} - khong
+     * can doc collection categories (denormalization).
+     */
+    @JsonIgnore
+    public Category getCategory() {
+        if (categoryId == null && categoryName == null) {
+            return null;
+        }
+        return Category.builder().id(categoryId).name(categoryName).build();
+    }
+
+    /** TUONG THICH: {@code book.setCategory(category)} -> luu id + ten (denorm). */
+    public void setCategory(Category category) {
+        this.categoryId = category == null ? null : category.getId();
+        this.categoryName = category == null ? null : category.getName();
+        if (category != null) {
+            this.categoryPath = category.getPath();
+        }
+    }
+
+    /** TUONG THICH: code cu truyen ca entity User - nay luu snapshot + sellerId. */
+    public void setSeller(User user) {
+        this.sellerId = user == null ? null : user.getId();
+        this.seller = UserSnapshot.of(user);
+    }
+
     /** Frontend dung {@code book.imageUrl} (ten field cua ban SQL). */
     public String getImageUrl() {
         return images == null ? null : images.getThumbnail();
