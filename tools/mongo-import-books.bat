@@ -10,7 +10,7 @@ setlocal
 cd /d "%~dp0.."
 call "%~dp0_mongo-env.bat"
 
-set "CSV=%CD%\src\main\resources\Books.csv"
+set "CSV=%CD%\db\seed\Books.csv"
 if not exist "%CSV%" (
   echo [LOI] Khong thay "%CSV%"
   exit /b 1
