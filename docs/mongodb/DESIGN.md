@@ -284,7 +284,17 @@ REM 6) Chay ung dung Spring Boot
 | **2 (0.5đ)** Import/Export + Backup/Restore | ✅ **đã kiểm chứng** | `tools\mongo-verify-backup.bat`: dump 20 collection → restore sang `bookom_restoretest` → **20/20 collection khớp 100%**; `mongo-export.bat` xuất 400 sách (446 KB) + `mongo-import.bat` nhập lại thành công 20 document |
 | **3 (1đ)** Truy vấn trên GUI tool | 🚧 hướng dẫn xong, chờ chụp ảnh | `docs/mongodb/GUI_TOOL_GUIDE.md` (Compass 1.50 ở cổng **27018**): 7 pipeline JSON dán trực tiếp, Explain Plan, Indexes, Schema, Validation, Import/Export + checklist ảnh |
 | **4 (0.5đ)** Kết nối CSDL với ứng dụng | ✅ build OK | `MongoConfig`, `application.properties`, `MongoSequenceService`, `MongoIdAssignmentCallback`, `MongoIndexVerifier`, actuator health |
-| **5 (2đ)** Chức năng ứng dụng | 🚧 Phase 3 | Chưa đổi entity/repository/service sang Mongo |
+| **5 (2đ)** Chức năng ứng dụng | 🚧 Phase 3 (đang làm) | Đã xong: 25 model `@Document`/embedded, 19 repository + 2 aggregation repository, CartService, WishlistService. Còn: OrderService, các Panel/Seller controller, 10 service khác, test |
+
+### 10.1b Ghi chú triển khai (quyết định khi code — khác nhỏ so với thiết kế ban đầu)
+
+| Hạng mục | Thiết kế ban đầu | Thực tế triển khai | Lý do |
+|---|---|---|---|
+| `customer_ml` | Embed hoàn toàn vào `users.ml` | **Giữ collection riêng** `customer_ml` (unique `userId`) **+ vẫn có** `users.ml` (tóm tắt + RFM) | Dữ liệu ML do pipeline riêng ghi theo lô; tách ra tránh ghi đè document người dùng đang hoạt động. `users.ml` phục vụ truy vấn nhanh (RFM, churn) |
+| `images` của sách | Object `images{thumbnail,medium,large}` | Giữ object trong DB **+ getter tương thích** `getImageUrl()/getMediumImageUrl()/getLargeimageUrl()` | Frontend/JS đang đọc `book.imageUrl` → không phải sửa 21 file JS/template |
+| `averageRating` | Chỉ có `rating.avg` | DB lưu `rating{}`, model expose `getAverageRating()` | JS/template dùng `book.averageRating` |
+| `reviews` | Aggregate riêng | ✅ đúng thiết kế | unique `(bookId,userId)`, truy vấn cắt ngang |
+| Id của con nhúng | `id` | `@Field("itemId")`, `@Field("subOrderId")`, `@Field("addressId")` | Khớp tên field đã seed/JS (tránh Spring Data map thành `_id` trong subdocument) |
 
 ### 10.2 Việc còn lại (theo thứ tự)
 
