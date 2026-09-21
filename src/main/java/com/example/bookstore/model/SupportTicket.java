@@ -1,57 +1,39 @@
 package com.example.bookstore.model;
 
-import jakarta.persistence.*;
+import com.example.bookstore.model.document.SequencedDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-/**
- * Entity cho bảng support_tickets (V24 migration).
- * Dùng để tính ML feature: customer_support_tickets
- */
-@Entity
-@Table(name = "support_tickets")
+/** Collection {@code support_tickets} - phieu ho tro khach hang (feature cho ML). */
+@Document(collection = "support_tickets")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SupportTicket {
+public class SupportTicket implements SequencedDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @Column(nullable = false)
+    private Long userId;
     private String subject;
-
-    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
-    @Column(nullable = false, length = 20)
-    @Builder.Default
-    private String status = "OPEN"; // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+    /** OPEN | IN_PROGRESS | RESOLVED | CLOSED */
+    private String status;
 
-    @Column(nullable = false, length = 20)
-    @Builder.Default
-    private String priority = "NORMAL"; // LOW, NORMAL, HIGH, URGENT
+    /** LOW | NORMAL | HIGH | URGENT */
+    private String priority;
 
-    @Column(nullable = false, updatable = false)
+    @Field("createdAt")
     private LocalDateTime createdAt;
 
-    @Column
     private LocalDateTime resolvedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-    }
 }

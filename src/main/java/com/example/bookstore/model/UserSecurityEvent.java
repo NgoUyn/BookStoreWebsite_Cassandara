@@ -1,53 +1,37 @@
 package com.example.bookstore.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import com.example.bookstore.model.document.SequencedDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.EqualsAndHashCode;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "user_security_events")
+/**
+ * Collection {@code user_security_events} - nhat ky bao mat.
+ * Khong embed vao users (tang vo han); TTL 180 ngay o tang script.
+ */
+@Document(collection = "user_security_events")
 @Data
-@ToString(exclude = {"user"})
-@EqualsAndHashCode(of = "id")
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class UserSecurityEvent {
+public class UserSecurityEvent implements SequencedDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
-    private User user;
+    private Long userId;
 
-    @Column(nullable = false, length = 50)
-    private String eventType; // PASSWORD_CHANGED, EMAIL_CHANGED, PROFILE_UPDATED, etc.
-
-    @Column(length = 500)
+    private String eventType;
     private String eventDescription;
-
-    @Column(length = 50)
     private String ipAddress;
-
-    @Column(length = 500)
     private String userAgent;
 
-    @Column(nullable = false, updatable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @PrePersist
-    public void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
+    @Field("createdAt")
+    private LocalDateTime createdAt;
 }

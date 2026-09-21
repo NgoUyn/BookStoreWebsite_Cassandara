@@ -1,40 +1,91 @@
 package com.example.bookstore.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import com.example.bookstore.model.document.AuditableDocument;
+import com.example.bookstore.model.document.SequencedDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.EqualsAndHashCode;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "carts")
+/**
+ * AGGREGATE ROOT #3 - collection {@code carts}.
+ *
+ * <p>SQL Server co 2 bang {@code carts} + {@code cart_items} (JOIN moi lan doc).
+ * MongoDB: 1 document / buyer, {@code items[]} EMBED - moi thao tac them/xoa/sua
+ * gio hang la 1 update ATOMIC (khong can transaction).</p>
+ */
+@Document(collection = "carts")
 @Data
-@ToString(exclude = {"buyer", "items"})
-@EqualsAndHashCode(of = "id")
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Cart {
+public class Cart implements SequencedDocument, AuditableDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 1 giỏ hàng thuộc sở hữu của 1 người bán
-    @OneToOne
-    @JoinColumn(name = "buyer_id", nullable = false, unique = true)
-    private User buyer;
+    @Indexed(unique = true)
+    private Long buyerId;
 
-    //1 giỏ hàng có thể có nhiều item
-    //orphanRemoval = true : use to đảm bảo item sẽ bị xóa khỏi list , cũng bị xóa khỏi database
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     @Builder.Default
     private List<CartItem> items = new ArrayList<>();
+
+    /** Tong tam tinh - cap nhat cung luc voi items (denormalized). */
+    private CartTotals totals;
+
+    @Field("createdAt")
+    private LocalDateTime createdAt;
+
+    @Field("updatedAt")
+    private LocalDateTime updatedAt;
+
+    private Integer schemaVersion;
+
+    /** Tinh lai tong tu danh sach item. */
+    public void recalculateTotals() {
+        int totalItems = 0;
+        double subtotal = 0.0;
+        if (items != null) {
+            for (CartItem item : items) {
+                int qty = item.getQuantity() == null ? 0 : item.getQuantity();
+                double unit = item.getUnitPrice() == null ? 0.0 : item.getUnitPrice();
+                totalItems += qty;
+                subtotal += unit * qty;
+            }
+        }
+        this.totals = CartTotals.builder()
+                .itemCount(totalItems)
+                .lineCount(items == null ? 0 : items.size())
+                .subtotal(subtotal)
+                .build();
+    }
+
+    /** Tien ich cho tang service (thay cho quan he JPA 2 chieu). */
+    public CartItem findItemByBookId(Long bookId) {
+        if (items == null) {
+            return null;
+        }
+        return items.stream()
+                .filter(i -> i.getBookId() != null && i.getBookId().equals(bookId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public CartItem findItemById(Long itemId) {
+        if (items == null) {
+            return null;
+        }
+        return items.stream()
+                .filter(i -> i.getId() != null && i.getId().equals(itemId))
+                .findFirst()
+                .orElse(null);
+    }
 }

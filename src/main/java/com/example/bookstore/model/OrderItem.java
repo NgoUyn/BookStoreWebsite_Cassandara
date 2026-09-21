@@ -1,38 +1,65 @@
 package com.example.bookstore.model;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.EqualsAndHashCode;
 
-@Entity
-@Table(name = "order_items")
+/**
+ * Dong san pham cua 1 subOrder - NHUNG trong {@code orders.subOrders[].items[]}
+ * (SQL Server truoc day la bang {@code order_items}).
+ *
+ * <p>Luu SNAPSHOT (title/imageUrl/unitPrice) tai thoi diem mua de hoa don
+ * khong bi thay doi khi seller sua gia/ten sach; {@code bookId} van giu de
+ * thong ke/tra hang.</p>
+ */
 @Data
-@ToString(exclude = {"subOrder", "book"})
-@EqualsAndHashCode(of = "id")
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class OrderItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    /** id dong hang (counters "order_items"). */
+    @org.springframework.data.mongodb.core.mapping.Field("itemId")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sub_order_id", nullable = false)
-    private SubOrder subOrder;
+    private Long subOrderId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;
+    private Long bookId;
 
-    @Column(nullable = false)
+    // ---------- snapshot tai thoi diem mua ----------
+    private String title;
+    private String imageUrl;
+    private String sellerName;
+
     private Double unitPrice;
 
-    @Column(nullable = false)
     private Integer quantity;
+
+    /** So luong da tra (dung tinh return_rate cho ML). */
+    @Builder.Default
+    private Integer returnedQuantity = 0;
+
+    @JsonIgnore
+    public Double getLineTotal() {
+        double unit = unitPrice == null ? 0.0 : unitPrice;
+        int qty = quantity == null ? 0 : quantity;
+        return unit * qty;
+    }
+
+    /** Cap nhat snapshot tu Book khi tao don. */
+    public void applyBookSnapshot(Book book) {
+        if (book == null) {
+            return;
+        }
+        this.bookId = book.getId();
+        this.title = book.getTitle();
+        this.imageUrl = book.getImageUrl();
+        if (book.getSeller() != null) {
+            this.sellerName = book.getSeller().getShopName() != null
+                    ? book.getSeller().getShopName()
+                    : book.getSeller().getUsername();
+        }
+    }
 }

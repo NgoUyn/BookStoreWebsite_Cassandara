@@ -1,80 +1,45 @@
 package com.example.bookstore.model;
 
-import jakarta.persistence.*;
+import com.example.bookstore.model.document.SequencedDocument;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * AssociationRule Entity
- * Represents mined association rules from customer purchase patterns.
- * Example: If customer buys bookA (book_id_a), 75% probability they also buy bookB (book_id_b)
- * with support=0.05 (5% of all transactions), lift=1.5 (1.5x more likely than random)
+ * Collection {@code association_rules} - MATERIALIZED VIEW cua luat ket hop
+ * "mua kem" (thay the thuat toan FP-Growth viet tay bang aggregation pipeline:
+ * {@code $unwind} items -> {@code $facet} dem cap -> tinh support/confidence/lift
+ * -> {@code $merge} vao collection nay; xem db/mongo/03_seed_reference.js).</p>
  */
-@Entity
-@Table(name = "association_rules")
+@Document(collection = "association_rules")
+@CompoundIndex(name = "uq_rules_pair", def = "{'bookAId': 1, 'bookBId': 1}", unique = true)
 @Data
-@ToString(exclude = {"bookA", "bookB"})
-@EqualsAndHashCode(of = "ruleId")
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@DynamicUpdate
-public class AssociationRule {
+public class AssociationRule implements SequencedDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "rule_id")
-    private Long ruleId;
+    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id_a", nullable = false)
-    private Book bookA;
+    private Long bookAId;
+    private Long bookBId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id_b", nullable = false)
-    private Book bookB;
+    private Double support;
+    private Double confidence;
+    private Double lift;
 
-    /**
-     * Support: Percentage of all transactions containing both bookA and bookB
-     * Range: 0.0000 to 1.0000 (0% to 100%)
-     * Example: 0.05 = 5% of all orders contain both books
-     */
-    @Column(nullable = false, precision = 5, scale = 4)
-    private BigDecimal support;
+    private Integer transactionCount;
+    private Integer windowDays;
 
-    /**
-     * Confidence: P(bookB | bookA) = % of transactions with bookA that also have bookB
-     * Range: 0.0000 to 1.0000 (0% to 100%)
-     * Example: 0.75 = 75% of customers who buy bookA also buy bookB
-     * Use this for filtering: Only recommend if confidence >= 0.3 (30%)
-     */
-    @Column(nullable = false, precision = 5, scale = 4)
-    private BigDecimal confidence;
-
-    /**
-     * Lift: Ratio of observed frequency to expected frequency
-     * Calculated as: confidence / P(bookB) = support / (P(bookA) * P(bookB))
-     * Range: > 0.0
-     * Interpretation:
-     *   - lift = 1.0 → no correlation (events independent)
-     *   - lift > 1.0 → positive correlation (strong rule)
-     *   - lift < 1.0 → negative correlation (weak/inverse rule)
-     * Use this for ranking: Sort by lift DESC to get strongest rules first
-     */
-    @Column(nullable = false, precision = 10, scale = 4)
-    private BigDecimal lift;
-
-    /**
-     * When this rule was last computed/updated
-     * Used for tracking staleness and cleanup
-     */
-    @Column(nullable = false, columnDefinition = "DATETIME2")
+    /** TTL 30 ngay: rule cu tu dong bi xoa de job tinh lai ghi ban moi. */
+    @Field("updatedAt")
     private LocalDateTime updatedAt;
-
 }

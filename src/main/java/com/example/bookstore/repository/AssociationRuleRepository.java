@@ -1,72 +1,32 @@
 package com.example.bookstore.repository;
 
 import com.example.bookstore.model.AssociationRule;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Repository collection association_rules (materialized view cua luat ket hop).
+ *
+ * <p>Thay cac JPQL cua ban cu; bo {@code deleteAllRules()} vi da co
+ * {@code deleteAll()} cua MongoRepository.</p>
+ */
 @Repository
-public interface AssociationRuleRepository extends JpaRepository<AssociationRule, Long> {
+public interface AssociationRuleRepository extends MongoRepository<AssociationRule, Long> {
 
     /**
-     * Find top N "bought together" recommendations for a given book.
-     * Returns rules where bookA = given bookId, sorted by confidence DESC then lift DESC.
-     * Filters out low-confidence rules (< 0.3 or 30%) and rules with lift <= 1.0
+     * Goi y "mua kem" cho 1 sach: confidence >= nguong va lift > 1,
+     * sap theo confidence/lift giam dan (dung index idx_rules_recommend).
      */
-    @Query(value = """
-            SELECT ar FROM AssociationRule ar
-            WHERE ar.bookA.id = :bookId
-            AND ar.confidence >= :minConfidence
-            AND ar.lift > 1.0
-            ORDER BY ar.confidence DESC, ar.lift DESC
-            """)
-    List<AssociationRule> findBoughtTogetherByBookId(
-            @Param("bookId") Long bookId,
-            @Param("minConfidence") BigDecimal minConfidence
-    );
+    @Query(value = "{ 'bookAId': ?0, 'confidence': { $gte: ?1 }, 'lift': { $gt: 1.0 } }",
+            sort = "{ 'confidence': -1, 'lift': -1 }")
+    List<AssociationRule> findBoughtTogetherByBookId(Long bookId, Double minConfidence);
 
-    /**
-     * Reverse lookup: Find all rules where given book is the target (bookB).
-     * Useful for analytics or alternative recommendation strategies.
-     */
-    @Query(value = """
-            SELECT ar FROM AssociationRule ar
-            WHERE ar.bookB.id = :bookId
-            AND ar.confidence >= :minConfidence
-            ORDER BY ar.lift DESC
-            """)
-    List<AssociationRule> findRulesWhereBookIsTarget(
-            @Param("bookId") Long bookId,
-            @Param("minConfidence") BigDecimal minConfidence
-    );
+    /** Tra cuu nguoc: sach nao thuong duoc mua kem sach nay. */
+    @Query(value = "{ 'bookBId': ?0, 'confidence': { $gte: ?1 } }", sort = "{ 'lift': -1 }")
+    List<AssociationRule> findRulesWhereBookIsTarget(Long bookId, Double minConfidence);
 
-    /**
-     * Count total rules in database for monitoring/analytics
-     */
-    @Query("SELECT COUNT(ar) FROM AssociationRule ar")
-    long countTotalRules();
-
-    /**
-     * Check if rule already exists (used to avoid duplicates during batch insert)
-     */
-    @Query(value = """
-            SELECT COUNT(ar) FROM AssociationRule ar
-            WHERE ar.bookA.id = :bookIdA
-            AND ar.bookB.id = :bookIdB
-            """)
-    long countByBookPair(@Param("bookIdA") Long bookIdA, @Param("bookIdB") Long bookIdB);
-
-    /**
-     * Delete all association rules (used before full refresh)
-     * Returns number of rows deleted
-     */
-    @Modifying
-    @Query("DELETE FROM AssociationRule")
-    int deleteAllRules();
-
+    long countByBookAIdAndBookBId(Long bookAId, Long bookBId);
 }

@@ -1,77 +1,58 @@
 package com.example.bookstore.model;
 
+import com.example.bookstore.model.document.SequencedDocument;
 import com.example.bookstore.model.enums.PaymentMethod;
 import com.example.bookstore.model.enums.PaymentStatus;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "payment_transactions")
+/**
+ * Collection {@code payment_transactions} - giao dich thanh toan (VNPay...).
+ *
+ * <p>THAM CHIEU {@code orderId} (khong embed vao orders) vi can:
+ * unique index {@code transactionCode} (chong trung giao dich) va TTL don
+ * link VNPay het han - neu embed thi TTL se xoa ca don hang!</p>
+ */
+@Document(collection = "payment_transactions")
+@CompoundIndex(name = "idx_pt_order_status", def = "{'orderId': 1, 'status': 1}")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class PaymentTransaction {
+public class PaymentTransaction implements SequencedDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+    private Long orderId;
 
-    @Column(nullable = false)
-    private Long amount; // Amount in VND (e.g., 1,000,000)
+    private Long amount;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30, columnDefinition = "NVARCHAR(30)")
     private PaymentMethod method;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30, columnDefinition = "NVARCHAR(30)")
     private PaymentStatus status;
 
-    @Column(length = 100)
-    private String transactionCode; // VNPay transaction code or reference
+    /** Ma giao dich VNPay - UNIQUE (partial index, xem 02_indexes.js). */
+    private String transactionCode;
 
-    @Column(length = 500)
-    private String paymentUrl; // VNPay payment redirect URL
+    private String paymentUrl;
+    private String responseCode;
+    private String responseMessage;
+    private String failureReason;
 
-    @Column(length = 1000)
-    private String responseCode; // VNPay response code
-
-    @Column(length = 1000)
-    private String responseMessage; // VNPay response message
-
-    @Column(name = "created_at", nullable = false)
+    @Field("createdAt")
     private LocalDateTime createdAt;
 
-    @Column(name = "paid_at")
-    private LocalDateTime paidAt; // When payment was completed
+    private LocalDateTime paidAt;
 
-    @Column(name = "expired_at")
-    private LocalDateTime expiredAt; // Payment link expiry
-
-    @Column(length = 500)
-    private String failureReason; // Reason if payment failed
-
-    @PrePersist
-    public void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-        if (status == null) {
-            status = PaymentStatus.PENDING;
-        }
-        if (expiredAt == null) {
-            // Payment link valid for 15 minutes
-            expiredAt = createdAt.plusMinutes(15);
-        }
-    }
+    /** TTL: link thanh toan het han (chi ap dung khi status = PENDING). */
+    private LocalDateTime expiredAt;
 }

@@ -2,35 +2,49 @@ package com.example.bookstore.repository;
 
 import com.example.bookstore.model.User;
 import com.example.bookstore.model.enums.UserRole;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
-@Repository // Báo cho Spring Boot biết đây là Thợ mỏ đào dữ liệu
-public interface UserRepository extends JpaRepository<User, Long> {
+/**
+ * Repository AGGREGATE users (MongoDB).
+ *
+ * <p>Chuyen tu JpaRepository sang MongoRepository: cac method derived query
+ * gan nhu giu nguyen ten, chi khac dieu kien tham so la ID thay vi entity.</p>
+ */
+@Repository
+public interface UserRepository extends MongoRepository<User, Long> {
 
-    // Ảo ma chưa: Chỉ cần gõ đúng tên hàm, Spring Boot TỰ ĐỘNG sinh ra câu lệnh SQL:
-    // SELECT * FROM users WHERE username = ?
-    User findByUsername(String username);
+    Optional<User> findByUsername(String username);
 
-    // Tự động kiểm tra xem username đã có trong DB chưa
     boolean existsByUsername(String username);
 
     List<User> findAllByRole(UserRole role);
-    
-    // 🆕 NEW: Lấy người dùng theo trạng thái active/lock
+
+    Page<User> findByRole(UserRole role, Pageable pageable);
+
     List<User> findByIsActive(boolean isActive);
-    
-    // 🆕 NEW: Lấy người dùng theo role và trạng thái active
+
     List<User> findByRoleAndIsActive(UserRole role, boolean isActive);
-    
-    // 🆕 NEW: Tìm kiếm người dùng theo username (case-insensitive)
+
     List<User> findByUsernameContainingIgnoreCase(String username);
 
-    // 🆕 Firebase: Tìm user theo email
-    java.util.Optional<User> findByEmail(String email);
+    Optional<User> findByEmail(String email);
 
-    // 🆕 Check if phone number already exists
     boolean existsByPhone(String phone);
+
+    /**
+     * Truy van nguoc: ai da them sach vao wishlist (multikey index
+     * {@code idx_users_wishlist_books}) - ban SQL phai JOIN bang trung gian.
+     */
+    List<User> findByWishlistBookIdsContaining(Long bookId);
+
+    /** Dem nhanh so nguoi quan tam 1 cuon sach (dung counter wishlistCount). */
+    @Query(value = "{ 'wishlistBookIds': ?0 }", count = true)
+    long countWishlistByBookId(Long bookId);
 }

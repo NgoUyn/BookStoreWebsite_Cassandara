@@ -3,17 +3,17 @@ package com.example.bookstore.repository;
 import com.example.bookstore.model.Notification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/** Repository collection notifications. */
 @Repository
-public interface NotificationRepository extends JpaRepository<Notification, Long> {
+public interface NotificationRepository extends MongoRepository<Notification, Long> {
 
     Page<Notification> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
@@ -23,7 +23,15 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     long countByUserIdAndIsReadFalse(Long userId);
 
-    @Modifying
-    @Query("update Notification n set n.isRead = true, n.readAt = :readAt where n.user.id = :userId and n.isRead = false")
-    int markAllAsReadByUserId(@Param("userId") Long userId, @Param("readAt") LocalDateTime readAt);
+    long countByUserId(Long userId);
+
+    /**
+     * Danh dau tat ca thong bao da doc bang 1 update (thay JPQL {@code @Modifying}
+     * cua ban cu) - MongoDB updateMulti chi 1 round-trip.
+     */
+    @Query("{ 'userId': ?0, 'isRead': false }")
+    @Update("{ $set: { 'isRead': true, 'readAt': ?1 } }")
+    long markAllAsReadByUserId(Long userId, LocalDateTime readAt);
+
+    void deleteByUserId(Long userId);
 }

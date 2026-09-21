@@ -1,111 +1,65 @@
 package com.example.bookstore.model;
 
-import com.example.bookstore.model.converter.LoyaltyMemberConverter;
-import jakarta.persistence.*;
+import com.example.bookstore.model.document.AuditableDocument;
+import com.example.bookstore.model.document.SequencedDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
 /**
- * Entity lưu thông tin khách hàng phục vụ ML churn prediction (mô hình final-gauss-lightgbm).
- * Quan hệ 1-1 với User, tách biệt để không ảnh hưởng bảng users.
- * Input: 12 raw features (đồng bộ với features_config.json)
- * Output: predicted_label (0/1), churn_probability, risk_level (LOW/HIGH)
+ * Collection {@code customer_ml} - ho so ML day du (input 12 feature + output).
+ *
+ * <p>Quan he 1-1 voi {@link User} qua {@code userId} (unique). Giu la collection
+ * RIENG (thay vi embed hoan toan vao users) vi day la du lieu do pipeline ML
+ * ghi theo lo va duoc admin/seller doc doc lap - tranh ghi de len document
+ * nguoi dung dang hoat dong. {@code users.ml} van giu ban tom tat (RFM) cho
+ * truy van nhanh.</p>
  */
-@Entity
-@Table(name = "customer_ml")
+@Document(collection = "customer_ml")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Customer {
+public class Customer implements SequencedDocument, AuditableDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    @Indexed(unique = true)
+    private Long userId;
 
-    // ========================
-    // ML Input Features (12 raw features — đồng bộ với features_config.json)
-    // ========================
-
-    @Column(nullable = false)
+    // ---------- 12 raw features ----------
     private Double accountAgeMonths;
-
-    @Column(nullable = false)
     private Double avgOrderValue;
-
-    @Column(nullable = false)
     private Double totalOrders;
-
-    @Column(nullable = false)
     private Double customerSupportTickets;
-
-    @Convert(converter = LoyaltyMemberConverter.class)
-    @Column(nullable = false, columnDefinition = "FLOAT")
-    private Double loyaltyMember; // 0.0 = No, 1.0 = Yes (float theo features_config.json)
-
-    @Column(nullable = false)
+    private Double loyaltyMember;
     private Double browsingFrequencyPerWeek;
-
-    @Column(nullable = false)
     private Double cartAbandonmentRate;
-
-    @Column(nullable = false)
     private Double productReviewScoreAvg;
-
-    @Column(nullable = false)
     private Double satisfactionScore;
-
-    @Column(nullable = false)
     private Double priceSensitivityIndex;
+    private Double discountUsageRate;
+    private Double returnRate;
 
-    @Column(nullable = false)
-    private Double discountUsageRate; // Tỷ lệ sử dụng giảm giá 0.0-1.0
-
-    @Column(nullable = false)
-    private Double returnRate; // Tỷ lệ trả hàng 0.0-1.0
-
-    // ========================
-    // ML Output Results
-    // ========================
-
-    @Column
-    private Integer predictedLabel; // 0 = Stay (Ở lại), 1 = Churn (Rời bỏ)
-
-    @Column
+    // ---------- Ket qua du doan ----------
+    private Integer predictedLabel;
     private Double churnProbability;
-
-    @Column(length = 10)
-    private String riskLevel; // "LOW" hoặc "HIGH"
-
-    @Column
+    private String riskLevel;
     private LocalDateTime lastAnalyzedAt;
 
-    // ========================
-    // Timestamps
-    // ========================
-
-    @Column(nullable = false, updatable = false)
+    @Field("createdAt")
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Field("updatedAt")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    private Integer schemaVersion;
 }

@@ -1,52 +1,145 @@
 package com.example.bookstore.model;
 
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
+import com.example.bookstore.model.document.AuditableDocument;
+import com.example.bookstore.model.document.SequencedDocument;
+import com.example.bookstore.model.embedded.UserSnapshot;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-@Entity
-@Table(name = "book_reviews")
+/**
+ * AGGREGATE ROOT #6 - collection {@code reviews}.
+ *
+ * <p>LY DO la aggregate RIENG (khong embed vao books):
+ * quan he 1-N KHONG TRAN + bi truy van cat ngang theo ca bookId va userId,
+ * va can rang buoc unique (bookId,userId) o muc DB.</p>
+ *
+ * <p>EMBED ben trong review: images[], replies[] (toi da 20, dung
+ * {@code $push + $slice}), moderation history, snapshot book{} + user{}.</p>
+ */
+@Document(collection = "reviews")
+@CompoundIndex(name = "uq_reviews_book_user", def = "{'bookId': 1, 'userId': 1}", unique = true)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookReview {
+public class BookReview implements SequencedDocument, AuditableDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", nullable = false)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Book book;
+    private Long bookId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private User user;
+    /** Snapshot sach (extended reference) - tranh doc collection books khi hien thi review. */
+    private BookRef book;
 
-    @Column(nullable = false)
+    private Long userId;
+
+    /** Snapshot nguoi viet (JSON phai co user.username/user.id cho details-page.js). */
+    private UserSnapshot user;
+
+    private Long orderId;
+    private Boolean isVerifiedPurchase;
+
     private Integer rating;
-
-    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String comment;
 
-    @Column(name = "created_at", nullable = false)
+    @Builder.Default
+    private List<ReviewImage> images = new ArrayList<>();
+
+    @Builder.Default
+    private List<Reply> replies = new ArrayList<>();
+
+    private Integer helpfulCount;
+
+    /** Giu ten field cu cua SQL Server de khong phai sua admin UI. */
+    @Field("isHidden")
+    private boolean isHidden;
+
+    private String moderationStatus;    // VISIBLE | HIDDEN
+    private String moderationReason;
+    private Long moderationByUserId;
+    private LocalDateTime moderationAt;
+
+    @Field("createdAt")
     private LocalDateTime createdAt;
 
-    @Column(name = "is_hidden", nullable = false)
-    @ColumnDefault("0")
-    private boolean isHidden = false;
+    @Field("updatedAt")
+    private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
+    private Integer schemaVersion;
+
+    // ======================== Tien ich =====================================
+
+    @JsonIgnore
+    public String getBookTitle() {
+        return book == null ? null : book.getTitle();
+    }
+
+    @JsonIgnore
+    public String getUsername() {
+        return user == null ? null : user.getUsername();
+    }
+
+    // ======================================================================
+    // EMBED: snapshot sach
+    // ======================================================================
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BookRef {
+        private Long id;
+        private String title;
+        private String imageUrl;
+        private Long sellerId;
+        private Long categoryId;
+        private String categoryName;
+    }
+
+    // ======================================================================
+    // EMBED: anh cua review (file that luu trong GridFS)
+    // ======================================================================
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReviewImage {
+        private Object fileId;
+        private String url;
+    }
+
+    // ======================================================================
+    // EMBED: phan hoi cua shop (toi da 20, dung $slice - $push)
+    // ======================================================================
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Reply {
+        private Long replyId;
+        private Long userId;
+        private Actor user;
+        private String content;
+        private LocalDateTime createdAt;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Actor {
+        private String username;
+        private String role;
     }
 }

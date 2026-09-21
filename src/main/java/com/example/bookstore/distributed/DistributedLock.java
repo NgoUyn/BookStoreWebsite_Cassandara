@@ -1,72 +1,43 @@
 package com.example.bookstore.distributed;
 
-import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "distributed_lock")
+/**
+ * Collection {@code distributed_locks} - "thue" (lease) phan tan cho queue worker.
+ *
+ * <p>SQL Server truoc day dung bang + 3 STORED PROCEDURE (V9/V10/V11) voi
+ * UPDLOCK/HOLDLOCK de chong race condition. MongoDB khong can SP: dung
+ * {@code findAndModify} - thao tac ATOMIC tren 1 document (xem
+ * DistributedLockService.acquireLock).</p>
+ */
+@Document(collection = "distributed_locks")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DistributedLock {
 
+    /** {@code _id} chinh la ten lock (vd: NOTIFICATION_QUEUE_WORKER). */
     @Id
-    @Column(name = "lock_name", length = 100)
     private String lockName;
 
-    @Column(name = "instance_id", length = 255, nullable = false)
-    private String instanceId = "";
+    @Field("holderId")
+    @Builder.Default
+    private String holderId = "UNOWNED";
 
-    @Column(name = "lock_holder_id", length = 255, nullable = false)
-    private String lockHolderId = "UNOWNED";
+    private String instanceId;
 
-//    @Column(name = "lock_expires_at", nullable = false)
-//    private LocalDateTime lockExpiresAt = LocalDateTime.now();
-
-    @Column(name = "lock_expires_at", nullable = false)
-    private LocalDateTime lockExpiresAt = LocalDateTime.now();
-
-    @Column(name = "last_heartbeat_at", nullable = false)
-    private LocalDateTime lastHeartbeatAt = LocalDateTime.now();
-
-    @Column(name = "acquired_at", nullable = false, columnDefinition = "datetime2(6) DEFAULT SYSUTCDATETIME()")
     private LocalDateTime acquiredAt;
+    private LocalDateTime heartbeatAt;
 
-    // Constructors
-    public DistributedLock() {}
-
-    public DistributedLock(String lockName) {
-        this.lockName = lockName;
-        this.instanceId = "";
-        this.acquiredAt = LocalDateTime.now(); // Gán sẵn luôn cho chắc cốp
-    }
-
-    // [2] BỘ GIÁP PRE-PERSIST: Tự động điền giờ nếu code service lỡ quên
-    @PrePersist
-    protected void onCreate() {
-        if (this.acquiredAt == null) {
-            this.acquiredAt = LocalDateTime.now();
-        }
-        if (this.lockExpiresAt == null) {
-            this.lockExpiresAt = LocalDateTime.now();
-        }
-    }
-
-    // Getters and Setters
-    public String getLockName() { return lockName; }
-    public void setLockName(String lockName) { this.lockName = lockName; }
-
-    public String getInstanceId() { return instanceId; }
-    public void setInstanceId(String instanceId) { this.instanceId = instanceId; }
-
-    public String getLockHolderId() { return lockHolderId; }
-    public void setLockHolderId(String lockHolderId) { this.lockHolderId = lockHolderId; }
-
-    public LocalDateTime getLockExpiresAt() { return lockExpiresAt; }
-    public void setLockExpiresAt(LocalDateTime lockExpiresAt) { this.lockExpiresAt = lockExpiresAt; }
-
-    //public LocalDateTime getLastHeartbeatAt() { return lastHeartbeatAt; }
-    //public void setLastHeartbeatAt(LocalDateTime lastHeartbeatAt) { this.lastHeartbeatAt = lastHeartbeatAt; }
-
-
-    // [3] THÊM GETTER & SETTER CHO ACQUIRED_AT ĐỂ HẾT BÁO ĐỎ
-    public LocalDateTime getAcquiredAt() { return acquiredAt; }
-    public void setAcquiredAt(LocalDateTime acquiredAt) { this.acquiredAt = acquiredAt; }
+    /** TTL index: khoa het han tu dong duoc don (khong giu khoa "chet"). */
+    private LocalDateTime expiresAt;
 }

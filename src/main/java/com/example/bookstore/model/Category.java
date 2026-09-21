@@ -1,36 +1,56 @@
 package com.example.bookstore.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import com.example.bookstore.model.document.SequencedDocument;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.EqualsAndHashCode;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "category")
+/**
+ * Collection {@code categories} - danh muc sach (collection THAM CHIEU).
+ *
+ * <p>books luu {@code categoryId} + {@code categoryName} (denormalized) nen
+ * khong can $lookup khi hien thi; {@code parentId}/{@code path} phuc vu
+ * {@code $graphLookup} cho cay danh muc.</p>
+ */
+@Document(collection = "categories")
 @Data
-@ToString(exclude = {"books"})
-@EqualsAndHashCode(of = "id")
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Category {
+public class Category implements SequencedDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, columnDefinition = "NVARCHAR(255)")
+    @Indexed(unique = true)
     private String name;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    private String slug;
     private String description;
 
-    // Quan hệ 1-Nhiều: 1 Thể loại có nhiều Cuốn sách
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    @JsonIgnore // Tránh lỗi lặp vòng vô tận khi trả về dữ liệu JSON
-    private List<Book> books;
+    /** Danh muc cha (null = danh muc goc). */
+    private Long parentId;
+
+    /** Duong dan tu goc den nut hien tai: [1, 7, 19]. */
+    @Builder.Default
+    private List<Long> path = new ArrayList<>();
+
+    private Integer bookCount;
+    private Integer sortOrder;
+    private Boolean isActive;
+
+    @Field("createdAt")
+    private LocalDateTime createdAt;
+
+    @Field("updatedAt")
+    private LocalDateTime updatedAt;
 }

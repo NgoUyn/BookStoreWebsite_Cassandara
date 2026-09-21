@@ -1,24 +1,30 @@
 package com.example.bookstore.repository;
 
 import com.example.bookstore.model.OrderReturn;
-import com.example.bookstore.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.Aggregation;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
+/** Repository collection order_returns. */
 @Repository
-public interface OrderReturnRepository extends JpaRepository<OrderReturn, Long> {
+public interface OrderReturnRepository extends MongoRepository<OrderReturn, Long> {
 
-    /**
-     * Đếm tổng số lượng sản phẩm đã trả của một user (chỉ tính các return đã được APPROVED hoặc REFUNDED).
-     */
-    @Query("SELECT COALESCE(SUM(r.quantityReturned), 0) FROM OrderReturn r " +
-           "WHERE r.user = :user AND r.status IN ('APPROVED', 'REFUNDED')")
-    Long sumReturnedQuantityByUser(@Param("user") User user);
+    List<OrderReturn> findByUserIdOrderByCreatedAtDesc(Long userId);
 
-    /**
-     * Đếm số lượng yêu cầu trả hàng của một user.
-     */
-    long countByUser(User user);
+    List<OrderReturn> findByOrderId(Long orderId);
+
+    List<OrderReturn> findByStatus(String status);
+
+    long countByUserId(Long userId);
+
+    long countByStatus(String status);
+
+    /** Tong so luong da tra cua user (thay SUM() cua SQL Server). */
+    @Aggregation(pipeline = {
+            "{ $match: { 'userId': ?0, 'status': { $in: ['APPROVED', 'REFUNDED'] } } }",
+            "{ $group: { '_id': null, total: { $sum: '$quantityReturned' } } }"
+    })
+    Long sumReturnedQuantityByUserId(Long userId);
 }

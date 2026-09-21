@@ -1,91 +1,181 @@
 package com.example.bookstore.model;
 
+import com.example.bookstore.model.document.AuditableDocument;
+import com.example.bookstore.model.document.SequencedDocument;
+import com.example.bookstore.model.embedded.BookImage;
+import com.example.bookstore.model.embedded.BookStats;
+import com.example.bookstore.model.embedded.BoughtTogether;
+import com.example.bookstore.model.embedded.RatingSummary;
+import com.example.bookstore.model.embedded.ReviewSnippet;
+import com.example.bookstore.model.embedded.UserSnapshot;
 import com.example.bookstore.model.enums.ApprovalStatus;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import org.hibernate.annotations.DynamicUpdate;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-@Entity //danh dau day la 1 bang trong DB
-@Table(name="books")
-@Data // tu dong tao Getter,Setter,toString,equals,hashCode
-@ToString
-@EqualsAndHashCode
-@NoArgsConstructor // Auto tạo Constructor không tham số
-@AllArgsConstructor // Auto tao Constructor co tham so
-@DynamicUpdate // hỗ trợ để update động
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Book {
+/**
+ * AGGREGATE ROOT #2 - collection {@code books}.
+ *
+ * <p>EMBED: images{}, rating{} (read model), stats{} (counter), tags[],
+ * boughtTogether[] (subset top 10), topReviews[] (subset 3), seller snapshot.
+ * THAM CHIEU: categoryId/categoryName (denorm), sellerId, review that nam o
+ * collection {@code reviews}.</p>
+ *
+ * <p>TUONG THICH FRONTEND: {@code imageUrl}/{@code averageRating} duoc expose
+ * bang getter tinh toan (du lieu that nam trong images{}/rating{}) de khong
+ * phai sua 21 file JS + template.</p>
+ */
+@Document(collection = "books")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Book implements SequencedDocument, AuditableDocument {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // auto tang id theo index
     private Long id;
-    @Column(nullable = false, length = 500)
+
+    @Indexed
     private String title;
-    @Column(nullable = false)
+
+    @Indexed
     private String author;
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+
     private String description;
     private Double price;
-    private Integer stockQuantity; //
-    @Column(length = 500)
-    private String imageUrl; // link ảnh lấy từ CSV
-    @Column(name = "medium_image_url")
-    private String mediumImageUrl;
-    @Column(name = "largeimage_url")
-    private String largeimageUrl;
-    @Column(name = "publisher")
-    private String publisher;  // Nhà xuất bản
-    private Integer publishYear; // Năm xuất bản
-    @Column(name = "average_rating")
-    private Double averageRating;
-    @Column(name = "discount_amount")
-    private Integer discountAmount = 0;
+    private Integer stockQuantity;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id") // Tên cột khóa ngoại trong SSMS
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("books")
-    private Category category;
+    /** Anh bia (GridFS id khi anh duoc luu trong MongoDB). */
+    private BookImage images;
+    private Object coverFileId;
 
-    // Transient field để hỗ trợ JSON deserialization từ categoryId
-    @Transient
-    @com.fasterxml.jackson.annotation.JsonProperty("categoryId")
+    private String publisher;
+    private Integer publishYear;
+    private String isbn;
+
+    @Field("discountAmount")
+    private Integer discountAmount;
+
+    /** Gia sau giam - tinh san de sort/filter bang index. */
+    private Double finalPrice;
+
+    // ======================== Danh muc (denormalized) =======================
+    @Indexed
     private Long categoryId;
+    private String categoryName;
+    private List<Long> categoryPath;
 
-    // Getter/Setter cho categoryId để Jackson có thể deserialize
-    public Long getCategoryId() {
-        return category != null ? category.getId() : categoryId;
+    // ======================== Nha ban (extended reference) ==================
+    @Indexed
+    private Long sellerId;
+    private UserSnapshot seller;
+
+    // ======================== Du lieu phan tich (read model) ================
+    @Builder.Default
+    private List<String> tags = new ArrayList<>();
+
+    private RatingSummary rating;
+
+    private BookStats stats;
+
+    @Builder.Default
+    private List<ReviewSnippet> topReviews = new ArrayList<>();
+
+    @Builder.Default
+    private List<BoughtTogether> boughtTogether = new ArrayList<>();
+
+    // ======================== Trang thai ====================================
+    @Field("approvalStatus")
+    private ApprovalStatus approvalStatus;
+
+    @Field("isActive")
+    private boolean isActive;
+
+    @Field("isPinned")
+    private boolean isPinned;
+
+    private Integer schemaVersion;
+
+    @Field("createdAt")
+    private LocalDateTime createdAt;
+
+    @Field("updatedAt")
+    private LocalDateTime updatedAt;
+
+    // ======================== Getter/SETTER tuong thich frontend ============
+
+    /** Frontend dung {@code book.imageUrl} (ten field cua ban SQL). */
+    public String getImageUrl() {
+        return images == null ? null : images.getThumbnail();
     }
 
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    // nhiều người seller có thể bán cùng 1 cuốn sách
-    @ManyToOne(fetch = FetchType.LAZY) // để không cần phải tải hết
-    @JoinColumn(name = "seller_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password", "books", "roles"})
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private User seller;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20, columnDefinition = "NVARCHAR(20)")
-    private ApprovalStatus approvalStatus; // trạng thái sách phải thông qua admin đối với sách của seller thông qua emum ApprovalStatus
-
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
-
-    @Column(name = "is_pinned", nullable = false)
-    private boolean isPinned = false;
-
-    @PrePersist
-    public void onCreate() {
-        if (approvalStatus == null) {
-            approvalStatus = ApprovalStatus.PENDING;
+    public void setImageUrl(String imageUrl) {
+        if (images == null) {
+            images = new BookImage();
         }
+        images.setThumbnail(imageUrl);
+    }
+
+    public String getMediumImageUrl() {
+        return images == null ? null : images.getMedium();
+    }
+
+    public void setMediumImageUrl(String url) {
+        if (images == null) {
+            images = new BookImage();
+        }
+        images.setMedium(url);
+    }
+
+    public String getLargeimageUrl() {
+        return images == null ? null : images.getLarge();
+    }
+
+    public void setLargeimageUrl(String url) {
+        if (images == null) {
+            images = new BookImage();
+        }
+        images.setLarge(url);
+    }
+
+    /** Frontend dung {@code book.averageRating} de hien thi so sao. */
+    public Double getAverageRating() {
+        return rating == null ? null : rating.getAvg();
+    }
+
+    public void setAverageRating(Double averageRating) {
+        if (rating == null) {
+            rating = new RatingSummary();
+        }
+        rating.setAvg(averageRating);
+    }
+
+    @JsonIgnore
+    public Integer getSoldCount() {
+        return stats == null ? 0 : stats.getSoldCount();
+    }
+
+    @JsonIgnore
+    public Integer getViewCount() {
+        return stats == null ? 0 : stats.getViewCount();
+    }
+
+    /** Gia hien thi = gia sau giam (fallback ve gia goc). */
+    @JsonIgnore
+    public Double getEffectivePrice() {
+        if (finalPrice != null) {
+            return finalPrice;
+        }
+        return price == null ? 0.0 : price;
     }
 }

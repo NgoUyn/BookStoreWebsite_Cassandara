@@ -1,87 +1,72 @@
 package com.example.bookstore.repository;
 
-import com.example.bookstore.model.Book;
 import com.example.bookstore.model.BookReview;
-import com.example.bookstore.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.Aggregation;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Optional;
 
+/**
+ * Repository collection reviews (aggregate root #6).
+ *
+ * <p>Cac truy vấn cua ban SQL ({@code AVG}, {@code GROUP BY rating}) nay duoc
+ * thay bang: (a) doc read-model {@code books.rating} khi hien thi, hoac
+ * (b) aggregation {@code $group} khi can tinh lai (job $merge).</p>
+ */
 @Repository
-public interface BookReviewRepository extends JpaRepository<BookReview, Long> {
+public interface BookReviewRepository extends MongoRepository<BookReview, Long> {
 
-    /**
-     * Lấy danh sách đánh giá công khai của một cuốn sách (có phân trang)
-     */
-    Page<BookReview> findByBookAndIsHiddenFalse(Book book, Pageable pageable);
+    Page<BookReview> findByBookIdAndIsHiddenFalse(Long bookId, Pageable pageable);
 
-    /**
-     * Lấy tất cả đánh giá của một cuốn sách (cả ẩn và hiện)
-     */
-    Page<BookReview> findAllByBook(Book book, Pageable pageable);
+    Page<BookReview> findByBookId(Long bookId, Pageable pageable);
 
-    /**
-     * Lọc đánh giá theo số sao và sách (có phân trang)
-     */
-    Page<BookReview> findByBookAndRatingAndIsHiddenFalse(Book book, Integer rating, Pageable pageable);
+    Page<BookReview> findByBookIdAndRatingAndIsHiddenFalse(Long bookId, Integer rating, Pageable pageable);
 
-    /**
-     * Đếm tổng số đánh giá của một cuốn sách
-     */
-    long countByBookAndIsHiddenFalse(Book book);
+    long countByBookIdAndIsHiddenFalse(Long bookId);
 
-    /**
-     * Kiểm tra xem người dùng đã đánh giá cuốn sách này chưa
-     */
-    boolean existsByBookAndUser(Book book, User user);
+    long countByBookId(Long bookId);
 
-    /**
-     * Tính điểm đánh giá trung bình của một cuốn sách
-     */
-    @Query("SELECT AVG(r.rating) FROM BookReview r WHERE r.book = :book AND r.isHidden = false")
-    Double findAverageRatingByBook(@Param("book") Book book);
+    boolean existsByBookIdAndUserId(Long bookId, Long userId);
 
-    /**
-     * Thống kê số lượng đánh giá theo từng mức sao (1-5)
-     */
-    @Query("SELECT r.rating as rating, COUNT(r) as count FROM BookReview r " +
-           "WHERE r.book = :book AND r.isHidden = false " +
-           "GROUP BY r.rating")
-    List<Map<String, Object>> countRatingDistributionByBook(@Param("book") Book book);
+    Optional<BookReview> findByBookIdAndUserId(Long bookId, Long userId);
 
-    // ========================
-    // ML Feature Computation Queries
-    // ========================
+    Page<BookReview> findByUserIdAndIsHiddenFalse(Long userId, Pageable pageable);
 
-    /**
-     * Tính điểm đánh giá trung bình của một user (cho tất cả review họ đã viết).
-     */
-    @Query("SELECT AVG(r.rating) FROM BookReview r WHERE r.user = :user AND r.isHidden = false")
-    Double findAverageRatingByUser(@Param("user") User user);
+    long countByUserIdAndIsHiddenFalse(Long userId);
 
-    /**
-     * Đếm tổng số review của một user.
-     */
-    long countByUser(User user);
+    long countByUserId(Long userId);
 
-    /**
-     * Tìm đánh giá của người dùng cho một cuốn sách cụ thể
-     */
-    BookReview findByBookAndUser(Book book, User user);
+    List<BookReview> findByBookIdAndIsHiddenFalseOrderByHelpfulCountDesc(Long bookId, Pageable pageable);
 
-    /**
-     * Lấy tất cả đánh giá của một người dùng (có phân trang)
-     */
-    Page<BookReview> findByUserAndIsHiddenFalse(User user, Pageable pageable);
+    void deleteByBookIdAndUserId(Long bookId, Long userId);
 
-    /**
-     * Đếm số lượt đánh giá của một người dùng
-     */
-    long countByUserAndIsHiddenFalse(User user);
+    // ======================================================================
+    // AGGREGATION (thay AVG()/GROUP BY cua SQL Server)
+    // ======================================================================
+
+    /** Diem trung binh cua 1 sach (chi tinh review dang hien). */
+    @Aggregation(pipeline = {
+            "{ $match: { 'bookId': ?0, 'isHidden': false } }",
+            "{ $group: { '_id': null, avg: { $avg: '$rating' } } }"
+    })
+    Double findAverageRatingByBookId(Long bookId);
+
+    /** Diem trung binh ma 1 nguoi dung da cho (feature ML). */
+    @Aggregation(pipeline = {
+            "{ $match: { 'userId': ?0, 'isHidden': false } }",
+            "{ $group: { '_id': null, avg: { $avg: '$rating' } } }"
+    })
+    Double findAverageRatingByUserId(Long userId);
+
+    /** Thong ke so luong theo tung muc sao (thay GROUP BY rating). */
+    @Aggregation(pipeline = {
+            "{ $match: { 'bookId': ?0, 'isHidden': false } }",
+            "{ $group: { '_id': '$rating', count: { $sum: 1 } } }",
+            "{ $sort: { '_id': 1 } }"
+    })
+    List<java.util.Map> countRatingDistributionByBookId(Long bookId);
 }

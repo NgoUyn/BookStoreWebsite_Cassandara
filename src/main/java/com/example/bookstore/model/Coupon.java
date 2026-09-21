@@ -1,115 +1,105 @@
 package com.example.bookstore.model;
 
-import jakarta.persistence.*;
+import com.example.bookstore.model.document.AuditableDocument;
+import com.example.bookstore.model.document.SequencedDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "coupons")
+/**
+ * Collection {@code coupons} (voucher).
+ *
+ * <p>SQL Server phai dung {@code LOWER(code) = LOWER(:code)} nen khong tan dung
+ * duoc index; MongoDB dung UNIQUE INDEX voi COLLATION strength 2
+ * (xem db/mongo/02_indexes.js - uq_coupons_code_ci) => tim ma khong phan biet
+ * hoa/thuong van nhanh.</p>
+ */
+@Document(collection = "coupons")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Coupon {
+public class Coupon implements SequencedDocument, AuditableDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String code;  // "BOOKOM15K", "SAVE10", etc.
+    @Indexed(unique = true)
+    private String code;
 
-    @ManyToOne
-    @JoinColumn(name = "seller_id")
-    private User seller;  // Seller who owns this voucher (NULL = global/admin coupon)
+    /** null = voucher cua san (GLOBAL); co gia tri = voucher cua seller. */
+    private Long sellerId;
 
-    @Column(length = 500)
-    private String description;  // "Giảm 15k cho đơn hàng"
+    private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "discount_type", nullable = false, length = 20)
-    private CouponType type;  // FIXED or PERCENT
+    private CouponType type;
 
-    @Column(name = "discount_value", nullable = false)
-    private Integer amount;  // 15000 (for FIXED) or 10 (for PERCENT)
+    @Field("amount")
+    private Integer amount;
 
-    @Column(name = "min_order_value")
-    private Integer minOrderAmount;  // Minimum order value to use coupon
+    private Integer minOrderAmount;
+    private Double maxDiscountAmount;
+    private LocalDateTime startDate;
+    private LocalDateTime expiresAt;
+    private Integer totalQuantity;
+    private Integer usedCount;
+    private Integer perUserLimit;
 
-    @Column(name = "max_discount_amount")
-    private Double maxDiscountAmount;  // Maximum discount amount (for PERCENT type)
+    @Field("isActive")
+    private boolean isActive;
 
-    @Column(name = "start_date")
-    private LocalDateTime startDate;  // Start date when coupon becomes valid
+    @Field("createdAt")
+    private LocalDateTime createdAt;
 
-    @Column(name = "end_date")
-    private LocalDateTime expiresAt;  // Expiration date
-
-    @Column(name = "usage_limit", nullable = false)
-    @Builder.Default
-    private Integer totalQuantity = -1;  // -1 = unlimited
-
-    @Column(name = "usage_count", nullable = false)
-    @Builder.Default
-    private Integer usedCount = 0;  // Already used count
-
-    @Column(nullable = false, columnDefinition = "BIT DEFAULT 1")
-    @Builder.Default
-    private boolean isActive = true;  // true = usable, false = disabled
-
-    @Column(nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column
+    @Field("updatedAt")
     private LocalDateTime updatedAt;
 
+    private Integer schemaVersion;
+
     public enum CouponType {
-        FIXED,    // Fixed amount discount (e.g., -15000 VND)
-        PERCENT   // Percentage discount (e.g., -10%)
+        FIXED,    // giam so tien co dinh
+        PERCENT   // giam theo phan tram
     }
 
-    /**
-     * Check if coupon is still valid
-     */
+    /** Voucher con hieu luc tai thoi diem goi. */
     public boolean isValid() {
-        if (!isActive) return false;
+        if (!isActive) {
+            return false;
+        }
         LocalDateTime now = LocalDateTime.now();
-        if (startDate != null && now.isBefore(startDate)) return false;  // Not yet started
-        if (expiresAt != null && now.isAfter(expiresAt)) return false;  // Expired
-        if (totalQuantity > 0 && usedCount >= totalQuantity) return false;  // Out of usage
-        return true;
+        if (startDate != null && now.isBefore(startDate)) {
+            return false;
+        }
+        if (expiresAt != null && now.isAfter(expiresAt)) {
+            return false;
+        }
+        return totalQuantity == null || totalQuantity < 0 || usedCount == null || usedCount < totalQuantity;
     }
 
-    /**
-     * Check if coupon can be applied to this order amount
-     */
     public boolean canApplyToOrder(Integer orderAmount) {
-        if (!isValid()) return false;
-        if (minOrderAmount != null && orderAmount < minOrderAmount) return false;
-        return true;
+        if (!isValid()) {
+            return false;
+        }
+        return minOrderAmount == null || orderAmount >= minOrderAmount;
     }
 
-    /**
-     * Calculate discount amount for given order value
-     */
     public Integer calculateDiscount(Integer orderAmount) {
         int discount;
         if (type == CouponType.FIXED) {
             discount = Math.min(amount, orderAmount);
-        } else {  // PERCENT
+        } else {
             discount = (int) (orderAmount * amount / 100.0);
         }
-        
-        // Apply maxDiscountAmount cap if set
         if (maxDiscountAmount != null && discount > maxDiscountAmount) {
             discount = maxDiscountAmount.intValue();
         }
-        
         return discount;
     }
 }

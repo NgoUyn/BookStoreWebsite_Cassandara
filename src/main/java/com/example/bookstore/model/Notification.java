@@ -1,81 +1,61 @@
 package com.example.bookstore.model;
 
+import com.example.bookstore.model.document.SequencedDocument;
 import com.example.bookstore.model.enums.NotificationPriority;
 import com.example.bookstore.model.enums.NotificationType;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.EqualsAndHashCode;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(
-    name = "notifications",
-    indexes = {
-        @Index(name = "idx_notifications_user_is_read_created_at", columnList = "user_id,is_read,created_at"),
-        @Index(name = "idx_notifications_created_at", columnList = "created_at")
-    }
-)
+/**
+ * Collection {@code notifications} - thong bao nguoi dung.
+ *
+ * <p>THAM CHIEU {@code userId} (khong embed vao users vi so luong thong bao
+ * tang vo han) + TTL index {@code expiresAt} de MongoDB TU DONG don thong bao
+ * cu (khong can job nhu ban SQL Server).</p>
+ */
+@Document(collection = "notifications")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@ToString(exclude = {"user"})
-@EqualsAndHashCode(of = "id")
-public class Notification {
+public class Notification implements SequencedDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Indexed
+    private Long userId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50, columnDefinition = "NVARCHAR(50)")
     private NotificationType type;
 
-    @Column(nullable = false, length = 255)
     private String title;
-
-    @Lob
-    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String message;
 
-    @Lob
-    @Column(name = "payload_json", columnDefinition = "NVARCHAR(MAX)")
+    /**
+     * Payload duoi dang chuoi JSON (giu nguyen de khong phai sua DTO/JS).
+     * Ban NoSQL dang "chuan" co the luu BSON document ({@code payload}).
+     */
     private String payloadJson;
 
-    @Column(name = "is_read", nullable = false)
-    @Builder.Default
-    private Boolean isRead = false;
+    @Field("isRead")
+    private Boolean isRead;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20, columnDefinition = "NVARCHAR(20)")
-    @Builder.Default
-    private NotificationPriority priority = NotificationPriority.NORMAL;
+    private NotificationPriority priority;
 
-    @Column(name = "created_at", nullable = false)
+    @Indexed
     private LocalDateTime createdAt;
 
-    @Column(name = "read_at")
     private LocalDateTime readAt;
 
-    @PrePersist
-    public void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-        if (isRead == null) {
-            isRead = false;
-        }
-        if (priority == null) {
-            priority = NotificationPriority.NORMAL;
-        }
-    }
+    /** TTL: MongoDB xoa khi het han (tang 90 ngay tu luc tao). */
+    @Indexed
+    private LocalDateTime expiresAt;
 }

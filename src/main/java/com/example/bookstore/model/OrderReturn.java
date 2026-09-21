@@ -1,63 +1,48 @@
 package com.example.bookstore.model;
 
-import jakarta.persistence.*;
+import com.example.bookstore.model.document.SequencedDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
 /**
- * Entity ghi nhận các yêu cầu trả hàng / hoàn tiền.
- * Dùng để tính ML feature: return_rate
+ * Collection {@code order_returns} - yeu cau tra hang/hoan tien.
+ *
+ * <p>THAM CHIEU order/subOrder/orderItem (khong embed) vi co quy trinh
+ * xu ly rieng (PENDING -> APPROVED -> REFUNDED) va duoc admin/seller
+ * truy van theo trang thai.</p>
  */
-@Entity
-@Table(name = "order_returns")
+@Document(collection = "order_returns")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderReturn {
+public class OrderReturn implements SequencedDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Long userId;
+    private Long orderId;
+    private Long subOrderId;
+    private Long orderItemId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sub_order_id", nullable = false)
-    private SubOrder subOrder;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_item_id", nullable = false)
-    private OrderItem orderItem;
-
-    @Column(nullable = false)
     private Integer quantityReturned;
 
-    @Column(length = 50, nullable = false)
-    private String reason; // DEFECTIVE, WRONG_ITEM, CHANGE_MIND, OTHER
+    /** DEFECTIVE | WRONG_ITEM | CHANGE_MIND | OTHER */
+    private String reason;
 
-    @Column(length = 20, nullable = false)
-    @Builder.Default
-    private String status = "PENDING"; // PENDING, APPROVED, REJECTED, REFUNDED
+    /** PENDING | APPROVED | REJECTED | REFUNDED */
+    private String status;
 
-    @Column(nullable = false, updatable = false)
+    @Field("createdAt")
     private LocalDateTime createdAt;
 
-    @Column
     private LocalDateTime processedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }
