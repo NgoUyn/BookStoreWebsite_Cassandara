@@ -10,7 +10,7 @@ setlocal enabledelayedexpansion
 call "%~dp0_mongo-env.bat"
 
 set "SCRIPTS=%*"
-if "%SCRIPTS%"=="" set "SCRIPTS=00 01 02 03 04 05"
+if "%SCRIPTS%"=="" set "SCRIPTS=00 01 02 03 04 05 06"
 
 echo ============================================================
 echo BOOKOM - Chay script MongoDB
@@ -25,6 +25,7 @@ for %%N in (%SCRIPTS%) do (
   if "%%N"=="03" set "FILE=03_seed_reference.js"
   if "%%N"=="04" set "FILE=04_queries_basic.js"
   if "%%N"=="05" set "FILE=05_queries_advanced.js"
+  if "%%N"=="06" set "FILE=06_verify_db.js"
   echo.
   echo ------------------------------------------------------------
   echo [RUN] !FILE!
