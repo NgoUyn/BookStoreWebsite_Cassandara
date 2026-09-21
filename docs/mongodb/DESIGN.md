@@ -12,7 +12,7 @@
 | Thay SQL Server bằng MongoDB | 22 entity JPA → 6 aggregate root + 12 collection tham chiếu + hạ tầng |
 | **Không phá vỡ ứng dụng** | Giữ nguyên hợp đồng REST (68 endpoint), 57 DTO, 21 file JS, Thymeleaf, JWT (userId vẫn là `Long`) |
 | Dữ liệu phục vụ truy vấn cơ bản + nâng cao | `db/mongo/03_seed_reference.js`: 241 user, 400 sách, 600 đơn (12 tháng), 472 review, 5.000 activity log, 534 dòng daily_stats |
-| Index chứng minh được hiệu năng | 85+ index (unique, compound, multikey, partial, TTL, collation, 2dsphere, text) + explain() so sánh COLLSCAN/IXSCAN |
+| Index chứng minh được hiệu năng | **100 index** (unique, compound, multikey, partial, TTL, collation, 2dsphere, text) + explain() so sánh COLLSCAN/IXSCAN |
 
 ---
 
@@ -151,7 +151,7 @@ Tất cả có **validator `$jsonSchema`** (`validationLevel: moderate`, `valida
 | `user_activity_log`, `user_security_events` | `activity_log` (time-series) | trước đây bảng không có repository nào dùng |
 | IDENTITY | `counters` + `BeforeConvertCallback` | giữ `Long id`, không phá API |
 | Flyway (35 migration) | `db/mongo/*.js` (idempotent) + `_migrations` (kế hoạch) | chạy bằng mongosh |
-| H2 (test) | flapdoodle embedded mongo | `@DataMongoTest` |
+| H2 (test) | `@DataMongoTest` + DB `bookom_test` trên instance 27018 | không cần H2/flapdoodle, không đụng dữ liệu thật |
 
 ---
 
