@@ -267,7 +267,13 @@ public class DatabaseSeederService {
         User.UserBuilder builder = User.builder()
                 .username(username)
                 .passwordHash(BCrypt.hashpw(rawPassword, BCrypt.gensalt(10)))
-                .role(role);
+                .role(role)
+                // Bat buoc: thieu isActive => tai khoan bi chan dang nhap (403)
+                .isActive(true);
+
+        if (username != null && username.contains("@")) {
+            builder.email(username);
+        }
 
         if (shopName != null) {
             builder.shopName(shopName);

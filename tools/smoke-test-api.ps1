@@ -4,59 +4,90 @@
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\smoke-test-api.ps1
 #
 # Yeu cau: MongoDB 27018 (tools\mongo-dev-start.bat) + app dang chay
-#          (tools\run-app.bat)
+#          (tools\run-app.bat) + da tao tai khoan demo
+#          (tools\mongo-demo-accounts.bat)
 #
 # Kiem tra:
-#   1. GET  /api/health            -> app + ket noi MongoDB
-#   2. GET  /api/health/detailed   -> ping {ping:1} toi MongoDB
-#   3. GET  /api/books             -> doc that tu collection books (JSON contract)
-#   4. POST /api/auth/otp/request  -> sinh OTP
-#   5. POST /api/auth/otp/verify   -> xac thuc OTP
-#   6. POST /api/auth/register     -> GHI that vao MongoDB (id do counters cap)
+#   1. GET  /api/health                    -> app + MongoDB
+#   2. GET  /api/health/detailed           -> ping {ping:1} toi MongoDB
+#   3. GET  /api/books                     -> doc that tu collection books
+#   4. POST /api/auth/login-jwt (SELLER)   -> access token + role SELLER
+#   5. POST /api/auth/login-jwt (ADMIN)    -> access token + role ADMIN
+#   6. GET  /api/seller/me/shop   (Bearer) -> shop cua seller (APPROVED)
+#   7. GET  /api/books/seller/me  (Bearer) -> so sach thuoc shop
 # =============================================================================
 $ErrorActionPreference = "Stop"
-$base = "http://localhost:8080"
-$email = "smoke.test@example.com"
-$avatar = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+$base        = "http://localhost:8080"
+$sellerEmail = "shop_nha_nam@gmail.com"
+$sellerPass  = "Nhanam123@"
+$adminEmail  = "admin@gmail.com"
+$adminPass   = "Admin123@"
 
-Write-Host "=== 1) GET /api/health"
-$health = Invoke-RestMethod -Uri "$base/api/health" -Method Get
-Write-Host ($health | ConvertTo-Json -Compress)
+function Step($n, $text) {
+    Write-Host ""
+    Write-Host "=== $n) $text" -ForegroundColor Cyan
+}
 
-Write-Host "=== 2) GET /api/health/detailed"
-$detail = Invoke-RestMethod -Uri "$base/api/health/detailed" -Method Get
-Write-Host ("database = " + ($detail.database | ConvertTo-Json -Compress))
+function Login($email, $password) {
+    $body = @{ username = $email; password = $password } | ConvertTo-Json
+    try {
+        return Invoke-RestMethod -Uri "$base/api/auth/login-jwt" -Method Post `
+            -ContentType "application/json" -Body $body
+    } catch {
+        $resp = $_.Exception.Response
+        $msg = (New-Object System.IO.StreamReader($resp.GetResponseStream())).ReadToEnd()
+        Write-Host ("  LOGIN THAT BAI - HTTP " + [int]$resp.StatusCode + " : " + $msg) -ForegroundColor Red
+        return $null
+    }
+}
 
-Write-Host "=== 3) GET /api/books (doc that tu MongoDB)"
-$books = Invoke-RestMethod -Uri "$base/api/books?page=0&size=2" -Method Get
-Write-Host ("totalElements = " + $books.totalElements + " | sach dau: " + $books.content[0].title +
+Step 1 "GET /api/health"
+(Invoke-RestMethod -Uri "$base/api/health") | ConvertTo-Json -Compress
+
+Step 2 "GET /api/health/detailed (MongoDB ping)"
+$detail = Invoke-RestMethod -Uri "$base/api/health/detailed"
+Write-Host ("  database = " + ($detail.database | ConvertTo-Json -Compress))
+
+Step 3 "GET /api/books (doc that tu collection books)"
+$books = Invoke-RestMethod -Uri "$base/api/books?page=0&size=2"
+Write-Host ("  totalElements = " + $books.totalElements +
+    " | sach dau: " + $books.content[0].title +
     " | imageUrl = " + $books.content[0].imageUrl)
 
-Write-Host "=== 4) POST /api/auth/otp/request"
-$otpResp = Invoke-RestMethod -Uri "$base/api/auth/otp/request" -Method Post `
-    -ContentType "application/json" -Body (@{ email = $email } | ConvertTo-Json)
-$otp = $otpResp.otp
-Write-Host ("OTP = " + $otp)
-if (-not $otp) { throw "Khong lay duoc OTP (khi da cau hinh SMTP thi OTP duoc gui qua email)" }
-
-Write-Host "=== 5) POST /api/auth/otp/verify"
-$verify = Invoke-RestMethod -Uri "$base/api/auth/otp/verify" -Method Post `
-    -ContentType "application/json" -Body (@{ email = $email; otp = $otp } | ConvertTo-Json)
-Write-Host $verify
-
-Write-Host "=== 6) POST /api/auth/register (ghi vao MongoDB -> Long id tu counters)"
-$body = @{
-    username            = $email
-    password            = "Test1234!"
-    avatarUrl           = $avatar
-    favoriteCategoryIds = @(1, 2)
-} | ConvertTo-Json
-try {
-    $reg = Invoke-WebRequest -Uri "$base/api/auth/register" -Method Post `
-        -ContentType "application/json" -Body $body -UseBasicParsing
-    Write-Host ("HTTP " + $reg.StatusCode + " - " + $reg.Content)
-} catch {
-    $resp = $_.Exception.Response
-    Write-Host ("HTTP " + [int]$resp.StatusCode)
-    (New-Object System.IO.StreamReader($resp.GetResponseStream())).ReadToEnd()
+Step 4 "LOGIN SELLER ($sellerEmail)"
+$seller = Login $sellerEmail $sellerPass
+if ($seller) {
+    Write-Host ("  OK | role = " + $seller.role + " | sellerId = " + $seller.sellerId +
+        " | token = " + $seller.accessToken.Substring(0, 24) + "...") -ForegroundColor Green
 }
+
+Step 5 "LOGIN ADMIN ($adminEmail)"
+$admin = Login $adminEmail $adminPass
+if ($admin) {
+    Write-Host ("  OK | role = " + $admin.role + " | userId = " + $admin.userId +
+        " | token = " + $admin.accessToken.Substring(0, 24) + "...") -ForegroundColor Green
+}
+
+if ($seller) {
+    $headers = @{ Authorization = "Bearer " + $seller.accessToken }
+
+    Step 6 "GET /api/seller/me/shop (JWT seller)"
+    try {
+        $shop = Invoke-RestMethod -Uri "$base/api/seller/me/shop" -Headers $headers
+        Write-Host ("  shop = " + $shop.shopName + " | slug = " + $shop.slug +
+            " | status = " + $shop.approvalStatus) -ForegroundColor Green
+    } catch {
+        Write-Host ("  loi: " + $_.Exception.Message) -ForegroundColor Red
+    }
+
+    Step 7 "GET /api/books/seller/me (JWT seller)"
+    try {
+        $mine = Invoke-RestMethod -Uri "$base/api/books/seller/me?page=0&size=5" -Headers $headers
+        Write-Host ("  tong sach cua shop = " + $mine.totalElements) -ForegroundColor Green
+    } catch {
+        Write-Host ("  loi: " + $_.Exception.Message) -ForegroundColor Red
+    }
+}
+
+Write-Host ""
+Write-Host "=== XONG ===" -ForegroundColor Cyan

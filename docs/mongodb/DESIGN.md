@@ -250,6 +250,9 @@ com.example.bookstore
 | 9.14 | `UnnecessaryStubbing` / `PotentialStubbingProblem` hàng loạt khi test bắt đầu chạy | Mockito 5 mặc định `STRICT_STUBS`; nhiều stub cũ không còn được gọi sau khi chuyển Mongo (`anyList()` **không** match `null`) | Thêm `@MockitoSettings(strictness = LENIENT)` cho test legacy + set `favoriteCategoryIds = List.of()` trong request test |
 | 9.15 | Test `AuthorizationTest` báo SELLER chưa duyệt shop vẫn đổi được trạng thái đơn | Khi chuyển `CustomPermissionEvaluator` sang Mongo đã **mất** check `existsBySellerIdAndApprovalStatus` | Khôi phục Check 2 (shop APPROVED) → phát hiện nhờ chạy test |
 | 9.16 | `POST /api/auth/register` → **HTTP 500**: `WriteError{code=121, 'Document failed validation', missingProperties:['createdAt']}` | `@EnableMongoAuditing` **không** tự chạy vì các model giữ field audit tay (không có `@CreatedDate`/`@LastModifiedDate`), mà validator `$jsonSchema` của `users/books/orders…` bắt buộc có `createdAt` | Thêm `config/mongo/MongoAuditCallback.java` (`BeforeConvertCallback`) tự điền `createdAt/updatedAt/schemaVersion` cho mọi `AuditableDocument` (không tiêm bean ⇒ không tạo vòng lặp) |
+| 9.17 | **Đăng ký xong nhưng không đăng nhập được**: HTTP 403 `Tài khoản bị từ chối đăng nhập` dù mật khẩu đúng; document trong DB có `isActive: false` | `User.isActive` là `boolean` primitive **không có `@Builder.Default`** ⇒ Lombok `@Builder` **bỏ qua** giá trị khởi tạo; `AuthService.registerWithRole()` không set `isActive` ⇒ mọi tài khoản đăng ký mới đều bị khoá ngay khi tạo | `@Builder.Default private boolean isActive = true;` trong `User` + set tường minh `.isActive(true)` ở `AuthService` và `DatabaseSeederService`; `db/mongo/09_demo_accounts.js` mở khoá các tài khoản đã bị lỗi |
+| 9.18 | Đăng ký bằng email `@yahoo.com`/`@example.com` thành công nhưng **đăng nhập trả 400** `Email dang nhap khong dung dinh dang` | `AuthLoginRequest` giới hạn domain bằng `@Pattern` (`gmail|mail|email|outlook` + `com|vn|edu.vn|net`) trong khi `AuthRegisterRequest` chỉ dùng `@Email` ⇒ đăng ký được nhưng **không bao giờ đăng nhập được** | Đổi `AuthLoginRequest.username` sang `@Email` cho khớp bước đăng ký |
+| 9.19 | Tài khoản seed không đăng nhập được dù "đúng mật khẩu" | `03_seed_reference.js` sinh `passwordHash = "$2a$10$seedHash" + id` — **hash giả**, không khớp mật khẩu nào | Tạo tài khoản thật bằng `tools\mongo-demo-accounts.bat` (hash bcrypt cost 12 sinh từ `tools\GenBcryptHash.java` + jbcrypt có trong `.m2`) |
 
 ---
 
@@ -339,3 +342,46 @@ tools\run-app.bat             REM Spring Boot -> logs\app-run.log
 | Trang chủ `/` | ✅ render Thymeleaf (1889 dòng HTML) |
 
 > Ghi chú: log khởi động có cảnh báo RabbitMQ `Connection refused: localhost:5672` — do máy dev chưa bật RabbitMQ; đây là hàng đợi tuỳ chọn, **không ảnh hưởng** nghiệp vụ chính (đơn hàng vẫn tạo được).
+
+### 10.5 Mở web để xem & tài khoản demo
+
+**Trình tự chạy (4 bước):**
+
+```bat
+tools\mongo-dev-start.bat                  REM 1) MongoDB 27018 (replica set rs0)
+tools\mongo-run-scripts.bat 00 01 02 03    REM 2) collection + validator + index + seed (lần đầu)
+tools\mongo-demo-accounts.bat              REM 3) tạo tài khoản đăng nhập được (SELLER + ADMIN)
+tools\run-app.bat                          REM 4) chạy app -> mở http://localhost:8080
+```
+
+**Tài khoản thật (hash bcrypt cost 12, đăng nhập được — khác tài khoản seed có hash giả):**
+
+| Vai trò | Đăng nhập (email) | Mật khẩu | Gắn kèm |
+|---|---|---|---|
+| **SELLER** | `shop_nha_nam@gmail.com` | `Nhanam123@` | shop `nha-nam-official` (**APPROVED**) + 20 sách đã gán → panel `/seller/**` có dữ liệu |
+| **ADMIN** | `admin@gmail.com` | `Admin123@` | toàn quyền `/admin/**` |
+
+> ⚠️ Ô đăng nhập của form là `type="email"` nên **phải đăng nhập bằng email**, không dùng username kiểu `admin`/`seller41`.
+
+**Các URL chính**
+
+| Nhóm | URL |
+|---|---|
+| Khách (không cần đăng nhập) | `/` · `/book/{id}` · `/main/search` · `/main/flash-sale` · `/shop/{sellerId}` · `/main/contact` |
+| Đăng nhập / đăng ký | `/main/auth` (hoặc `/login`) |
+| Buyer | `/buyer/dashboard` · `/main/cart` · `/main/checkout` · `/main/order-details` |
+| Seller | `/seller/dashboard` · `/seller/orders` · `/seller/inventory` · `/seller/analytics` · `/seller/vouchers` · `/seller/customers` · `/seller/chat` |
+| Admin | `/admin` · `/admin/users` · `/admin/books` · `/admin/shops` · `/admin/orders` · `/admin/categories` · `/admin/coupons` · `/admin/customers` · `/admin/seller-applications` |
+
+**Tự kiểm tra nhanh bằng 1 lệnh:**
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\smoke-test-api.ps1
+```
+→ kiểm tra health + MongoDB ping + `GET /api/books` + login SELLER/ADMIN + `GET /api/seller/me/shop` + số sách của shop.
+
+**Xem dữ liệu trong DB (⚠️ đúng cổng 27018, KHÔNG phải 27017):**
+
+- Compass: URI `mongodb://127.0.0.1:27018/?replicaSet=rs0` → database **`bookom`** (hoặc `tools\mongo-open-compass.bat`)
+- Hoặc `tools\mongo-shell.bat` → `use bookom` → `db.users.find({username:'shop_nha_nam@gmail.com'})`
+- Instance **27017** trên máy là standalone của Windows service, **không chứa** DB `bookom`.

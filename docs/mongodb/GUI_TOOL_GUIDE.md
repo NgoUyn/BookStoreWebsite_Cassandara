@@ -226,3 +226,4 @@ Log đã sinh sẵn để đối chiếu:
 - [ ] Lưu ảnh vào `docs\mongodb\screenshots\` theo đúng tên gợi ý ở trên, chèn vào báo cáo theo thứ tự
 
 
+__Tóm lại__: chỉ cần chạy 2 lệnh `tools\mongo-dev-start.bat` + `tools\mongo-run-scripts.bat 00 01 02 03` một lần, sau đó `tools\run-app.bat` là app chạy được end-to-end — không phải tạo database/collection thủ công.

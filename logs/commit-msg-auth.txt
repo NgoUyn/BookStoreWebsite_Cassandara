@@ -1,0 +1,43 @@
+fix(auth): sua loi dang ky xong khong dang nhap duoc + them tai khoan demo (admin, seller)
+
+VAN DE 1 - Tai khoan dang ky moi bi khoa (403 khi dang nhap):
+  User.isActive la boolean primitive KHONG co @Builder.Default => Lombok @Builder
+  BO QUA gia tri khoi tao; AuthService.registerWithRole() khong set isActive
+  => moi tai khoan dang ky moi duoc luu isActive=false va bi AuthController chan
+  dang nhap (403 "Tai khoan bi tu choi dang nhap") du mat khau dung.
+  => Tai khoan cua nguoi dung (tranthibinh@email.com, _id=1304) bi dung loi nay.
+
+  Sua:
+  - model/User.java: @Builder.Default private boolean isActive = true;
+  - service/AuthService.java: registerWithRole() set tuong minh .isActive(true)
+    + .email(username) khi username la email (de findByEmail/panel admin dung).
+  - service/DatabaseSeederService.java: them .isActive(true) cho user seed.
+
+VAN DE 2 - Dang ky duoc nhung khong bao gio dang nhap duoc:
+  AuthLoginRequest.username dung @Pattern chi cho phep domain
+  gmail|mail|email|outlook + com|vn|edu.vn|net, trong khi AuthRegisterRequest
+  chi dung @Email => email nhu @yahoo.com/@example.com dang ky 200 nhung dang
+  nhap 400 "Email dang nhap khong dung dinh dang".
+  Sua: AuthLoginRequest.username -> @Email (khop buoc dang ky va form type=email).
+
+TAI KHOAN DEMO (2 tai khoan that, hash bcrypt cost 12):
+  - SELLER: shop_nha_nam@gmail.com / Nhanam123@  + shop "Nha Nam Official"
+    (slug nha-nam-official, APPROVED) + 20 sach duoc gan => panel seller co du lieu
+  - ADMIN : admin@gmail.com / Admin123@
+  Cong cu moi:
+  - tools/GenBcryptHash.java       : sinh hash bcrypt that offline (jbcrypt 0.4)
+  - db/mongo/09_demo_accounts.js   : upsert 2 tai khoan + shop + gan 20 sach,
+                                     cap nhat counters.users.seq (chong trung _id),
+                                     mo khoa cac tai khoan dang ky truoc khi sua bug
+  - tools/mongo-demo-accounts.bat  : chay script tren (idempotent)
+
+KIEM CHUNG THAT (khong doan):
+  - tools\smoke-test-api.ps1 (cap nhat): health UP, MongoDB ping UP,
+    GET /api/books 200 (339 sach), LOGIN SELLER OK (role SELLER, sellerId 1306),
+    LOGIN ADMIN OK (role ADMIN, userId 1305), /api/seller/me/shop = Nha Nam
+    Official APPROVED, /api/books/seller/me = 20 sach.
+  - Luong dang ky moi: OTP -> verify -> register 200 -> LOGIN NGAY 200
+    (truong hop truoc day bi 403/400).
+
+Docs: DESIGN.md them muc 9.17-9.19 (3 nguyen nhan khong dang nhap duoc) va muc
+10.5 (cach mo web + bang tai khoan demo + cach xem DB dung cong 27018).

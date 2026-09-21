@@ -110,6 +110,11 @@ public class AuthService {
             .username(username)
             .passwordHash(hashedPassword)
             .role(normalizedRole)
+            // Tai khoan moi PHAI hoat dong, neu khong se bi chan dang nhap
+            .isActive(true)
+            // Form dang ky dung email lam username => luu luon vao field email
+            // de findByEmail (dang nhap Google) va panel admin hoat dong dung
+            .email(looksLikeEmail(username) ? username : null)
             .avatarUrl(normalizeAvatar(avatarUrl))
             .favoriteCategoryIds(favoriteCategoryIds)
             .build();
@@ -263,6 +268,11 @@ public class AuthService {
         }
 
         return new LinkedHashSet<>(categories);
+    }
+
+    /** Username cua do an chinh la email (form dang ky dung {@code type="email"}). */
+    private boolean looksLikeEmail(String value) {
+        return value != null && value.indexOf('@') > 0 && value.indexOf('@') < value.length() - 1;
     }
 
     private String normalizeAvatar(String avatarUrl) {

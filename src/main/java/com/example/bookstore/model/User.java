@@ -84,8 +84,17 @@ public class User implements SequencedDocument, AuditableDocument {
     /** Ho so ML (churn/RFM) - tinh san bang job + $merge. */
     private MlProfile ml;
 
+    /**
+     * Trang thai hoat dong. MAC DINH = true cho tai khoan moi.
+     *
+     * <p>Phai co {@code @Builder.Default}: Lombok {@code @Builder} BO QUA gia tri
+     * khoi tao cua field neu khong danh dau => truoc day moi tai khoan dang ky moi
+     * deu bi luu {@code isActive=false} va bi AuthController chan dang nhap
+     * (403 "Tai khoan bi tu choi dang nhap").</p>
+     */
     @Field("isActive")
-    private boolean isActive;
+    @Builder.Default
+    private boolean isActive = true;
 
     @Field("createdAt")
     private LocalDateTime createdAt;
