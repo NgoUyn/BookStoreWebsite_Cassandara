@@ -11,8 +11,8 @@
 |---|---|
 | Thay SQL Server bằng MongoDB | 22 entity JPA → 6 aggregate root + 12 collection tham chiếu + hạ tầng |
 | **Không phá vỡ ứng dụng** | Giữ nguyên hợp đồng REST (68 endpoint), 57 DTO, 21 file JS, Thymeleaf, JWT (userId vẫn là `Long`) |
-| Dữ liệu phục vụ truy vấn cơ bản + nâng cao | `db/mongo/03_seed_reference.js`: 241 user, 400 sách, 600 đơn (12 tháng), 472 review, 5.000 activity log, 534 dòng daily_stats |
-| Index chứng minh được hiệu năng | **100 index** (unique, compound, multikey, partial, TTL, collation, 2dsphere, text) + explain() so sánh COLLSCAN/IXSCAN |
+| Dữ liệu phục vụ truy vấn cơ bản + nâng cao | `db/seed/Books.csv` (dataset Book-Crossing, 270k dòng) → **248.238 sách thật** trong `books`, phân bổ cho **100 nhà bán thật** (`db/seed/sellers_real.txt`), 20 danh mục thật |
+| Index chứng minh được hiệu năng | **101 index** (unique, compound, multikey, partial, TTL, collation, 2dsphere, text) + explain() so sánh COLLSCAN/IXSCAN |
 
 ---
 
@@ -252,7 +252,10 @@ com.example.bookstore
 | 9.16 | `POST /api/auth/register` → **HTTP 500**: `WriteError{code=121, 'Document failed validation', missingProperties:['createdAt']}` | `@EnableMongoAuditing` **không** tự chạy vì các model giữ field audit tay (không có `@CreatedDate`/`@LastModifiedDate`), mà validator `$jsonSchema` của `users/books/orders…` bắt buộc có `createdAt` | Thêm `config/mongo/MongoAuditCallback.java` (`BeforeConvertCallback`) tự điền `createdAt/updatedAt/schemaVersion` cho mọi `AuditableDocument` (không tiêm bean ⇒ không tạo vòng lặp) |
 | 9.17 | **Đăng ký xong nhưng không đăng nhập được**: HTTP 403 `Tài khoản bị từ chối đăng nhập` dù mật khẩu đúng; document trong DB có `isActive: false` | `User.isActive` là `boolean` primitive **không có `@Builder.Default`** ⇒ Lombok `@Builder` **bỏ qua** giá trị khởi tạo; `AuthService.registerWithRole()` không set `isActive` ⇒ mọi tài khoản đăng ký mới đều bị khoá ngay khi tạo | `@Builder.Default private boolean isActive = true;` trong `User` + set tường minh `.isActive(true)` ở `AuthService` và `DatabaseSeederService`; `db/mongo/09_demo_accounts.js` mở khoá các tài khoản đã bị lỗi |
 | 9.18 | Đăng ký bằng email `@yahoo.com`/`@example.com` thành công nhưng **đăng nhập trả 400** `Email dang nhap khong dung dinh dang` | `AuthLoginRequest` giới hạn domain bằng `@Pattern` (`gmail|mail|email|outlook` + `com|vn|edu.vn|net`) trong khi `AuthRegisterRequest` chỉ dùng `@Email` ⇒ đăng ký được nhưng **không bao giờ đăng nhập được** | Đổi `AuthLoginRequest.username` sang `@Email` cho khớp bước đăng ký |
-| 9.19 | Tài khoản seed không đăng nhập được dù "đúng mật khẩu" | `03_seed_reference.js` sinh `passwordHash = "$2a$10$seedHash" + id` — **hash giả**, không khớp mật khẩu nào | Tạo tài khoản thật bằng `tools\mongo-demo-accounts.bat` (hash bcrypt cost 12 sinh từ `tools\GenBcryptHash.java` + jbcrypt có trong `.m2`) |
+| 9.19 | Tài khoản seed không đăng nhập được dù "đúng mật khẩu" | `03_seed_reference.js` sinh `passwordHash = "$2a$10$seedHash" + id` — **hash giả**, không khớp mật khẩu nào | Tạo tài khoản thật bằng `tools\mongo-import-sellers.bat` (hash bcrypt cost 12 sinh từ `tools\GenBcryptHash.java` + jbcrypt có trong `.m2`) |
+| 9.20 | Sau khi import 248k sách: mở **trang chi tiết sách mất ~31–35 giây**, `/api/panel/summary` cũng rất chậm | `RecommendationFallbackEngine.fallbackSameAuthorOrCategory()` gọi `bookRepository.findByApprovalStatus(APPROVED)` ⇒ **nạp toàn bộ 248k document vào RAM** rồi sort trong Java; `PanelController` cũng dùng `bookRepository.findAll()` ở 5 endpoint admin | Đẩy lọc xuống DB + giới hạn kết quả: `findByAuthorAndApprovalStatusAndIsActiveTrueOrderByIdDesc(...)` (index mới `idx_books_author_status`) và `findByCategoryIdAndIdNotAndApprovalStatusAndIsActiveTrue(...)` (dùng `idx_books_catalog`); panel admin đổi sang `count()`, `countByStockQuantity*`, `$group` server-side (`countBooksByCategoryName()`) và `findAll(PageRequest.of(0, 2000))`. **Kết quả: `/book/1` 31,3s → 0,83s; bought-together 34,9s → 0,09s; `/api/panel/summary` → 1,8s** |
+| 9.21 | `APPLICATION FAILED TO START: Field …BookSearchRepository required a single bean, but 2 were found` | `BookRepository extends BookSearchRepository` ⇒ 2 bean cùng khớp type | Không inject interface fragment nữa — gọi trực tiếp qua `bookRepository` (đã kế thừa) hoặc dùng `OrderRepository` cho `SubOrderRepository` (xem 9.11) |
+| 9.22 | `ReferenceError: NumberDouble is not defined` khi chạy script import trong mongosh | mongosh chỉ có `Int32/NumberInt`, `Long/NumberLong`, **`Double`** (không có `NumberDouble`) | Dùng `Double(price)` cho field `bsonType: "double"` |
 
 ---
 
@@ -343,23 +346,40 @@ tools\run-app.bat             REM Spring Boot -> logs\app-run.log
 
 > Ghi chú: log khởi động có cảnh báo RabbitMQ `Connection refused: localhost:5672` — do máy dev chưa bật RabbitMQ; đây là hàng đợi tuỳ chọn, **không ảnh hưởng** nghiệp vụ chính (đơn hàng vẫn tạo được).
 
-### 10.5 Mở web để xem & tài khoản demo
+### 10.5 Mở web để xem, tài khoản demo & dựng lại dữ liệu THẬT
 
-**Trình tự chạy (4 bước):**
+**Trình tự chạy (5 bước):**
 
 ```bat
 tools\mongo-dev-start.bat                  REM 1) MongoDB 27018 (replica set rs0)
-tools\mongo-run-scripts.bat 00 01 02 03    REM 2) collection + validator + index + seed (lần đầu)
-tools\mongo-demo-accounts.bat              REM 3) tạo tài khoản đăng nhập được (SELLER + ADMIN)
-tools\run-app.bat                          REM 4) chạy app -> mở http://localhost:8080
+tools\mongo-run-scripts.bat 00 01 02 03    REM 2) collection + validator + 101 index + 20 danh muc
+tools\mongo-import-sellers.bat             REM 3) 100 nha ban THAT (user + shop APPROVED) + ADMIN
+tools\mongo-import-books.bat               REM 4) toan bo sach tu db\seed\Books.csv (~248k quyen)
+tools\run-app.bat                          REM 5) chay app -> mo http://localhost:8080
 ```
 
-**Tài khoản thật (hash bcrypt cost 12, đăng nhập được — khác tài khoản seed có hash giả):**
+**Tài khoản thật (hash bcrypt cost 12 — đăng nhập được ngay):**
 
 | Vai trò | Đăng nhập (email) | Mật khẩu | Gắn kèm |
 |---|---|---|---|
-| **SELLER** | `shop_nha_nam@gmail.com` | `Nhanam123@` | shop `nha-nam-official` (**APPROVED**) + 20 sách đã gán → panel `/seller/**` có dữ liệu |
 | **ADMIN** | `admin@gmail.com` | `Admin123@` | toàn quyền `/admin/**` |
+| **SELLER** | `nhaxuatbantre@bookom.vn` (và 99 nhà bán khác) | `Nhaxuatbantre123@` | shop `nha-xuat-ban-tre` (**APPROVED**) + ~2.492 sách |
+| **BUYER** | tự đăng ký tại `/main/auth` | — | OTP hiện ở popup `[DEV MODE]` vì chưa cấu hình SMTP |
+
+> **Quy ước nhà bán**: email `<tên-bỏ-dấu>@bookom.vn` · slug `nha-xuat-ban-tre` · mật khẩu `<Tênbỏdấu>123@`
+> (chữ đầu HOA, còn lại thường) — VD `Nhanam123@`, `Nhasachdainam123@`, `Fahasa123@`.
+> Danh sách 100 tên thật: `db/seed/sellers_real.txt` → sửa rồi chạy `tools\build-sellers-seed.bat` + `tools\mongo-import-sellers.bat`.
+
+**Pipeline dựng lại dữ liệu thật** (đã chạy, ghi lại để tái lập):
+
+| Bước | Script | Kết quả |
+|---|---|---|
+| 1. Xoá toàn bộ dữ liệu bịa | `db/mongo/10_purge_fake_data.js` (`tools\mongo-rebuild-data.bat`, cần `set APPLY=1`) | Xoá 241 user hash giả, 400 sách bịa, 40 shop bịa, 600 đơn, 472 review, giỏ/thông báo/log…; giữ `categories` + 3 tài khoản thật |
+| 2. Sinh dữ liệu nhà bán | `tools\BuildSellersSeed.java` → `db/mongo/11_sellers_data.js` | 100 tên thật + email/slug + **hash bcrypt thật** |
+| 3. Tạo user + shop | `db/mongo/11_import_sellers.js` | 100 user SELLER + 100 shop APPROVED + ADMIN |
+| 4. Nhập sách | `mongoimport` → `db/mongo/12_import_books_csv.js` | 271.361 dòng CSV → **248.238 sách** (bỏ 23.121 trùng), gắn seller + productCount, `counters.books.seq = 248238` |
+
+> ⚠️ Chạy lại `03_seed_reference.js` sẽ sinh lại dữ liệu bịa ⇒ phải chạy `10_purge_fake_data.js` (APPLY) rồi import lại.
 
 > ⚠️ Ô đăng nhập của form là `type="email"` nên **phải đăng nhập bằng email**, không dùng username kiểu `admin`/`seller41`.
 

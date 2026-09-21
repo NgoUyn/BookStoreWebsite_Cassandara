@@ -63,6 +63,15 @@ public class PanelController {
     @Autowired
     private SubOrderRepository subOrderRepository;
 
+    /** So ban ghi toi da nap vao RAM cho cac man hinh admin loc trong bo nho. */
+    private static final int ADMIN_IN_MEMORY_LIMIT = 2000;
+
+    /** Trang dau tien (gioi han) de KHONG nap toan bo 248k sach vao RAM. */
+    private List<Book> loadBooksForAdmin() {
+        return bookRepository.findAll(PageRequest.of(0, ADMIN_IN_MEMORY_LIMIT,
+                Sort.by(Sort.Direction.DESC, "id"))).getContent();
+    }
+
     private static String safe(String value) {
         return value == null ? "" : value.trim();
     }
@@ -85,32 +94,29 @@ public class PanelController {
 
     @GetMapping("/summary")
     public Map<String, Object> summary() {
-        List<Book> books = bookRepository.findAll();
+        // KHONG dung findAll(): collection books co ~248k doc (import tu Books.csv).
+        long booksCount = bookRepository.count();
         List<Category> categories = categoryRepository.findAll();
-        List<Order> orders = orderRepository.findAll();
+        List<Order> orders = orderRepository.findAll(PageRequest.of(0, ADMIN_IN_MEMORY_LIMIT)).getContent();
 
         // GMV: Sum of all orders totalAmount
         double gmv = orders.stream()
                 .mapToDouble(o -> o.getTotalAmount() == null ? 0d : o.getTotalAmount())
                 .sum();
 
-        Map<String, Long> categoryStats = books.stream()
-                .collect(Collectors.groupingBy(
-                        b -> b.getCategory() != null && safe(b.getCategory().getName()).length() > 0 ? b.getCategory().getName() : "Chua phan loai",
-                        LinkedHashMap::new,
-                        Collectors.counting()
-                ));
+        // Thong ke theo danh muc: chay aggregation server-side ($group)
+        // (BookRepository ke thua BookSearchRepository nen goi truc tiep duoc)
+        Map<String, Long> categoryStats = bookRepository.countBooksByCategoryName();
 
-        Map<String, Long> stockBuckets = books.stream()
-                .collect(Collectors.groupingBy(
-                        b -> stockBucket(b.getStockQuantity()),
-                        LinkedHashMap::new,
-                        Collectors.counting()
-                ));
+        // Ton kho: dem bang query (dung nhan nhu stockBucket() de FE khong phai sua)
+        Map<String, Long> stockBuckets = new LinkedHashMap<>();
+        stockBuckets.put(stockBucket(1), bookRepository.countByStockQuantityLessThan(10));
+        stockBuckets.put(stockBucket(10), bookRepository.countByStockQuantityBetween(10, 49));
+        stockBuckets.put(stockBucket(50), bookRepository.countByStockQuantityGreaterThanEqual(50));
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("gmv", gmv);
-        response.put("books", books.size());
+        response.put("books", booksCount);
         response.put("categories", categories.size());
         response.put("shops", sellerShopRepository.count());
         response.put("categoryStats", categoryStats);
@@ -139,7 +145,7 @@ public class PanelController {
             @RequestParam(defaultValue = "") String category,
             @RequestParam(defaultValue = "all") String stock
     ) {
-        return bookRepository.findAll().stream()
+        return loadBooksForAdmin().stream()
                 .filter(b -> containsIgnoreCase(b.getTitle(), q) || containsIgnoreCase(b.getAuthor(), q))
                 .filter(b -> safe(category).isEmpty() || "all".equalsIgnoreCase(category)
                         || (b.getCategory() != null && category.equalsIgnoreCase(safe(b.getCategory().getName()))))
@@ -305,9 +311,9 @@ public class PanelController {
         public Map<String, Object> dashboardSummary() {
                 Map<String, Object> resp = new LinkedHashMap<>();
 
-                List<Order> orders = orderRepository.findAll();
-                List<User> users = userRepository.findAll();
-                List<Book> books = bookRepository.findAll();
+                List<Order> orders = orderRepository.findAll(PageRequest.of(0, ADMIN_IN_MEMORY_LIMIT)).getContent();
+                List<User> users = userRepository.findAll(PageRequest.of(0, ADMIN_IN_MEMORY_LIMIT)).getContent();
+                List<Book> books = loadBooksForAdmin();
 
                 // total orders
                 resp.put("ordersCount", orders.size());
@@ -336,11 +342,8 @@ public class PanelController {
                         }
                 resp.put("newUsers", newUsers);
 
-                // low stock books (<20)
-                        long lowStock = books.stream().filter(b -> {
-                                Integer qty = b.getStockQuantity();
-                                return qty != null && qty < 20;
-                        }).count();
+                // low stock books (<20) - dem bang query thay vi quet trong bo nho
+                        long lowStock = bookRepository.countByStockQuantityLessThan(20);
                 resp.put("lowStock", lowStock);
 
                 return resp;
@@ -356,7 +359,7 @@ public class PanelController {
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String status
     ) {
-        return userRepository.findAll().stream()
+        return userRepository.findAll(PageRequest.of(0, ADMIN_IN_MEMORY_LIMIT)).getContent().stream()
                 .filter(u -> q == null || q.isEmpty() || 
                         lower(u.getUsername()).contains(lower(q)))
                 .filter(u -> role == null || role.equals("all") || 
@@ -390,7 +393,7 @@ public class PanelController {
             @RequestParam(required = false) String active
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        List<Book> books = bookRepository.findAll();
+        List<Book> books = loadBooksForAdmin();
 
         List<Map<String, Object>> filtered = books.stream()
                 .filter(b -> q == null || q.isEmpty() ||
@@ -440,7 +443,7 @@ public class PanelController {
             @RequestParam(required = false) String dateTo
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        List<Order> orders = orderRepository.findAll();
+        List<Order> orders = orderRepository.findAll(PageRequest.of(0, ADMIN_IN_MEMORY_LIMIT)).getContent();
 
         List<Map<String, Object>> filtered = orders.stream()
                 .map(o -> {

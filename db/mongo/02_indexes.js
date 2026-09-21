@@ -70,6 +70,7 @@ ensureIndex("users",
 // books  (aggregate: images + rating summary + stats + tags + boughtTogether)
 // ===========================================================================
 // 1. Trang chu / danh muc: loc theo trang thai + danh muc
+ensureIndex("books", { author: 1, approvalStatus: 1, isActive: 1 }, { name: "idx_books_author_status" });
 ensureIndex("books", { approvalStatus: 1, isActive: 1, categoryId: 1 }, { name: "idx_books_catalog" });
 // 2. Sap xep gia + diem danh gia (range + sort cung luc)
 ensureIndex("books", { finalPrice: 1, "rating.avg": -1 }, { name: "idx_books_price_rating" });

@@ -1,8 +1,0 @@
-feat(mongodb): xac minh end-to-end tren MongoDB + them tools/run-app.bat
-
-- tools/run-app.bat: chay Spring Boot, ghi log logs/app-run.log.
-- Da chay that: /api/health = UP, /api/health/detailed bao
-  database = MongoDB/bookom/UP (MongoTemplate ping), /api/books tra 200
-  voi du lieu that tu collection books (giu nguyen JSON contract: imageUrl,
-  averageRating, stats...), trang chu / render duoc.
-- DESIGN.md: them muc 10.4 ket qua kiem thu end-to-end.

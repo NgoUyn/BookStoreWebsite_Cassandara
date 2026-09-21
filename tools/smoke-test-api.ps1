@@ -18,8 +18,8 @@
 # =============================================================================
 $ErrorActionPreference = "Stop"
 $base        = "http://localhost:8080"
-$sellerEmail = "shop_nha_nam@gmail.com"
-$sellerPass  = "Nhanam123@"
+$sellerEmail = "nhaxuatbantre@bookom.vn"
+$sellerPass  = "Nhaxuatbantre123@"
 $adminEmail  = "admin@gmail.com"
 $adminPass   = "Admin123@"
 

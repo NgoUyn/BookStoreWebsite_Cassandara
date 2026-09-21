@@ -52,6 +52,31 @@ public class DatabaseSeederService {
     @Value("${app.seeder.ai-enabled:false}")
     private boolean defaultAiEnabled;
 
+    /**
+     * Duong dan file CSV sach (dataset Book-Crossing). Mac dinh lay tu
+     * {@code db/seed/Books.csv} (KHONG dong goi vao JAR de tranh phinh 73MB);
+     * neu khong co file nay thi se thu doc tu classpath {@code /Books.csv}.
+     */
+    @Value("${app.seeder.books-csv:db/seed/Books.csv}")
+    private String booksCsvPath;
+
+    /** Mo file CSV sach: uu tien duong dan cau hinh, fallback classpath. */
+    private java.io.InputStream openBooksCsv() {
+        try {
+            java.nio.file.Path path = java.nio.file.Path.of(booksCsvPath);
+            if (java.nio.file.Files.exists(path)) {
+                return java.nio.file.Files.newInputStream(path);
+            }
+        } catch (Exception e) {
+            log.warn("Khong mo duoc file CSV {}: {}", booksCsvPath, e.getMessage());
+        }
+        java.io.InputStream cp = getClass().getResourceAsStream("/Books.csv");
+        if (cp != null) {
+            log.info("Dung Books.csv tu classpath (khuyen nghi dat file o {} de build nhe hon)", booksCsvPath);
+        }
+        return cp;
+    }
+
     @Transactional
     public SeedResult seedData(SeedRequest request) {
         SeedRequest options = request != null ? request : new SeedRequest();
@@ -338,9 +363,9 @@ public class DatabaseSeederService {
             SeedResult result
     ) {
         List<Book> addedBooks = new ArrayList<>();
-        java.io.InputStream is = getClass().getResourceAsStream("/Books.csv");
+        java.io.InputStream is = openBooksCsv();
         if (is == null) {
-            result.getWarnings().add("Books.csv not found in resources.");
+            result.getWarnings().add("Books.csv not found (xem app.seeder.books-csv / classpath:/Books.csv).");
             return addedBooks;
         }
 

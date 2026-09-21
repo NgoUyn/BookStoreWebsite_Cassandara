@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Truy vấn nang cao cho books (thay cac native SQL/JPQL phuc tap cua ban cu).
@@ -54,4 +55,10 @@ public interface BookSearchRepository {
      * Dung counter denormalized {@code stats.soldCount} + loc theo updatedAt.
      */
     List<Book> findTrendingBooks(ApprovalStatus status, java.time.LocalDateTime since, Pageable pageable);
+
+    /**
+     * Dem so sach theo tung danh muc (dashboard admin) - chay server-side
+     * thay vi nap toan bo collection vao RAM (248k sach).
+     */
+    Map<String, Long> countBooksByCategoryName();
 }

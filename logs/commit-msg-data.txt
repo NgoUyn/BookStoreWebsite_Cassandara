@@ -1,0 +1,48 @@
+feat(data): xay lai toan bo du lieu THAT (100 nha ban + 248k sach tu Books.csv) + fix hieu nang 35s
+
+XOA TOAN BO DU LIEU BIA (theo yeu cau "chi giu du lieu that"):
+  - 241 user hash gia ($2a$10$seedHash*), 400 sach bia, 40 shop bia, 40 coupon bia
+  - 600 don hang, 464 review, 150 gio, 151 thong bao, 414 delivery, 5.000 activity_log,
+    527 daily_stats, 597 payment, 60 order_return, 40 support_ticket, 42 refresh_token...
+  - Giu: 20 danh muc that + 3 tai khoan that (buyer cua ban, admin@gmail.com, seller)
+  - Script: db/mongo/10_purge_fake_data.js + tools/mongo-rebuild-data.bat (DRY_RUN mac dinh)
+  - Da backup truoc khi xoa: backups/bookom_20260921_2340.archive
+
+100 NHA BAN THAT (user + shop APPROVED, hash bcrypt cost 12):
+  - db/seed/sellers_real.txt: 100 ten that (NXB Tre, Kim Dong, Van Hoc, Nha Nam,
+    Nha sach Dai Nam, Fahasa, Phuong Nam Book, Thai Ha Books, Alphabooks, ...)
+  - tools/BuildSellersSeed.java -> db/mongo/11_sellers_data.js (email/slug/mat khau/hash)
+    Quy uoc: email <ten-bo-dau>@bookom.vn | slug nha-xuat-ban-tre | mat khau <Tenbodau>123@
+  - db/mongo/11_import_sellers.js + tools/mongo-import-sellers.bat (kem tai khoan ADMIN)
+  - Ket qua: 100 user SELLER, 100 shop APPROVED, tong users = 102
+
+TOAN BO SACH TU Books.csv (dataset Book-Crossing):
+  - tools/mongo-import-books.bat: mongoimport (271.361 dong) -> books_raw ->
+    12_import_books_csv.js (dedupe title+author, gan seller round-robin, gia/ton/danh muc
+    sinh on dinh theo hash ISBN) -> books; cap nhat counters + seller_shops.productCount;
+    drop books_raw
+  - Ket qua: 248.238 sach (bo 23.121 trung), 100/100 shop co productCount,
+    counters.books.seq = 248238
+
+FIX HIEU NANG (nghiem trong khi du lieu len 248k):
+  - RecommendationFallbackEngine: bo findByApprovalStatus(APPROVED) (nap 248k doc vao RAM)
+    -> query theo tac gia/danh muc co index + gioi han; them index idx_books_author_status
+  - PanelController: 5 endpoint admin bo findAll() -> count()/countByStockQuantity*/$group
+    server-side (countBooksByCategoryName) + findAll(PageRequest 2000)
+  - Do lai: /book/1 31,3s -> 0,83s | bought-together 34,9s -> 0,09s
+            /api/panel/summary 1,8s | /api/panel/dashboard 0,78s | / 0,31s
+
+DON FILE KHONG CAN THIET:
+  - Xoa: tatus, addresses.json, checkout-response.json, created-address.json, Test.java,
+    Test.class, test.http, package.json, package-lock.json, node_modules/,
+    templates/tailadmin-free-tailwind-dashboard-template-main/** (~180 file vendor),
+    docs/archived-md/**, docs/OPERATIONS_GUIDE.md, docs/TECHNICAL_ARCHITECTURE.md,
+    DOCUMENTATION_SUMMARY.md, DOCUMENTATION_TECHNICAL.md, logs/commit-msg-*.txt...
+  - Chuyen Books.csv (73MB) ra db/seed/ + DatabaseSeederService doc theo
+    app.seeder.books-csv (JAR nhe 73MB; resources 272 -> 99 file)
+  - docs/README.md viet lai: tro ve docs/mongodb/DESIGN.md + 5 buoc chay
+
+KIEM CHUNG: BUILD SUCCESS; test 56 pass (0 fail); login 3 nha ban ngau nhien OK;
+login ADMIN OK; / /main/search /admin /seller/dashboard /shop/1307 /book/1 = 200.
+Docs: DESIGN.md cap nhat muc 1 (du lieu), 9.20-9.22 (hieu nang, mongosh Double,
+ambiguity bean) va 10.5 (tai khoan + pipeline du lieu that).

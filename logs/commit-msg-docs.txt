@@ -1,4 +1,0 @@
-docs(mongodb): dong bo DESIGN.md voi thuc te trien khai
-
-- So index: 85+ -> 100 (dung theo db/mongo/02_indexes.js)
-- Test DB: bo flapdoodle/H2, dung @DataMongoTest tren DB bookom_test (cong 27018)

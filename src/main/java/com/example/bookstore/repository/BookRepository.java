@@ -51,11 +51,25 @@ public interface BookRepository extends MongoRepository<Book, Long>, BookSearchR
 
     Page<Book> findBySellerId(Long sellerId, Pageable pageable);
 
+    /**
+     * Sach cung tac gia (dung cho goi y "cung tac gia").
+     * Index: {@code idx_books_author_status}.
+     */
+    List<Book> findByAuthorAndApprovalStatusAndIsActiveTrueOrderByIdDesc(
+            String author, ApprovalStatus status, Pageable pageable);
+
     List<Book> findBySellerIdAndApprovalStatus(Long sellerId, ApprovalStatus status);
 
     long countBySellerId(Long sellerId);
 
     long countBySellerIdAndApprovalStatus(Long sellerId, ApprovalStatus status);
+
+    // ------------------- Dem theo ton kho (dashboard admin) -----------------
+    long countByStockQuantityLessThan(int value);
+
+    long countByStockQuantityBetween(int fromInclusive, int toInclusive);
+
+    long countByStockQuantityGreaterThanEqual(int value);
 
     @Query(value = "{ '_id': ?0, 'sellerId': ?1 }", exists = true)
     boolean existsByIdAndSellerId(Long bookId, Long sellerId);

@@ -1,0 +1,116 @@
+# ============================================================================
+# sellers_real.txt - Danh sach 100 nha ban THAT (NXB + nha sach thuong hieu)
+#   - Moi dong = 1 ten. Dong bat dau bang '#' la ghi chu (bo qua).
+#   - Sua/them/xoa ten tuy y roi chay lai:
+#         tools\build-sellers-seed.bat      (sinh hash bcrypt that)
+#         tools\mongo-import-sellers.bat    (tao user + shop trong MongoDB)
+#   - Quy uoc tu dong sinh ra tu ten:
+#         email    : <ten-bo-dau-viet-lien>@bookom.vn   (vd nhaxuatbantre@bookom.vn)
+#         slug shop: nha-xuat-ban-tre                    (vd cho URL /shop/...)
+#         mat khau : <Tenbodauvietlien>123@  (chu dau HOA, con lai thuong)
+#                    vd: Nhaxuatbantre123@ | Nhasachdainam123@ | Nhanam123@
+# ============================================================================
+
+# ---------- NHA XUAT BAN (that) ----------
+Nhà xuất bản Trẻ
+Nhà xuất bản Kim Đồng
+Nhà xuất bản Văn Học
+Nhà xuất bản Hội Nhà Văn
+Nhà xuất bản Lao Động
+Nhà xuất bản Thanh Niên
+Nhà xuất bản Phụ Nữ Việt Nam
+Nhà xuất bản Giáo Dục Việt Nam
+Nhà xuất bản Đại Học Quốc Gia Hà Nội
+Nhà xuất bản Đại Học Quốc Gia Thành Phố Hồ Chí Minh
+Nhà xuất bản Tổng Hợp Thành Phố Hồ Chí Minh
+Nhà xuất bản Chính Trị Quốc Gia Sự Thật
+Nhà xuất bản Thế Giới
+Nhà xuất bản Tri Thức
+Nhà xuất bản Khoa Học Xã Hội
+Nhà xuất bản Kinh Tế Thành Phố Hồ Chí Minh
+Nhà xuất bản Tài Chính
+Nhà xuất bản Tư Pháp
+Nhà xuất bản Xây Dựng
+Nhà xuất bản Giao Thông Vận Tải
+Nhà xuất bản Khoa Học Kỹ Thuật
+Nhà xuất bản Nông Nghiệp
+Nhà xuất bản Y Học
+Nhà xuất bản Thông Tin và Truyền Thông
+Nhà xuất bản Bản Đồ
+Nhà xuất bản Đà Nẵng
+Nhà xuất bản Thuận Hóa
+Nhà xuất bản Hồng Đức
+Nhà xuất bản Dân Trí
+Nhà xuất bản Công Thương
+Nhà xuất bản Quân Đội Nhân Dân
+Nhà xuất bản Công An Nhân Dân
+Nhà xuất bản Văn Hóa Nghệ Thuật
+Nhà xuất bản Đại Học Sư Phạm Hà Nội
+Nhà xuất bản Đại Học Sư Phạm Thành Phố Hồ Chí Minh
+Nhà xuất bản Bách Khoa Hà Nội
+Nhà xuất bản Từ Điển Bách Khoa
+Nhà xuất bản Văn Hóa Thông Tin
+Nhà xuất bản Thanh Hóa
+Nhà xuất bản Nghệ An
+Nhà xuất bản Hà Nội
+Nhà xuất bản Hải Phòng
+Nhà xuất bản Cần Thơ
+Nhà xuất bản An Giang
+Nhà xuất bản Đồng Nai
+Nhà xuất bản Long An
+Nhà xuất bản Bình Định
+Nhà xuất bản Phương Đông
+Nhà xuất bản Văn Hiến
+Nhà xuất bản Thông Tấn
+
+# ---------- THUONG HIEU SACH (that) ----------
+Nhã Nam
+Nhà sách Đại Nam
+Fahasa
+Phương Nam Book
+Thái Hà Books
+Alphabooks
+Omega Plus
+Đông A
+Nhà sách Cá Chép
+Hải An Book
+MCBooks
+1980 Books
+BizBooks
+PandaBooks
+Vinabook
+Nhà sách Minh Khai
+Nhà sách Bình Tây
+Nhà sách Khai Trí
+Nhà sách Xuân Thu
+Nhà sách Thăng Long
+Nhà sách Trí Tuệ
+Nhà sách Hồng Ân
+Nhà sách Vĩnh Thịnh
+Nhà sách Kim Mã
+Nhà sách Sài Gòn
+Nhà sách Vạn Hạnh
+Nhà sách Á Châu
+Nhà sách Nhân Văn
+Nhà sách Phú Thọ
+Nhà sách TriBooks
+Nhà sách Văn Lang
+Nhà sách Bảo Nam
+Nhà sách Thanh Niên
+Nhà sách Tân Việt
+Nhà sách Nguyễn Văn Cừ
+Nhà sách Tuyết Mai
+Nhà sách Phương Đông
+Nhà sách Hà Nội
+Nhà sách Tràng Tiền
+Nhà sách Đông Tây
+Nhà sách Tiền Phong
+Nhà sách Khai Nguyên
+Nhà sách Trường Tồn
+Nhà sách Hoàng Mai
+Nhà sách Tân Bình
+Nhà sách Gò Vấp
+Nhà sách Thủ Đức
+Nhà sách Hải Đăng
+Nhà sách Bình Thạnh
+Nhà sách Phú Nhuận

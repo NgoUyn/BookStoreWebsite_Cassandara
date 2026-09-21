@@ -225,6 +225,21 @@ public class BookSearchRepositoryImpl implements BookSearchRepository {
         return mongoTemplate.find(query, Book.class);
     }
 
+    @Override
+    public Map<String, Long> countBooksByCategoryName() {
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.group("categoryName").count().as("count"),
+                Aggregation.sort(org.springframework.data.domain.Sort.Direction.DESC, "count"));
+        Map<String, Long> result = new java.util.LinkedHashMap<>();
+        mongoTemplate.aggregate(agg, "books", org.bson.Document.class).forEach(doc -> {
+            Object key = doc.get("_id");
+            Object count = doc.get("count");
+            long value = count instanceof Number n ? n.longValue() : 0L;
+            result.put(key == null || String.valueOf(key).isBlank() ? "Chua phan loai" : String.valueOf(key), value);
+        });
+        return result;
+    }
+
     /** Chuyen tu khoa nguoi dung thanh regex an toan (tranh ReDoS/injection). */
     private String escapeRegex(String input) {
         return input.replaceAll("([\\\\.\\[\\]{}()*+?^$|])", "\\\\$1");
