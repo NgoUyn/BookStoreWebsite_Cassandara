@@ -4,7 +4,6 @@ import com.example.bookstore.model.Order;
 import com.example.bookstore.model.SubOrder;
 import com.example.bookstore.model.User;
 import com.example.bookstore.model.enums.OrderStatus;
-import com.example.bookstore.repository.aggregation.OrderSearchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +32,6 @@ import java.util.Optional;
 public class SubOrderRepository {
 
     private final OrderRepository orderRepository;
-    private final OrderSearchRepository orderSearchRepository;
 
     public Optional<SubOrder> findById(Long subOrderId) {
         if (subOrderId == null) {
@@ -54,14 +52,14 @@ public class SubOrderRepository {
         if (seller == null || seller.getId() == null) {
             return List.of();
         }
-        return orderSearchRepository.findSubOrdersBySeller(seller.getId(), null, PageRequest.of(0, 500));
+        return orderRepository.findSubOrdersBySeller(seller.getId(), null, PageRequest.of(0, 500));
     }
 
     public List<SubOrder> findBySellerAndStatus(User seller, OrderStatus status) {
         if (seller == null || seller.getId() == null) {
             return List.of();
         }
-        return orderSearchRepository.findSubOrdersBySeller(seller.getId(), status, PageRequest.of(0, 500));
+        return orderRepository.findSubOrdersBySeller(seller.getId(), status, PageRequest.of(0, 500));
     }
 
     public List<SubOrder> findBySellerAndStatusOrdered(User seller, OrderStatus status) {
@@ -72,7 +70,7 @@ public class SubOrderRepository {
         if (seller == null || seller.getId() == null) {
             return List.of();
         }
-        return orderSearchRepository.searchSubOrdersByBuyerName(seller.getId(), buyerName, PageRequest.of(0, 100));
+        return orderRepository.searchSubOrdersByBuyerName(seller.getId(), buyerName, PageRequest.of(0, 100));
     }
 
     public Page<SubOrder> findBySellerWithFilters(User seller,
@@ -82,7 +80,7 @@ public class SubOrderRepository {
                                                  Double minPrice,
                                                  Double maxPrice,
                                                  Pageable pageable) {
-        return orderSearchRepository.findSubOrdersBySellerWithFilters(seller.getId(), status,
+        return orderRepository.findSubOrdersBySellerWithFilters(seller.getId(), status,
                 createdFrom, createdTo, minPrice, maxPrice, pageable);
     }
 

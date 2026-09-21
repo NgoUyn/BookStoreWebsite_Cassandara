@@ -1,1 +1,0 @@
-ALTER TABLE books ADD is_pinned BIT DEFAULT 0 NOT NULL;

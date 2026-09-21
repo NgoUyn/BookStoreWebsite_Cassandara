@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 @ConditionalOnProperty(name = "app.mongo.id-assignment.enabled", havingValue = "true", matchIfMissing = true)
 public class MongoIdAssignmentCallback implements BeforeConvertCallback<Object> {
 
@@ -28,6 +27,16 @@ public class MongoIdAssignmentCallback implements BeforeConvertCallback<Object> 
 
     @Value("${app.mongo.id-assignment.log:false}")
     private boolean logAssignment;
+
+    /**
+     * TIEM LAZY: MongoSequenceService -> MongoTemplate -> MappingMongoConverter
+     * -> tap hop BeforeConvertCallback (chinh class nay) => neu tiem truc tiep
+     * se tao VONG LAP DEPENDENCY. @Lazy tao proxy, chi goi khi thuc su can id.
+     */
+    public MongoIdAssignmentCallback(
+            @org.springframework.context.annotation.Lazy MongoSequenceService sequenceService) {
+        this.sequenceService = sequenceService;
+    }
 
     @Override
     public Object onBeforeConvert(Object entity, String collection) {

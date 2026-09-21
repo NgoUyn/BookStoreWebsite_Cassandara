@@ -84,7 +84,7 @@ public class NotificationService {
     @Transactional
     public int markAllAsRead(Long userId) {
         ensureUserExists(userId);
-        return notificationRepository.markAllAsReadByUserId(userId, LocalDateTime.now());
+        return (int) notificationRepository.markAllAsReadByUserId(userId, LocalDateTime.now());
     }
 
     /**
@@ -164,7 +164,7 @@ public class NotificationService {
 
     private Notification saveNotification(User user, NotificationCreateRequest req) {
         Notification n = Notification.builder()
-            .user(user)
+            .userId(user.getId())
             .type(req.getType())
             .title(req.getTitle())
             .message(req.getMessage())

@@ -23,11 +23,22 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ReviewSnapshotCallback implements BeforeConvertCallback<BookReview> {
 
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+
+    /**
+     * TIEM LAZY: callback duoc mappingMongoConverter thu thap luc tao bean, nen
+     * neu tiem truc tiep repository (-> MongoTemplate -> converter) se tao
+     * vong lap dependency.
+     */
+    public ReviewSnapshotCallback(
+            @org.springframework.context.annotation.Lazy BookRepository bookRepository,
+            @org.springframework.context.annotation.Lazy UserRepository userRepository) {
+        this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public BookReview onBeforeConvert(BookReview review, String collection) {

@@ -57,7 +57,8 @@ class SellerShopServiceTest {
 
         SellerShop saved = SellerShop.builder()
             .id(10L)
-            .seller(seller)
+            .sellerId(seller.getId())
+            .seller(com.example.bookstore.model.embedded.UserSnapshot.of(seller))
             .shopName(request.getShopName())
             .slug(request.getSlug())
             .description(request.getDescription())
@@ -158,7 +159,8 @@ class SellerShopServiceTest {
 
         SellerShop shop = SellerShop.builder()
             .id(99L)
-            .seller(seller)
+            .sellerId(seller.getId())
+            .seller(com.example.bookstore.model.embedded.UserSnapshot.of(seller))
             .slug("seller-shop")
             .shopName("Seller Shop")
             .approvalStatus(ApprovalStatus.PENDING)

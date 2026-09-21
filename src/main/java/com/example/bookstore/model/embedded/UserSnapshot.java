@@ -50,4 +50,21 @@ public class UserSnapshot {
                 .avatarUrl(user.getAvatarUrl())
                 .build();
     }
+
+    /**
+     * TUONG THICH (compat): dung lai User tu snapshot khi nghiep vu can doi tuong
+     * User (vi du gui email) ma chi co snapshot trong document.
+     */
+    public com.example.bookstore.model.User toUser() {
+        return com.example.bookstore.model.User.builder()
+                .id(id)
+                .username(username)
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(email)
+                .phone(phone)
+                .shopName(shopName)
+                .avatarUrl(avatarUrl)
+                .build();
+    }
 }

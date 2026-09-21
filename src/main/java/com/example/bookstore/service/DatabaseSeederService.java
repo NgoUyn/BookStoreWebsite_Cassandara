@@ -11,7 +11,7 @@ import com.example.bookstore.repository.UserRepository;
 import com.example.bookstore.repository.SellerShopRepository;
 import com.example.bookstore.model.SellerShop;
 import com.example.bookstore.service.cluster.CustomerAnalysisService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
@@ -122,15 +122,15 @@ public class DatabaseSeederService {
         if (buyer == null || sampleBook == null) return;
         if (orderRepository.count() > 0) return;
 
-        Order order = Order.builder()
+                Order order = Order.builder()
                 .buyerId(buyer.getId())
                 .buyer(com.example.bookstore.model.embedded.UserSnapshot.of(buyer))
-                .shippingAddress(buyer.getShopAddress() != null ? buyer.getShopAddress() : "Địa chỉ mẫu")
                 .shippingFee(30000.0)
                 .discountAmount(0.0)
                 .couponCode(null)
                 .totalAmount(sampleBook.getPrice() + 30000.0)
                 .build();
+        order.setShippingAddress(buyer.getShopAddress() != null ? buyer.getShopAddress() : "Địa chỉ mẫu");
 
         SubOrder sub = SubOrder.builder()
                 .orderId(order.getId())
@@ -142,10 +142,10 @@ public class DatabaseSeederService {
 
         com.example.bookstore.model.OrderItem item = com.example.bookstore.model.OrderItem.builder()
                 .subOrderId(sub.getId())
-                .book(sampleBook)
                 .unitPrice(sampleBook.getPrice())
                 .quantity(1)
                 .build();
+        item.applyBookSnapshot(sampleBook);
 
         sub.setItems(List.of(item));
         order.setSubOrders(List.of(sub));

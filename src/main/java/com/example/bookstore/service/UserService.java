@@ -6,7 +6,7 @@ import com.example.bookstore.model.enums.ApprovalStatus;
 import com.example.bookstore.model.enums.UserRole;
 import com.example.bookstore.repository.SellerShopRepository;
 import com.example.bookstore.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -25,7 +25,7 @@ public class UserService {
      * Tìm người dùng theo username
      */
     public Optional<User> findByUsername(String username) {
-        return Optional.ofNullable(userRepository.findByUsername(username));
+        return userRepository.findByUsername(username);
     }
 
     /**
@@ -122,7 +122,8 @@ public class UserService {
         // 5. Tự động tạo SellerShop với id trùng khít với userId
         //    Nhờ @MapsId, Hibernate sẽ tự động gán SellerShop.id = seller.id
         SellerShop shop = SellerShop.builder()
-                .seller(user)
+                .sellerId(user.getId())
+                .seller(com.example.bookstore.model.embedded.UserSnapshot.of(user))
                 .slug("shop-" + userId) // Slug mặc định, user có thể đổi sau
                 .shopName("Cửa hàng của " + user.getUsername())
                 .address(user.getShopAddress() != null ? user.getShopAddress() : "Chưa cập nhật")

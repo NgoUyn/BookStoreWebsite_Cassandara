@@ -46,6 +46,8 @@ public class OrderService {
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
     private final SubOrderRepository subOrderRepository;
+    private final com.example.bookstore.repository.BookRepository bookRepository;
+    private final com.example.bookstore.service.mongo.MongoSequenceService sequenceService;
     private final CouponService couponService;
     private final com.example.bookstore.service.NotificationService notificationService;
     private final RabbitTemplate rabbitTemplate;
@@ -81,32 +83,42 @@ public class OrderService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cart is empty");
         }
 
-        Map<User, List<CartItem>> itemsBySeller = new LinkedHashMap<>();
+        Map<Long, List<CartItem>> itemsBySeller = new LinkedHashMap<>();
+        Map<Long, com.example.bookstore.model.embedded.UserSnapshot> sellerSnapshots = new LinkedHashMap<>();
         for (CartItem item : cart.getItems()) {
-            Book book = item.getBook();
-            if (book == null || book.getSeller() == null) {
+            // Doc sach "live" tu collection books (gio hang chi luu snapshot hien thi)
+            Book book = bookRepository.findById(item.getBookId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book not found in cart"));
+            if (book.getSellerId() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book or seller data is invalid in cart");
             }
-            itemsBySeller.computeIfAbsent(book.getSeller(), key -> new ArrayList<>()).add(item);
+            itemsBySeller.computeIfAbsent(book.getSellerId(), key -> new ArrayList<>()).add(item);
+            sellerSnapshots.putIfAbsent(book.getSellerId(), book.getSeller());
         }
 
         Order order = Order.builder()
-                .buyer(buyer)
-                .shippingAddress(shippingAddress)
+                .buyerId(buyer.getId())
+                .buyer(com.example.bookstore.model.embedded.UserSnapshot.of(buyer))
                 .totalAmount(0.0)
                 .discountAmount(0.0)
+                .subOrders(new ArrayList<>())
+                .isDeleted(false)
                 .build();
+        order.setShippingAddress(shippingAddress);
 
         List<SubOrder> subOrders = new ArrayList<>();
         double orderTotal = 0.0;
 
-        for (Map.Entry<User, List<CartItem>> entry : itemsBySeller.entrySet()) {
-            User seller = entry.getKey();
+        for (Map.Entry<Long, List<CartItem>> entry : itemsBySeller.entrySet()) {
+            Long sellerId = entry.getKey();
             List<CartItem> sellerItems = entry.getValue();
 
             SubOrder subOrder = SubOrder.builder()
-                    .parentOrder(order)
-                    .seller(seller)
+                    .id(sequenceService.nextId("sub_orders"))
+                    .orderId(order.getId())
+                    .sellerId(sellerId)
+                    .seller(sellerSnapshots.get(sellerId))
+                    .buyer(com.example.bookstore.model.embedded.UserSnapshot.of(buyer))
                     .status(OrderStatus.PROCESSING)
                     .subTotal(0.0)
                     .build();
@@ -115,7 +127,8 @@ public class OrderService {
             double subTotal = 0.0;
 
             for (CartItem cartItem : sellerItems) {
-                Book book = cartItem.getBook();
+                Book book = bookRepository.findById(cartItem.getBookId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book not found in cart"));
                 Integer quantity = cartItem.getQuantity();
                 if (quantity == null || quantity <= 0) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid cart item quantity");
@@ -129,15 +142,18 @@ public class OrderService {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cart quantity exceeds stock");
                 }
 
-                double unitPrice = book.getPrice() == null ? 0.0 : book.getPrice();
+                double unitPrice = book.getEffectivePrice();
                 subTotal += unitPrice * quantity;
 
+                // Snapshot ten/gia tai thoi diem mua (hoa don khong doi khi seller sua)
                 OrderItem orderItem = OrderItem.builder()
-                        .subOrder(subOrder)
-                        .book(book)
+                        .id(sequenceService.nextId("order_items"))
+                        .subOrderId(subOrder.getId())
                         .unitPrice(unitPrice)
                         .quantity(quantity)
+                        .returnedQuantity(0)
                         .build();
+                orderItem.applyBookSnapshot(book);
                 orderItems.add(orderItem);
             }
 
@@ -151,9 +167,8 @@ public class OrderService {
         double originalTotal = orderTotal;
         if (couponCode != null && !couponCode.trim().isEmpty()) {
             // Extract seller IDs from cart to validate coupon ownership
-            List<Long> sellerIdsInCart = itemsBySeller.keySet().stream()
-                    .map(User::getId)
-                    .collect(Collectors.toList());
+            // (key cua map nay da la sellerId - khong con entity User nhu JPA)
+            List<Long> sellerIdsInCart = new ArrayList<>(itemsBySeller.keySet());
 
             // Validate coupon against sellers in cart (prevents cross-seller usage)
             Coupon coupon = couponService.validateCouponForSellerList(
@@ -193,7 +208,7 @@ public class OrderService {
         cart.getItems().clear();
         cartRepository.save(cart);
 
-        notifyOrderCreated(saved, buyer, itemsBySeller);
+        notifyOrderCreated(saved, buyer);
 
         return CheckoutResponse.builder()
                 .orderId(saved.getId())
@@ -496,10 +511,10 @@ public class OrderService {
     }
 
     private SubOrderSummaryResponse toSubOrderSummary(SubOrder subOrder) {
-        User seller = subOrder.getSeller();
+        com.example.bookstore.model.embedded.UserSnapshot seller = subOrder.getSeller();
         String sellerName = seller == null ? null : (seller.getShopName() == null ? seller.getUsername() : seller.getShopName());
 
-        User buyer = subOrder.getParentOrder() == null ? null : subOrder.getParentOrder().getBuyer();
+        com.example.bookstore.model.embedded.UserSnapshot buyer = subOrder.getBuyer();
         String buyerUsername = buyer == null ? null : buyer.getUsername();
 
         int itemCount = 0;
@@ -757,8 +772,8 @@ public class OrderService {
                 subOrder.getStatus() == OrderStatus.PROCESSING);
     }
 
-    private void notifyOrderCreated(Order order, User buyer, Map<User, List<CartItem>> itemsBySeller) {
-        if (order == null || buyer == null || itemsBySeller == null || itemsBySeller.isEmpty()) {
+    private void notifyOrderCreated(Order order, User buyer) {
+        if (order == null || buyer == null || order.getSubOrders() == null || order.getSubOrders().isEmpty()) {
             return;
         }
 
@@ -788,21 +803,13 @@ public class OrderService {
             log.warn("Failed to notify admins about new order (orderId={}): {}", order.getId(), e.getMessage());
         }
 
-        for (Map.Entry<User, List<CartItem>> entry : itemsBySeller.entrySet()) {
-            User seller = entry.getKey();
-            if (seller == null) {
+        for (SubOrder subOrder : order.getSubOrders()) {
+            Long sellerId = subOrder.getSellerId();
+            if (sellerId == null) {
                 continue;
             }
 
-            double sellerTotal = entry.getValue() == null ? 0.0 : entry.getValue().stream()
-                    .mapToDouble(item -> {
-                        if (item == null || item.getBook() == null || item.getQuantity() == null) {
-                            return 0.0;
-                        }
-                        Double price = item.getBook().getPrice();
-                        return (price == null ? 0.0 : price) * item.getQuantity();
-                    })
-                    .sum();
+            double sellerTotal = subOrder.getSubTotal() == null ? 0.0 : subOrder.getSubTotal();
 
             try {
                 com.example.bookstore.dto.NotificationCreateRequest sellerReq = new com.example.bookstore.dto.NotificationCreateRequest();
@@ -811,11 +818,11 @@ public class OrderService {
                 sellerReq.setMessage(String.format("Đơn hàng #%d có sản phẩm của shop bạn, tổng tiền phần shop: %.0f VND.",
                         order.getId(), sellerTotal));
                 sellerReq.setPayloadJson(String.format("{\"orderId\":%d,\"sellerId\":%d,\"status\":\"%s\",\"subTotal\":%.0f}",
-                        order.getId(), seller.getId(), OrderStatus.PROCESSING.name(), sellerTotal));
+                        order.getId(), sellerId, OrderStatus.PROCESSING.name(), sellerTotal));
                 sellerReq.setPriority(com.example.bookstore.model.enums.NotificationPriority.NORMAL);
-                notificationService.createNotification(buyer.getId(), seller.getId(), sellerReq);
+                notificationService.createNotification(buyer.getId(), sellerId, sellerReq);
             } catch (Exception e) {
-                log.warn("Failed to notify seller about new order (orderId={}, sellerId={}): {}", order.getId(), seller.getId(), e.getMessage());
+                log.warn("Failed to notify seller about new order (orderId={}, sellerId={}): {}", order.getId(), sellerId, e.getMessage());
             }
         }
     }
@@ -856,7 +863,7 @@ public class OrderService {
         }
 
         for (SubOrder subOrder : order.getSubOrders()) {
-            User seller = subOrder.getSeller();
+            com.example.bookstore.model.embedded.UserSnapshot seller = subOrder.getSeller();
             if (seller == null) {
                 continue;
             }

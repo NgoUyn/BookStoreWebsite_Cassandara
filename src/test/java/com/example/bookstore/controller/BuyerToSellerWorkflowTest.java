@@ -11,6 +11,8 @@ import com.example.bookstore.repository.SellerShopRepository;
 import com.example.bookstore.security.JwtTokenProvider;
 import com.example.bookstore.service.AuthService;
 import com.example.bookstore.service.AuthOtpService;
+import com.example.bookstore.service.RefreshTokenService;
+import com.example.bookstore.service.FirebaseAuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -37,6 +41,7 @@ import static org.mockito.Mockito.*;
  * 4. Seller can access seller endpoints after SellerShop creation
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("Buyer-to-Seller Workflow Tests")
 class BuyerToSellerWorkflowTest {
 
@@ -53,6 +58,12 @@ class BuyerToSellerWorkflowTest {
     private AuthOtpService authOtpService;
 
     @Mock
+    private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private FirebaseAuthService firebaseAuthService;
+
+    @Mock
     private JwtTokenProvider jwtTokenProvider;
 
     private AuthController authController;
@@ -66,6 +77,16 @@ class BuyerToSellerWorkflowTest {
         authController.authService = authService;
         authController.jwtTokenProvider = jwtTokenProvider;
         authController.authOtpService = authOtpService;
+        authController.refreshTokenService = refreshTokenService;
+        authController.firebaseAuthService = firebaseAuthService;
+        authController.userRepository = userRepository;
+
+        // loginJwt luu refresh token -> can stub san (strictness LENIENT nen khong loi)
+        when(refreshTokenService.createRefreshToken(anyLong()))
+            .thenReturn(com.example.bookstore.model.RefreshToken.builder()
+                .token("refresh-token-test")
+                .userId(2L)
+                .build());
     }
 
     @Test
@@ -107,6 +128,7 @@ class BuyerToSellerWorkflowTest {
         request.setUsername(SELLER_EMAIL);
         request.setPassword(TEST_PASSWORD);
         request.setAvatarUrl("http://example.com/seller-avatar.jpg");
+        request.setFavoriteCategoryIds(List.of());
 
         when(authService.registerWithRole(
             eq(SELLER_EMAIL),
@@ -152,7 +174,8 @@ class BuyerToSellerWorkflowTest {
             .build();
 
         SellerShop expectedShop = SellerShop.builder()
-            .seller(newSeller)
+            .sellerId(newSeller.getId())
+            .seller(com.example.bookstore.model.embedded.UserSnapshot.of(newSeller))
             .slug("seller-upgrade")
             .shopName(SELLER_EMAIL)
             .approvalStatus(ApprovalStatus.PENDING)
@@ -260,6 +283,8 @@ class BuyerToSellerWorkflowTest {
         AuthRegisterRequest buyerRequest = new AuthRegisterRequest();
         buyerRequest.setUsername("buyer@test.com");
         buyerRequest.setPassword("pass123");
+        buyerRequest.setAvatarUrl("http://example.com/buyer-avatar.jpg");
+        buyerRequest.setFavoriteCategoryIds(List.of());
         
         when(authService.register(anyString(), anyString(), anyString(), anyList()))
             .thenReturn(true);

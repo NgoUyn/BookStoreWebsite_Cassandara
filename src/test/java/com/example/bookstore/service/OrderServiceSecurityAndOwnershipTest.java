@@ -4,24 +4,42 @@ import com.example.bookstore.dto.SubOrderSummaryResponse;
 import com.example.bookstore.model.Order;
 import com.example.bookstore.model.SubOrder;
 import com.example.bookstore.model.User;
+import com.example.bookstore.model.embedded.UserSnapshot;
 import com.example.bookstore.model.enums.OrderStatus;
 import com.example.bookstore.model.enums.UserRole;
+import com.example.bookstore.repository.BookRepository;
 import com.example.bookstore.repository.CartRepository;
 import com.example.bookstore.repository.OrderRepository;
 import com.example.bookstore.repository.SubOrderRepository;
 import com.example.bookstore.repository.UserRepository;
+import com.example.bookstore.service.mongo.MongoSequenceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+/**
+ * Test quyen so huu don hang - phien ban MongoDB.
+ *
+ * <p>Thay doi so voi ban SQL:
+ * - OrderService co them BookRepository + MongoSequenceService (cap Long id).
+ * - Order/SubOrder luu SNAPSHOT buyer/seller (UserSnapshot) thay vi quan he JPA
+ *   nen test dung {@code UserSnapshot.of(user)}.
+ * - Order.shippingAddress nay la field long trong {@code shipping{}} => set bang
+ *   setter {@code order.setShippingAddress(...)} (khong con trong builder).</p>
+ */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class OrderServiceSecurityAndOwnershipTest {
 
     @Mock
@@ -36,72 +54,86 @@ class OrderServiceSecurityAndOwnershipTest {
     @Mock
     private SubOrderRepository subOrderRepository;
 
-    // 1. Thêm Mock cho CouponService ở đây
+    @Mock
+    private BookRepository bookRepository;
+
+    @Mock
+    private MongoSequenceService sequenceService;
+
     @Mock
     private CouponService couponService;
 
     @Mock
     private NotificationService notificationService;
 
-    private OrderService orderService;
-
     @Mock
     private RabbitTemplate rabbitTemplate;
 
-
+    private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        // 2. Cập nhật Constructor: thêm couponService vào vị trí số 5
         orderService = new OrderService(
                 userRepository,
                 cartRepository,
                 orderRepository,
                 subOrderRepository,
+                bookRepository,
+                sequenceService,
                 couponService,
                 notificationService,
                 rabbitTemplate
         );
     }
 
-    @Test
-    void getCurrentBuyerOrders_shouldReturnOrdersForBuyer() {
-        User buyer = User.builder()
-                .id(2L)
-                .username("buyer")
+    private User buyer(Long id, String username) {
+        return User.builder()
+                .id(id)
+                .username(username)
                 .passwordHash("x")
                 .role(UserRole.BUYER)
                 .build();
+    }
+
+    private User seller(Long id, String username, String shopName) {
+        return User.builder()
+                .id(id)
+                .username(username)
+                .passwordHash("x")
+                .role(UserRole.SELLER)
+                .shopName(shopName)
+                .build();
+    }
+
+    @Test
+    void getCurrentBuyerOrders_shouldReturnOrdersForBuyer() {
+        User buyer = buyer(2L, "buyer");
 
         Order order = Order.builder()
                 .id(10L)
-                .buyer(buyer)
+                .buyerId(buyer.getId())
+                .buyer(UserSnapshot.of(buyer))
                 .totalAmount(100000.0)
-                .shippingAddress("HCM")
                 .build();
+        order.setShippingAddress("HCM");
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(buyer));
-        when(orderRepository.findByBuyerOrderByCreatedAtDesc(buyer)).thenReturn(java.util.List.of(order));
+        when(orderRepository.findByBuyerOrderByCreatedAtDesc(buyer)).thenReturn(List.of(order));
 
         assertEquals(1, orderService.getCurrentBuyerOrders(2L).size());
     }
 
     @Test
     void updateSubOrderStatusForSeller_shouldUpdateStatus() {
-        User owner = User.builder()
-                .id(33L)
-                .username("seller-ok")
-                .passwordHash("x")
-                .role(UserRole.SELLER)
-                .shopName("Shop OK")
-                .build();
+        User owner = seller(33L, "seller-ok", "Shop OK");
 
         SubOrder subOrder = SubOrder.builder()
                 .id(200L)
-                .seller(owner)
+                .orderId(2L)
+                .sellerId(owner.getId())
+                .seller(UserSnapshot.of(owner))
                 .status(OrderStatus.PROCESSING)
                 .subTotal(210000.0)
-                .parentOrder(Order.builder().id(2L).totalAmount(0.0).shippingAddress("").build())
                 .build();
 
         when(userRepository.findById(33L)).thenReturn(Optional.of(owner));
@@ -117,32 +149,30 @@ class OrderServiceSecurityAndOwnershipTest {
 
     @Test
     void cancelCurrentBuyerOrder_shouldCancelSubOrdersWhenOrderIsPending() {
-        User buyer = User.builder()
-                .id(44L)
-                .username("buyer-ok")
-                .passwordHash("x")
-                .role(UserRole.BUYER)
-                .build();
+        User buyer = buyer(44L, "buyer-ok");
+        User shopOwner = seller(55L, "seller", "Shop");
 
         SubOrder subOrder = SubOrder.builder()
                 .id(301L)
+                .orderId(9L)
                 .status(OrderStatus.PROCESSING)
-                .seller(User.builder().id(55L).username("seller").passwordHash("x").role(UserRole.SELLER).build())
+                .sellerId(shopOwner.getId())
+                .seller(UserSnapshot.of(shopOwner))
+                .buyer(UserSnapshot.of(buyer))
                 .subTotal(45000.0)
-                .parentOrder(Order.builder().id(9L).buyer(buyer).build())
                 .build();
 
         Order order = Order.builder()
                 .id(9L)
-                .buyer(buyer)
+                .buyerId(buyer.getId())
+                .buyer(UserSnapshot.of(buyer))
                 .totalAmount(45000.0)
-                .shippingAddress("Hanoi")
-                .subOrders(java.util.List.of(subOrder))
+                .subOrders(List.of(subOrder))
                 .build();
+        order.setShippingAddress("Hanoi");
 
         when(userRepository.findById(44L)).thenReturn(Optional.of(buyer));
         when(orderRepository.findById(9L)).thenReturn(Optional.of(order));
-        when(subOrderRepository.saveAll(order.getSubOrders())).thenReturn(order.getSubOrders());
 
         orderService.cancelCurrentBuyerOrder(44L, 9L);
 

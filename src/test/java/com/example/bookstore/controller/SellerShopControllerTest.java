@@ -20,6 +20,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class SellerShopControllerTest {
 
     @Mock
@@ -46,6 +49,10 @@ class SellerShopControllerTest {
         mockMvc = MockMvcBuilders
             .standaloneSetup(controller)
             .setControllerAdvice(new GlobalValidationExceptionHandler())
+            // Standalone MockMvc khong co Spring Security => phai tu them resolver
+            // de @AuthenticationPrincipal doc tu SecurityContextHolder
+            .setCustomArgumentResolvers(
+                new org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver())
             .build();
         objectMapper = new ObjectMapper();
     }
@@ -68,16 +75,17 @@ class SellerShopControllerTest {
 
         when(sellerShopService.createMyShop(eq(1L), any(SellerShopUpsertRequest.class))).thenReturn(response);
 
-        mockMvc.perform(post("/api/seller/me/shop")
-                .contentType(MediaType.APPLICATION_JSON)
-                .principal(new UsernamePasswordAuthenticationToken(
-                    new JwtAuthenticatedPrincipal(1L, java.util.List.of("SELLER"), 1L),
-                    null
-                ))
-                .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(100))
-            .andExpect(jsonPath("$.slug").value("nha-nam-official"));
+        authenticateSeller(1L);
+        try {
+            mockMvc.perform(post("/api/seller/me/shop")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(100))
+                .andExpect(jsonPath("$.slug").value("nha-nam-official"));
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
     }
 
     @Test
@@ -125,13 +133,28 @@ class SellerShopControllerTest {
 
         when(sellerShopService.changeStatus(1L, ApprovalStatus.APPROVED)).thenReturn(response);
 
-        mockMvc.perform(patch("/api/seller/me/shop/status")
-                .param("status", "APPROVED")
-                .principal(new UsernamePasswordAuthenticationToken(
-                    new JwtAuthenticatedPrincipal(1L, java.util.List.of("SELLER"), 1L),
-                    null
-                )))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.approvalStatus").value("APPROVED"));
+        // @AuthenticationPrincipal doc tu SecurityContextHolder (MockMvc standalone
+        // khong chay security filter chain) => phai set context thu cong.
+        authenticateSeller(1L);
+        try {
+            mockMvc.perform(patch("/api/seller/me/shop/status")
+                    .param("status", "APPROVED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.approvalStatus").value("APPROVED"));
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
+    }
+
+    /** Dat SecurityContext gia lap seller da dang nhap (userId = sellerId). */
+    private void authenticateSeller(Long sellerId) {
+        org.springframework.security.core.context.SecurityContext ctx =
+                org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
+        ctx.setAuthentication(new UsernamePasswordAuthenticationToken(
+            new JwtAuthenticatedPrincipal(sellerId, java.util.List.of("SELLER"), sellerId),
+            null,
+            java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("SELLER"))
+        ));
+        org.springframework.security.core.context.SecurityContextHolder.setContext(ctx);
     }
 }

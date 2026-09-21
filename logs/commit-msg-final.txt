@@ -1,0 +1,37 @@
+feat(mongodb): hoan tat migration SQL Server sang MongoDB (compile BUILD SUCCESS, 54/54 test pass)
+
+Phase 3 hoan tat:
+- Sua 7 file loi cuoi cung: OrderService (snapshot buyer/seller + MongoSequenceService
+  cap id cho subOrder/orderItem + doc gia live tu books), AuthService (2 cho), 
+  DatabaseSeederService, NotificationService, UserService, DataSeeder.
+- Ket qua: 225 file src/main compile BUILD SUCCESS; 15 file test compile OK.
+
+Phase 5 - go bo hoan toan tang SQL:
+- pom.xml: bo spring-boot-starter-data-jpa, flyway-core, flyway-sqlserver,
+  mssql-jdbc, mysql-connector-j, h2; chi con spring-boot-starter-data-mongodb.
+- Xoa 35 file src/main/resources/db/migration/V*.sql (thay bang db/mongo/*.js).
+- application.properties: bo spring.datasource.*, spring.jpa.*, spring.flyway.*.
+
+Sua loi chi lo khi CHAY (test contextLoads phat hien):
+- Vong lap dependency: MongoIdAssignmentCallback/ReviewSnapshotCallback (BeforeConvertCallback)
+  -> MongoSequenceService/repository -> MongoTemplate -> MappingMongoConverter -> callback
+  => tiem @Lazy.
+- Trung bean OrderSearchRepository (orderRepository + orderSearchRepositoryImpl)
+  => SubOrderRepository chi giu OrderRepository.
+- HealthCheckController: DataSource JDBC -> MongoTemplate db.runCommand({ping:1}).
+- CustomPermissionEvaluator: khoi phuc Check 2 (shop phai APPROVED moi duoc doi
+  trang thai don) - regression do qua trinh chuyen doi, phat hien nho chay test.
+- BookController: them findTrendingBooks + findBySellerIdAndKeywordAndCategory.
+
+Test:
+- BookRepositoryYearFilterTest: @DataJpaTest (H2) -> @DataMongoTest (DB rieng
+  bookom_test o cong 27018, khong dung du lieu that).
+- Them tools/run-tests.bat; pom.xml skipTests=false (truoc day co dinh true nen
+  bo test chua tung chay duoc vi thieu surefire-junit-platform).
+- Noi @MockitoSettings(strictness = LENIENT) cho test legacy; sua stub/principal
+  trong AuthorizationTest, SellerShopControllerTest, BuyerToSellerWorkflowTest,
+  OrderServiceSecurityAndOwnershipTest.
+- Ket qua: Tests run 54, Failures 0, Errors 0.
+
+Docs: docs/mongodb/DESIGN.md cap nhat muc 9.10-9.15 (loi & cach sua), 10.1
+(checklist tieu chi 4,5), 10.2 (viec con lai), 10.3 (trang thai test suite).

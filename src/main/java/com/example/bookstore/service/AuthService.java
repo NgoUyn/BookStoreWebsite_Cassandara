@@ -64,7 +64,8 @@ public class AuthService {
 
         String slug = sellerShopService.generateUniqueSlug(user.getUsername());
         com.example.bookstore.model.SellerShop newShop = com.example.bookstore.model.SellerShop.builder()
-                .seller(user)
+                .sellerId(user.getId())
+                .seller(com.example.bookstore.model.embedded.UserSnapshot.of(user))
                 .slug(slug)
                 .shopName(shopName != null && !shopName.isBlank() ? shopName.trim() : user.getUsername())
                 .address(shopAddress != null && !shopAddress.isBlank() ? shopAddress.trim() : "Chưa cập nhật")
@@ -110,7 +111,7 @@ public class AuthService {
             .passwordHash(hashedPassword)
             .role(normalizedRole)
             .avatarUrl(normalizeAvatar(avatarUrl))
-            .favoriteCategories(resolveFavoriteCategories(favoriteCategoryIds))
+            .favoriteCategoryIds(favoriteCategoryIds)
             .build();
         User savedUser = userRepository.save(newUser);
 
@@ -118,7 +119,8 @@ public class AuthService {
         if (normalizedRole == UserRole.SELLER) {
             String slug = sellerShopService.generateUniqueSlug(username);
             SellerShop newSellerShop = SellerShop.builder()
-                    .seller(savedUser)
+                    .sellerId(savedUser.getId())
+                    .seller(com.example.bookstore.model.embedded.UserSnapshot.of(savedUser))
                     .slug(slug)
                     .shopName(username)
                     .address("Chưa cập nhật")
@@ -148,7 +150,7 @@ public class AuthService {
     }
 
     public User authenticateUser(String username, String rawPassword) {
-        User user = userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(username).orElse(null);
 
         if(user == null){
             System.out.println("Lỗi đăng nhập");
@@ -177,7 +179,7 @@ public class AuthService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (request.getUsername() != null && !request.getUsername().isBlank()) {
-            User existing = userRepository.findByUsername(request.getUsername());
+            User existing = userRepository.findByUsername(request.getUsername()).orElse(null);
             if (existing != null && !existing.getId().equals(userId)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
             }

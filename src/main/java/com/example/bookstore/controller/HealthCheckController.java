@@ -4,13 +4,12 @@ import com.example.bookstore.distributed.DistributedLockService;
 import com.example.bookstore.sse.HeartbeatService;
 import com.example.bookstore.sse.NotificationSseService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,12 +62,13 @@ import java.util.Map;
  *
  * ==============================================================================
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/health")
 @RequiredArgsConstructor
 public class HealthCheckController {
 
-    private final DataSource dataSource;
+    private final MongoTemplate mongoTemplate;
     private final NotificationSseService sseService;
     private final HeartbeatService heartbeatService;
     private final DistributedLockService lockService;
@@ -165,11 +165,13 @@ public class HealthCheckController {
         response.put("app", applicationName);
         response.put("instanceId", lockService.getInstanceId());
 
-        // Database
+        // Database (MongoDB)
         boolean dbOk = checkDatabaseConnection();
         response.put("database", Map.of(
                 "status", dbOk ? "UP" : "DOWN",
-                "pool", "JDBC ConnectionPool"
+                "type", "MongoDB",
+                "database", databaseName(),
+                "pool", "MongoDB connection pool"
         ));
 
         // SSE Connections
@@ -248,14 +250,29 @@ public class HealthCheckController {
         );
     }
 
+    /** Ten database dang ket noi (an toan khi MongoDB down). */
+    private String databaseName() {
+        try {
+            return mongoTemplate.getDb().getName();
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+
     /**
-     * Check database connectivity
+     * Check database connectivity (MongoDB)
+     *
+     * <p>Dung lenh {@code db.runCommand({ping: 1})} - cach kiem tra chuan cua
+     * MongoDB, cung duoc driver dung cho heartbeat cua connection pool.</p>
      */
     private boolean checkDatabaseConnection() {
-        try (Connection conn = dataSource.getConnection()) {
-            // Simple connectivity check
-            return conn.isValid(2); // 2 second timeout
-        } catch (SQLException e) {
+        try {
+            org.bson.Document ping = mongoTemplate.getDb()
+                    .runCommand(new org.bson.Document("ping", 1));
+            return ping != null && ping.get("ok") != null
+                    && Double.parseDouble(String.valueOf(ping.get("ok"))) == 1.0;
+        } catch (Exception e) {
+            log.warn("[health] MongoDB ping that bai: {}", e.getMessage());
             return false;
         }
     }

@@ -15,8 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.data.jpa.domain.Specification;
-import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import java.util.ArrayList;
 
 import java.util.List;

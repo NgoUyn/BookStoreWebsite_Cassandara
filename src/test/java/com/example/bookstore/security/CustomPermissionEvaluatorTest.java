@@ -117,7 +117,12 @@ class CustomPermissionEvaluatorTest {
             List.of(new SimpleGrantedAuthority("ROLE_BUYER"))
         );
 
-        when(bookRepository.findApprovalStatusById(77L)).thenReturn(ApprovalStatus.APPROVED);
+        when(bookRepository.findApprovalStatusById(77L)).thenReturn(java.util.Optional.of(
+                com.example.bookstore.model.Book.builder()
+                        .id(77L)
+                        .approvalStatus(ApprovalStatus.APPROVED)
+                        .isActive(true)
+                        .build()));
 
         assertTrue(evaluator.hasPermission(authentication, 77L, "Book", "read"));
     }

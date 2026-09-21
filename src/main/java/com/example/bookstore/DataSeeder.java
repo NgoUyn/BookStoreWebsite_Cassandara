@@ -55,7 +55,7 @@ public class DataSeeder implements CommandLineRunner {
 
         for (String email : seedEmails) {
             try {
-                User user = userRepository.findByUsername(email);
+                User user = userRepository.findByUsername(email).orElse(null);
                 if (user == null) {
                     log.warn("Seed user not found: {}", email);
                     continue;

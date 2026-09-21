@@ -48,4 +48,10 @@ public interface BookSearchRepository {
 
     /** Tim kiem cua seller voi tu khoa + danh muc (thay findBySellerIdAndKeywordAndCategory). */
     Page<Book> searchSellerBooks(Long sellerId, String keyword, Long categoryId, Pageable pageable);
+
+    /**
+     * Sach "dang hot": ban chay trong khoang thoi gian gan day.
+     * Dung counter denormalized {@code stats.soldCount} + loc theo updatedAt.
+     */
+    List<Book> findTrendingBooks(ApprovalStatus status, java.time.LocalDateTime since, Pageable pageable);
 }

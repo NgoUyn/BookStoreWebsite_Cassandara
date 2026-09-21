@@ -110,7 +110,7 @@ public class AdminSellerController {
 
         try {
             boolean mailConfigured = mailService.isConfigured();
-            boolean mailSent = mailService.sendSellerApplicationApproved(shop.getSeller(), shop);
+            boolean mailSent = mailService.sendSellerApplicationApproved(sellerOf(shop), shop);
             resp.put("mailConfigured", mailConfigured);
             resp.put("mailSent", mailSent);
         } catch (Exception e) {
@@ -180,7 +180,7 @@ public class AdminSellerController {
 
         try {
             boolean mailConfigured = mailService.isConfigured();
-            boolean mailSent = mailService.sendSellerApplicationRejected(shop.getSeller(), shop, reason);
+            boolean mailSent = mailService.sendSellerApplicationRejected(sellerOf(shop), shop, reason);
             resp.put("mailConfigured", mailConfigured);
             resp.put("mailSent", mailSent);
         } catch (Exception e) {
@@ -198,9 +198,9 @@ public class AdminSellerController {
         boolean configured = mailService.isConfigured();
         boolean sent = false;
         if ("approved".equalsIgnoreCase(type)) {
-            sent = mailService.sendSellerApplicationApproved(shop.getSeller(), shop);
+            sent = mailService.sendSellerApplicationApproved(sellerOf(shop), shop);
         } else {
-            sent = mailService.sendSellerApplicationRejected(shop.getSeller(), shop, shop.getRejectionReason());
+            sent = mailService.sendSellerApplicationRejected(sellerOf(shop), shop, shop.getRejectionReason());
         }
         return ResponseEntity.ok(Map.of("mailConfigured", configured, "mailSent", sent));
     }
@@ -224,11 +224,16 @@ public class AdminSellerController {
         return ResponseEntity.ok(Map.of("notificationId", notificationResp != null ? notificationResp.getId() : null));
     }
 
+    /** Chuyen snapshot nguoi ban (nam trong document shop) ve User de gui mail. */
+    private User sellerOf(SellerShop shop) {
+        return shop == null || shop.getSeller() == null ? null : shop.getSeller().toUser();
+    }
+
     private boolean matchesKeyword(SellerShop shop, String keyword) {
         if (keyword == null || keyword.isBlank()) return true;
         String shopName = shop.getShopName() == null ? "" : shop.getShopName().toLowerCase(Locale.ROOT);
         String slug = shop.getSlug() == null ? "" : shop.getSlug().toLowerCase(Locale.ROOT);
-        User seller = shop.getSeller();
+        User seller = sellerOf(shop);
         String username = seller != null && seller.getUsername() != null ? seller.getUsername().toLowerCase(Locale.ROOT) : "";
         String email = seller != null && seller.getEmail() != null ? seller.getEmail().toLowerCase(Locale.ROOT) : "";
         return shopName.contains(keyword) || slug.contains(keyword) || username.contains(keyword) || email.contains(keyword);

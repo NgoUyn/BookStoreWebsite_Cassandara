@@ -97,6 +97,12 @@ public interface BookRepository extends MongoRepository<Book, Long>, BookSearchR
         return seller == null || seller.getId() == null ? 0L : countBySellerId(seller.getId());
     }
 
+    /** TUONG THICH: ten method cu cua ban SQL (JOIN keyword + category). */
+    default Page<Book> findBySellerIdAndKeywordAndCategory(Long sellerId, String keyword,
+                                                         Long categoryId, Pageable pageable) {
+        return searchSellerBooks(sellerId, keyword, categoryId, pageable);
+    }
+
     /**
      * TUONG THICH: code cu goi {@code countBooksByCategoryAndSeller(sellerId, status.name())}
      * va doc ket qua theo kieu {@code Object[]} (id, name, count) nhu native SQL.

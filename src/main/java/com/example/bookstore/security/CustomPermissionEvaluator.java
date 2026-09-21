@@ -103,7 +103,9 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
         }
 
         if ("read".equals(permission) || "view".equals(permission)) {
-            ApprovalStatus approvalStatus = bookRepository.findApprovalStatusById(bookId);
+            ApprovalStatus approvalStatus = bookRepository.findApprovalStatusById(bookId)
+                    .map(b -> b.getApprovalStatus())
+                    .orElse(null);
             if (approvalStatus == null) {
                 return false;
             }
@@ -180,7 +182,13 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
             if (!AuthenticationUtil.hasRole(authentication, UserRole.SELLER) || sellerId == null) {
                 return false;
             }
-            // Check 2: Does the suborder belong to this seller?
+            // Check 2: Shop cua seller phai dang o trang thai APPROVED
+            // (nghiep vu giu nguyen tu ban SQL - chi seller co shop duoc duyet moi
+            //  duoc doi trang thai don hang)
+            if (!sellerShopRepository.existsBySellerIdAndApprovalStatus(sellerId, ApprovalStatus.APPROVED)) {
+                return false;
+            }
+            // Check 3: Does the suborder belong to this seller?
             return subOrderRepository.existsByIdAndSellerId(subOrderId, sellerId);
         }
 

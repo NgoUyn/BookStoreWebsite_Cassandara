@@ -210,6 +210,21 @@ public class BookSearchRepositoryImpl implements BookSearchRepository {
         return new PageImpl<>(content, pageable, total);
     }
 
+    @Override
+    public List<Book> findTrendingBooks(ApprovalStatus status, java.time.LocalDateTime since, Pageable pageable) {
+        List<Criteria> and = new ArrayList<>();
+        and.add(Criteria.where("approvalStatus").is(status));
+        and.add(Criteria.where("isActive").is(true));
+        and.add(Criteria.where("stats.soldCount").gt(0));
+        if (since != null) {
+            and.add(Criteria.where("updatedAt").gte(since));
+        }
+        Query query = Query.query(new Criteria().andOperator(and.toArray(new Criteria[0])))
+                .with(Sort.by(Sort.Direction.DESC, "stats.soldCount", "rating.avg"))
+                .limit(pageable.getPageSize());
+        return mongoTemplate.find(query, Book.class);
+    }
+
     /** Chuyen tu khoa nguoi dung thanh regex an toan (tranh ReDoS/injection). */
     private String escapeRegex(String input) {
         return input.replaceAll("([\\\\.\\[\\]{}()*+?^$|])", "\\\\$1");

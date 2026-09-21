@@ -24,9 +24,9 @@ public class AssociationRuleConverter {
         dto.setRuleId(entity.getRuleId());
         dto.setBookIdA(entity.getBookA() != null ? entity.getBookA().getId() : null);
         dto.setBookIdB(entity.getBookB() != null ? entity.getBookB().getId() : null);
-        dto.setSupport(entity.getSupport());
-        dto.setConfidence(entity.getConfidence());
-        dto.setLift(entity.getLift());
+        dto.setSupport(entity.getSupport() == null ? null : java.math.BigDecimal.valueOf(entity.getSupport()));
+        dto.setConfidence(entity.getConfidence() == null ? null : java.math.BigDecimal.valueOf(entity.getConfidence()));
+        dto.setLift(entity.getLift() == null ? null : java.math.BigDecimal.valueOf(entity.getLift()));
         dto.setUpdatedAt(entity.getUpdatedAt());
 
         return dto;

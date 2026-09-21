@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -40,6 +42,7 @@ import static org.mockito.Mockito.*;
  * 4. JWT tokens with correct sellerId allow access
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("Authorization Tests - Seller Order Management")
 class AuthorizationTest {
 
@@ -228,7 +231,10 @@ class AuthorizationTest {
     void testAdminCanAccessAllSubOrders() {
         // Arrange
         Long subOrderId = 1L;
-        doReturn(jwtPrincipal).when(authentication).getPrincipal();
+        // Quyen ADMIN duoc xac dinh tu roles trong JWT principal
+        // (AuthenticationUtil.hasRole doc jwtPrincipal.roles(), KHONG doc authorities)
+        doReturn(new JwtAuthenticatedPrincipal(1L, Arrays.asList("ADMIN"), null))
+            .when(authentication).getPrincipal();
         doReturn(adminAuthorities).when(authentication).getAuthorities();
 
         // Act
