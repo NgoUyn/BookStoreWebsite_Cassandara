@@ -320,3 +320,20 @@ tools\run-tests.bat        REM can MongoDB 27018 dang chay; log -> logs\test-bg.
 * `BookRepositoryYearFilterTest` đã chuyển `@DataJpaTest` (H2) → `@DataMongoTest` trỏ vào DB riêng `bookom_test` ở cổng 27018 ⇒ không đụng dữ liệu thật, không cần H2/flapdoodle.
 * `BookStoreApplicationTests.contextLoads` nay khởi động context thật trên MongoDB ⇒ phát hiện được các lỗi wiring chỉ lộ khi chạy (mục 9.10 – 9.15).
 * Các test legacy được nới `@MockitoSettings(strictness = LENIENT)` (Mockito 5 mặc định STRICT_STUBS) — stub cũ không còn dùng sau khi chuyển Mongo.
+
+### 10.4 Kiểm thử end-to-end (đã chạy thật)
+
+```bat
+tools\mongo-dev-start.bat     REM MongoDB 27018
+tools\run-app.bat             REM Spring Boot -> logs\app-run.log
+```
+
+| Bước | Kết quả |
+|---|---|
+| Khởi động app trên MongoDB | ✅ `Started BookStoreApplication`, Tomcat 8080, không còn DataSource/JPA |
+| `GET /api/health` | ✅ `200 {"app":"BookStore","status":"UP"}` |
+| `GET /api/health/detailed` | ✅ `"database":{"type":"MongoDB","database":"bookom","status":"UP"}` (ping `{ping:1}` thật) |
+| `GET /api/books` | ✅ `200` + JSON phân trang đọc từ collection `books` (kèm getter tương thích `imageUrl`, `averageImageUrl`, `averageRating`, `stats{}`) → chứng minh hợp đồng REST không đổi |
+| Trang chủ `/` | ✅ render Thymeleaf (1889 dòng HTML) |
+
+> Ghi chú: log khởi động có cảnh báo RabbitMQ `Connection refused: localhost:5672` — do máy dev chưa bật RabbitMQ; đây là hàng đợi tuỳ chọn, **không ảnh hưởng** nghiệp vụ chính (đơn hàng vẫn tạo được).
