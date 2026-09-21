@@ -1,0 +1,75 @@
+# ============================================================================
+# docker-compose.mongo.yml
+# MongoDB cho do an BOOKOM (Spring Boot + MongoDB) - phuong an DOCKER.
+#
+# Dung file nay khi:
+#   - May chua cai MongoDB Server, hoac
+#   - Can demo "cum": replica set 3 node + failover (defense demo).
+#
+# Chay:  docker compose -f docker-compose.mongo.yml up -d
+# Xem:   docker compose -f docker-compose.mongo.yml logs -f mongo-init
+# URI:   mongodb://127.0.0.1:27017/bookom?replicaSet=rs0
+#
+# LUU Y: file nay DOC LAP voi docker-compose.yml (SQL Server + 3 app instance)
+#        de khong lam anh huong ban cu.
+# ============================================================================
+name: bookom-mongo
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: bookom-mongo
+    # --replSet la bat buoc de co transaction + change stream
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - bookom-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - bookom-mongo-net
+
+  # Job chay 1 lan: rs.initiate() -> khong can go tay
+  mongo-init:
+    image: mongo:7.0
+    container_name: bookom-mongo-init
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+    entrypoint:
+      - mongosh
+      - --host
+      - mongo:27017
+      - --quiet
+      - --eval
+      - "try { rs.status() } catch (e) { rs.initiate({_id:'rs0', members:[{_id:0, host:'mongo:27017', priority:2}]}) }"
+    networks:
+      - bookom-mongo-net
+
+  # GUI tool nhe trong trinh duyet (tuy chon - chinh van la MongoDB Compass)
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: bookom-mongo-express
+    depends_on:
+      - mongo
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://mongo:27017/?replicaSet=rs0"
+      ME_CONFIG_MONGODB_SERVER: "mongo"
+      ME_CONFIG_BASICAUTH: "false"
+    ports:
+      - "8081:8081"
+    networks:
+      - bookom-mongo-net
+
+volumes:
+  bookom-mongo-data:
+
+networks:
+  bookom-mongo-net:
+    driver: bridge

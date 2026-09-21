@@ -39,6 +39,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+
+        <!-- ==================================================================
+             MONGODB (migration target cua do an NoSQL)
+             Ghi chu: trong giai doan chuyen doi, JPA van duoc giu de app
+             build duoc; se go JPA + mssql-jdbc + flyway o buoc cuoi (Phase 3).
+             ================================================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -56,6 +66,14 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- MongoDB test: embedded (khong can Docker khi chay unit test) -->
+        <dependency>
+            <groupId>de.flapdoodle.embed</groupId>
+            <artifactId>de.flapdoodle.embed.mongo.spring3x</artifactId>
+            <version>4.12.2</version>
             <scope>test</scope>
         </dependency>
 

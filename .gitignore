@@ -47,5 +47,13 @@ src/main/resources/static/js/firebase-config.js
 firebase-service-account.json
 src/main/resources/firebase-service-account.json
 
+### ================= MONGODB (do an NoSQL) =================
+### Backup / export / log sinh ra khi chay script
+backups/
+exports/
+logs/*.log
+db/seed/*.json
+db/seed/*.csv
+
 
 
