@@ -85,14 +85,33 @@ var ApiService = window.ApiService || (() => {
     };
 
     /**
+     * Lấy message lỗi từ body: ưu tiên string thuần, sau đó JSON { message | error }
+     * (Backend có endpoint trả text thuần như AuthController, có endpoint trả JSON
+     * như CouponController/FirebaseAuthService - trước đây JSON bị biến thành
+     * 'Request failed' nên UI không bao giờ hiện được lý do thật.)
+     */
+    const extractErrorMessage = (data, fallback = 'Request failed') => {
+        if (typeof data === 'string' && data.trim()) {
+            return data.trim();
+        }
+        if (data && typeof data === 'object') {
+            if (typeof data.message === 'string' && data.message.trim()) {
+                return data.message.trim();
+            }
+            if (typeof data.error === 'string' && data.error.trim()) {
+                return data.error.trim();
+            }
+        }
+        return fallback;
+    };
+
+    /**
      * Handle API response with error normalization
      */
     const handleResponse = async (response) => {
         const data = await parseResponse(response);
         if (!response.ok) {
-            const message = typeof data === 'string' && data.trim()
-                ? data
-                : 'Request failed';
+            const message = extractErrorMessage(data);
             const error = new Error(message);
             error.data = data;
             error.status = response.status;
@@ -159,10 +178,17 @@ var ApiService = window.ApiService || (() => {
             const response = await fetch(`${API_BASE}/auth/login-jwt`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({
+                    // Khoang trang dau/cuoi lam @Email validation that bai -> HTTP 400
+                    username: typeof username === 'string' ? username.trim() : username,
+                    password: password
+                })
             });
-            if (!response.ok) throw new Error('Login failed');
-            return response.json();
+            // KHONG tu nem 'Login failed' nua: dung handleResponse de Error.message la
+            // message THAT tu server ("Sai tên đăng nhập hoặc mật khẩu",
+            // "Email dang nhap khong dung dinh dang", "Tài khoản bị từ chối đăng nhập"...)
+            // => Auth_Page.html hiện đúng lý do thất bại thay vì "Login failed".
+            return handleResponse(response);
         },
 
         /**

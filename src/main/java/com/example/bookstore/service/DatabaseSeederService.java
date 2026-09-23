@@ -245,7 +245,9 @@ public class DatabaseSeederService {
     private List<User> seedUsers(SeedResult result) {
         AtomicInteger added = new AtomicInteger(0);
 
-        ensureUser("admin@gmail.com", UserRole.ADMIN, "admin123", null, null, added);
+        // Mat khau phai khop db/mongo/11_import_sellers.js (ADMIN_HASH = Admin123@)
+        // va docs/README.md -> tranh truong hop seed truoc/seed sau cho 2 mat khau khac nhau.
+        ensureUser("admin@gmail.com", UserRole.ADMIN, "Admin123@", null, null, added);
         ensureUser("buyer@gmail.com", UserRole.BUYER, "Buyer@123", null, null, added);
         User sellerNhaNam = ensureUser(
                 "shop_nha_nam@gmail.com",

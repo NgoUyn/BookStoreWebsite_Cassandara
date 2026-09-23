@@ -155,21 +155,47 @@ public class AuthService {
     }
 
     public User authenticateUser(String username, String rawPassword) {
-        User user = userRepository.findByUsername(username).orElse(null);
+        if (username == null || rawPassword == null) {
+            return null;
+        }
+
+        // Form dang nhap ghi "Email" nhung tai khoan seed cu co username khac email
+        // (vd username = "admin", email = "admin@bookom.vn") => tra theo username TRUOC,
+        // khong thay thi tra tiep theo email (khong phan biet hoa/thuong).
+        String login = username.trim();
+        User user = userRepository.findByUsername(login)
+                .or(() -> userRepository.findByEmailIgnoreCase(login))
+                .orElse(null);
 
         if(user == null){
             System.out.println("Lỗi đăng nhập");
             return null;
         }
-//        Kiểm tra có khớp với băm hay không
-        if(BCrypt.checkpw(rawPassword, user.getPasswordHash())){
-            System.out.println("Đăng nhập thành công");
-            return user;
-        }
-        else {
-            System.out.println("Sai thông tin đăng nhập");
+
+        String passwordHash = user.getPasswordHash();
+        // Tai khoan tao bang Google (Firebase) hoac seed gia khong co hash that
+        // => khong the dang nhap bang mat khau; tra null (HTTP 400) thay vi nem 500.
+        if (passwordHash == null || passwordHash.isBlank()) {
+            log.warn("Tai khoan id={} khong co passwordHash - bo qua dang nhap bang mat khau", user.getId());
             return null;
         }
+
+        try {
+            //        Kiểm tra có khớp với băm hay không
+            if(BCrypt.checkpw(rawPassword, passwordHash)){
+                System.out.println("Đăng nhập thành công");
+                return user;
+            }
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            // passwordHash sai dinh dang (vd seed gia "$2a$10$seedHash<id>" chi 16 ky tu
+            // -> jbcrypt.subtring(7,29) nem StringIndexOutOfBoundsException; hash sai
+            // version/rounds nem IllegalArgumentException). Coi nhu sai mat khau de tra
+            // HTTP 400, KHONG de loi 500 lo ra ngoai.
+            log.warn("passwordHash khong hop le cua user id={}: {}", user.getId(), e.getMessage());
+        }
+
+        System.out.println("Sai thông tin đăng nhập");
+        return null;
     }
 
     public UserProfileResponse getProfile(Long userId) {

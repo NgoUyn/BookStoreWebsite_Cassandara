@@ -36,6 +36,13 @@ public interface UserRepository extends MongoRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
+    /**
+     * Dang nhap bang email: tai khoan cu/seed co username KHAC email
+     * (vd username = "admin", email = "admin@bookom.vn") nen phai tra cuu duoc theo email,
+     * khong phan biet hoa/thuong (nguoi dung hay go hoa chu cai dau).
+     */
+    Optional<User> findByEmailIgnoreCase(String email);
+
     boolean existsByPhone(String phone);
 
     /**
