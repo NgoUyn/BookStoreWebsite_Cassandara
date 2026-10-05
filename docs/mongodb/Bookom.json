@@ -1,0 +1,4121 @@
+{
+  "collections": {
+    "bookom.activity_log": {
+      "ns": "bookom.activity_log",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "action",
+          "bookId",
+          "ip",
+          "metadata",
+          "sessionId",
+          "ts",
+          "userId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "action": {
+            "bsonType": "string"
+          },
+          "bookId": {
+            "bsonType": [
+              "null",
+              "int"
+            ]
+          },
+          "ip": {
+            "bsonType": "string"
+          },
+          "metadata": {
+            "bsonType": "object",
+            "properties": {
+              "device": {
+                "bsonType": "string"
+              },
+              "durationMs": {
+                "bsonType": "int"
+              }
+            },
+            "required": [
+              "device",
+              "durationMs"
+            ]
+          },
+          "sessionId": {
+            "bsonType": "string"
+          },
+          "ts": {
+            "bsonType": "date"
+          },
+          "userId": {
+            "bsonType": "int"
+          }
+        }
+      }
+    },
+    "bookom.association_rules": {
+      "ns": "bookom.association_rules",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "bookAId",
+          "bookBId",
+          "confidence",
+          "lift",
+          "support",
+          "transactionCount",
+          "updatedAt",
+          "windowDays"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "bookAId": {
+            "bsonType": "int"
+          },
+          "bookBId": {
+            "bsonType": "int"
+          },
+          "confidence": {
+            "bsonType": "double"
+          },
+          "lift": {
+            "bsonType": "double"
+          },
+          "support": {
+            "bsonType": "double"
+          },
+          "transactionCount": {
+            "bsonType": "int"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          },
+          "windowDays": {
+            "bsonType": "int"
+          }
+        }
+      }
+    },
+    "bookom.books": {
+      "ns": "bookom.books",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "approvalStatus",
+          "author",
+          "boughtTogether",
+          "categoryId",
+          "categoryName",
+          "categoryPath",
+          "coverFileId",
+          "createdAt",
+          "description",
+          "discountAmount",
+          "finalPrice",
+          "images",
+          "isActive",
+          "isbn",
+          "isPinned",
+          "price",
+          "publisher",
+          "publishYear",
+          "rating",
+          "schemaVersion",
+          "seller",
+          "sellerId",
+          "stats",
+          "stockQuantity",
+          "tags",
+          "title",
+          "topReviews",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "long"
+          },
+          "approvalStatus": {
+            "bsonType": "string"
+          },
+          "author": {
+            "bsonType": "string"
+          },
+          "boughtTogether": {
+            "bsonType": "array"
+          },
+          "categoryId": {
+            "bsonType": "long"
+          },
+          "categoryName": {
+            "bsonType": "string"
+          },
+          "categoryPath": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "long"
+            }
+          },
+          "coverFileId": {
+            "bsonType": "null"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "discountAmount": {
+            "bsonType": "int"
+          },
+          "finalPrice": {
+            "bsonType": "double"
+          },
+          "images": {
+            "bsonType": "object",
+            "properties": {
+              "large": {
+                "bsonType": "string"
+              },
+              "medium": {
+                "bsonType": "string"
+              },
+              "thumbnail": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "large",
+              "medium",
+              "thumbnail"
+            ]
+          },
+          "isActive": {
+            "bsonType": "bool"
+          },
+          "isbn": {
+            "bsonType": "string"
+          },
+          "isPinned": {
+            "bsonType": "bool"
+          },
+          "price": {
+            "bsonType": "double"
+          },
+          "publisher": {
+            "bsonType": "string"
+          },
+          "publishYear": {
+            "bsonType": [
+              "int",
+              "null"
+            ]
+          },
+          "rating": {
+            "bsonType": "object",
+            "properties": {
+              "avg": {
+                "bsonType": "int"
+              },
+              "count": {
+                "bsonType": "int"
+              },
+              "distribution": {
+                "bsonType": "object",
+                "properties": {
+                  "1": {
+                    "bsonType": "int"
+                  },
+                  "2": {
+                    "bsonType": "int"
+                  },
+                  "3": {
+                    "bsonType": "int"
+                  },
+                  "4": {
+                    "bsonType": "int"
+                  },
+                  "5": {
+                    "bsonType": "int"
+                  }
+                },
+                "required": [
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5"
+                ]
+              },
+              "lastReviewAt": {
+                "bsonType": "null"
+              }
+            },
+            "required": [
+              "avg",
+              "count",
+              "distribution",
+              "lastReviewAt"
+            ]
+          },
+          "schemaVersion": {
+            "bsonType": "int"
+          },
+          "seller": {
+            "bsonType": "object",
+            "properties": {
+              "avatarUrl": {
+                "bsonType": "null"
+              },
+              "email": {
+                "bsonType": "string"
+              },
+              "firstName": {
+                "bsonType": "string"
+              },
+              "fullName": {
+                "bsonType": "string"
+              },
+              "id": {
+                "bsonType": "long"
+              },
+              "lastName": {
+                "bsonType": "string"
+              },
+              "phone": {
+                "bsonType": "null"
+              },
+              "shopName": {
+                "bsonType": "string"
+              },
+              "username": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "avatarUrl",
+              "email",
+              "firstName",
+              "fullName",
+              "id",
+              "lastName",
+              "phone",
+              "shopName",
+              "username"
+            ]
+          },
+          "sellerId": {
+            "bsonType": "long"
+          },
+          "stats": {
+            "bsonType": "object",
+            "properties": {
+              "revenue": {
+                "bsonType": "int"
+              },
+              "soldCount": {
+                "bsonType": "int"
+              },
+              "viewCount": {
+                "bsonType": "int"
+              },
+              "wishlistCount": {
+                "bsonType": "int"
+              }
+            },
+            "required": [
+              "revenue",
+              "soldCount",
+              "viewCount",
+              "wishlistCount"
+            ]
+          },
+          "stockQuantity": {
+            "bsonType": "int"
+          },
+          "tags": {
+            "bsonType": "array"
+          },
+          "title": {
+            "bsonType": "string"
+          },
+          "topReviews": {
+            "bsonType": "array"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "bookom.carts": {
+      "ns": "bookom.carts",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "buyerId",
+          "createdAt",
+          "items",
+          "totals",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "int"
+          },
+          "buyerId": {
+            "bsonType": "int"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "items": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "properties": {
+                "addedAt": {
+                  "bsonType": "date"
+                },
+                "bookId": {
+                  "bsonType": "int"
+                },
+                "imageUrl": {
+                  "bsonType": "string"
+                },
+                "itemId": {
+                  "bsonType": "int"
+                },
+                "quantity": {
+                  "bsonType": "int"
+                },
+                "sellerId": {
+                  "bsonType": "int"
+                },
+                "sellerName": {
+                  "bsonType": "string"
+                },
+                "title": {
+                  "bsonType": "string"
+                },
+                "unitPrice": {
+                  "bsonType": "int"
+                }
+              },
+              "required": [
+                "addedAt",
+                "bookId",
+                "imageUrl",
+                "itemId",
+                "quantity",
+                "sellerId",
+                "sellerName",
+                "title",
+                "unitPrice"
+              ]
+            }
+          },
+          "totals": {
+            "bsonType": "object",
+            "properties": {
+              "itemCount": {
+                "bsonType": "int"
+              },
+              "subtotal": {
+                "bsonType": "int"
+              }
+            },
+            "required": [
+              "itemCount",
+              "subtotal"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "bookom.categories": {
+      "ns": "bookom.categories",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "bookCount",
+          "createdAt",
+          "description",
+          "isActive",
+          "name",
+          "parentId",
+          "path",
+          "slug",
+          "sortOrder",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "int"
+          },
+          "bookCount": {
+            "bsonType": "int"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "isActive": {
+            "bsonType": "bool"
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "parentId": {
+            "bsonType": [
+              "int",
+              "null"
+            ]
+          },
+          "path": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "int"
+            }
+          },
+          "slug": {
+            "bsonType": "string"
+          },
+          "sortOrder": {
+            "bsonType": "int"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "bookom.counters": {
+      "ns": "bookom.counters",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "createdAt",
+          "seq",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "seq": {
+            "bsonType": [
+              "int",
+              "long"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "bookom.coupons": {
+      "ns": "bookom.coupons",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "code",
+          "createdAt",
+          "description",
+          "discountValue",
+          "expiresAt",
+          "isActive",
+          "maxDiscountAmount",
+          "minOrderAmount",
+          "perUserLimit",
+          "scope",
+          "sellerId",
+          "startDate",
+          "totalQuantity",
+          "type",
+          "updatedAt",
+          "usedCount"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "int"
+          },
+          "code": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "discountValue": {
+            "bsonType": "int"
+          },
+          "expiresAt": {
+            "bsonType": "date"
+          },
+          "isActive": {
+            "bsonType": "bool"
+          },
+          "maxDiscountAmount": {
+            "bsonType": [
+              "null",
+              "int"
+            ]
+          },
+          "minOrderAmount": {
+            "bsonType": "int"
+          },
+          "perUserLimit": {
+            "bsonType": [
+              "null",
+              "int"
+            ]
+          },
+          "scope": {
+            "bsonType": "string"
+          },
+          "sellerId": {
+            "bsonType": [
+              "null",
+              "int"
+            ]
+          },
+          "startDate": {
+            "bsonType": "date"
+          },
+          "totalQuantity": {
+            "bsonType": "int"
+          },
+          "type": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          },
+          "usedCount": {
+            "bsonType": "int"
+          }
+        }
+      }
+    },
+    "bookom.daily_stats": {
+      "ns": "bookom.daily_stats",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "dateKey",
+          "orderCount",
+          "revenue",
+          "sellerId",
+          "unitsSold",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "dateKey": {
+            "bsonType": "string"
+          },
+          "orderCount": {
+            "bsonType": "int"
+          },
+          "revenue": {
+            "bsonType": "int"
+          },
+          "sellerId": {
+            "bsonType": "int"
+          },
+          "unitsSold": {
+            "bsonType": "int"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "bookom.distributed_locks": {
+      "ns": "bookom.distributed_locks",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "acquiredAt",
+          "expiresAt",
+          "heartbeatAt",
+          "holderId",
+          "instanceId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "string"
+          },
+          "acquiredAt": {
+            "bsonType": "date"
+          },
+          "expiresAt": {
+            "bsonType": "date"
+          },
+          "heartbeatAt": {
+            "bsonType": "date"
+          },
+          "holderId": {
+            "bsonType": "string"
+          },
+          "instanceId": {
+            "bsonType": "string"
+          }
+        }
+      }
+    },
+    "bookom.notification_deliveries": {
+      "ns": "bookom.notification_deliveries",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "attemptCount",
+          "channel",
+          "createdAt",
+          "lastError",
+          "notificationId",
+          "status",
+          "updatedAt",
+          "userId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": [
+              "int",
+              "long"
+            ]
+          },
+          "_class": {
+            "bsonType": "string"
+          },
+          "attemptCount": {
+            "bsonType": "int"
+          },
+          "channel": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "lastError": {
+            "bsonType": [
+              "null",
+              "string"
+            ]
+          },
+          "nextRetryAt": {
+            "bsonType": [
+              "null",
+              "date"
+            ]
+          },
+          "notificationId": {
+            "bsonType": [
+              "int",
+              "long"
+            ]
+          },
+          "sentAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "status": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          },
+          "userId": {
+            "bsonType": [
+              "int",
+              "long"
+            ]
+          }
+        }
+      }
+    },
+    "bookom.notifications": {
+      "ns": "bookom.notifications",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "createdAt",
+          "expiresAt",
+          "isRead",
+          "message",
+          "payload",
+          "priority",
+          "readAt",
+          "title",
+          "type",
+          "userId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "int"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "expiresAt": {
+            "bsonType": "date"
+          },
+          "isRead": {
+            "bsonType": "bool"
+          },
+          "message": {
+            "bsonType": "string"
+          },
+          "payload": {
+            "bsonType": "object",
+            "properties": {
+              "deepLink": {
+                "bsonType": "string"
+              },
+              "orderId": {
+                "bsonType": "int"
+              },
+              "type": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "deepLink",
+              "orderId",
+              "type"
+            ]
+          },
+          "priority": {
+            "bsonType": "string"
+          },
+          "readAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "title": {
+            "bsonType": "string"
+          },
+          "type": {
+            "bsonType": "string"
+          },
+          "userId": {
+            "bsonType": "int"
+          }
+        }
+      }
+    },
+    "bookom.order_returns": {
+      "ns": "bookom.order_returns",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "createdAt",
+          "itemSnapshot",
+          "orderId",
+          "orderItemId",
+          "processedAt",
+          "quantityReturned",
+          "reason",
+          "status",
+          "subOrderId",
+          "userId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "int"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "itemSnapshot": {
+            "bsonType": "object",
+            "properties": {
+              "bookId": {
+                "bsonType": "int"
+              },
+              "quantity": {
+                "bsonType": "int"
+              },
+              "unitPrice": {
+                "bsonType": "int"
+              }
+            },
+            "required": [
+              "bookId",
+              "quantity",
+              "unitPrice"
+            ]
+          },
+          "orderId": {
+            "bsonType": "int"
+          },
+          "orderItemId": {
+            "bsonType": "int"
+          },
+          "processedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "quantityReturned": {
+            "bsonType": "int"
+          },
+          "reason": {
+            "bsonType": "string"
+          },
+          "status": {
+            "bsonType": "string"
+          },
+          "subOrderId": {
+            "bsonType": "int"
+          },
+          "userId": {
+            "bsonType": "int"
+          }
+        }
+      }
+    },
+    "bookom.orders": {
+      "ns": "bookom.orders",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "buyer",
+          "buyerId",
+          "couponCode",
+          "createdAt",
+          "discountAmount",
+          "isDeleted",
+          "itemsTotal",
+          "orderCode",
+          "payment",
+          "schemaVersion",
+          "shipping",
+          "shippingFee",
+          "status",
+          "subOrders",
+          "totalAmount",
+          "updatedAt",
+          "voucher"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "int"
+          },
+          "buyer": {
+            "bsonType": "object",
+            "properties": {
+              "email": {
+                "bsonType": "string"
+              },
+              "fullName": {
+                "bsonType": "string"
+              },
+              "id": {
+                "bsonType": "int"
+              },
+              "phone": {
+                "bsonType": "string"
+              },
+              "username": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "email",
+              "fullName",
+              "id",
+              "phone",
+              "username"
+            ]
+          },
+          "buyerId": {
+            "bsonType": "int"
+          },
+          "couponCode": {
+            "bsonType": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "discountAmount": {
+            "bsonType": "int"
+          },
+          "isDeleted": {
+            "bsonType": "bool"
+          },
+          "itemsTotal": {
+            "bsonType": "int"
+          },
+          "orderCode": {
+            "bsonType": "string"
+          },
+          "payment": {
+            "bsonType": "object",
+            "properties": {
+              "amount": {
+                "bsonType": "int"
+              },
+              "method": {
+                "bsonType": "string"
+              },
+              "paidAt": {
+                "bsonType": [
+                  "date",
+                  "null"
+                ]
+              },
+              "status": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "amount",
+              "method",
+              "paidAt",
+              "status"
+            ]
+          },
+          "schemaVersion": {
+            "bsonType": "int"
+          },
+          "shipping": {
+            "bsonType": "object",
+            "properties": {
+              "address": {
+                "bsonType": "string"
+              },
+              "fee": {
+                "bsonType": "int"
+              },
+              "method": {
+                "bsonType": "string"
+              },
+              "phone": {
+                "bsonType": "string"
+              },
+              "recipient": {
+                "bsonType": "string"
+              },
+              "trackingCode": {
+                "bsonType": "null"
+              }
+            },
+            "required": [
+              "address",
+              "fee",
+              "method",
+              "phone",
+              "recipient",
+              "trackingCode"
+            ]
+          },
+          "shippingFee": {
+            "bsonType": "int"
+          },
+          "status": {
+            "bsonType": "string"
+          },
+          "subOrders": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "properties": {
+                "createdAt": {
+                  "bsonType": "date"
+                },
+                "items": {
+                  "bsonType": "array",
+                  "items": {
+                    "bsonType": "object",
+                    "properties": {
+                      "bookId": {
+                        "bsonType": "int"
+                      },
+                      "imageUrl": {
+                        "bsonType": "string"
+                      },
+                      "itemId": {
+                        "bsonType": "int"
+                      },
+                      "quantity": {
+                        "bsonType": "int"
+                      },
+                      "returnedQuantity": {
+                        "bsonType": "int"
+                      },
+                      "title": {
+                        "bsonType": "string"
+                      },
+                      "unitPrice": {
+                        "bsonType": "int"
+                      }
+                    },
+                    "required": [
+                      "bookId",
+                      "imageUrl",
+                      "itemId",
+                      "quantity",
+                      "returnedQuantity",
+                      "title",
+                      "unitPrice"
+                    ]
+                  }
+                },
+                "seller": {
+                  "bsonType": "object",
+                  "properties": {
+                    "id": {
+                      "bsonType": "int"
+                    },
+                    "shopName": {
+                      "bsonType": "string"
+                    },
+                    "username": {
+                      "bsonType": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "shopName",
+                    "username"
+                  ]
+                },
+                "sellerId": {
+                  "bsonType": "int"
+                },
+                "shipping": {
+                  "bsonType": "object",
+                  "properties": {
+                    "fee": {
+                      "bsonType": "int"
+                    },
+                    "method": {
+                      "bsonType": "string"
+                    },
+                    "trackingCode": {
+                      "bsonType": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "fee",
+                    "method",
+                    "trackingCode"
+                  ]
+                },
+                "status": {
+                  "bsonType": "string"
+                },
+                "statusHistory": {
+                  "bsonType": "array",
+                  "items": {
+                    "bsonType": "object",
+                    "properties": {
+                      "at": {
+                        "bsonType": "date"
+                      },
+                      "note": {
+                        "bsonType": "string"
+                      },
+                      "status": {
+                        "bsonType": "string"
+                      }
+                    },
+                    "required": [
+                      "at",
+                      "note",
+                      "status"
+                    ]
+                  }
+                },
+                "subOrderId": {
+                  "bsonType": "int"
+                },
+                "subTotal": {
+                  "bsonType": "int"
+                },
+                "updatedAt": {
+                  "bsonType": "date"
+                },
+                "voucherCode": {
+                  "bsonType": "null"
+                }
+              },
+              "required": [
+                "createdAt",
+                "items",
+                "seller",
+                "sellerId",
+                "shipping",
+                "status",
+                "statusHistory",
+                "subOrderId",
+                "subTotal",
+                "updatedAt",
+                "voucherCode"
+              ]
+            }
+          },
+          "totalAmount": {
+            "bsonType": "int"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          },
+          "voucher": {
+            "anyOf": [
+              {
+                "bsonType": "null"
+              },
+              {
+                "bsonType": "object",
+                "properties": {
+                  "code": {
+                    "bsonType": "string"
+                  },
+                  "discountAmount": {
+                    "bsonType": "int"
+                  },
+                  "type": {
+                    "bsonType": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "discountAmount",
+                  "type"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "bookom.otp_codes": {
+      "ns": "bookom.otp_codes",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {}
+      }
+    },
+    "bookom.payment_transactions": {
+      "ns": "bookom.payment_transactions",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "amount",
+          "createdAt",
+          "expiredAt",
+          "failureReason",
+          "ipnPayload",
+          "method",
+          "orderId",
+          "paidAt",
+          "paymentUrl",
+          "responseCode",
+          "responseMessage",
+          "status",
+          "transactionCode"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "int"
+          },
+          "amount": {
+            "bsonType": "int"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "expiredAt": {
+            "bsonType": "date"
+          },
+          "failureReason": {
+            "bsonType": [
+              "null",
+              "string"
+            ]
+          },
+          "ipnPayload": {
+            "anyOf": [
+              {
+                "bsonType": "object",
+                "properties": {
+                  "vnp_BankCode": {
+                    "bsonType": "string"
+                  },
+                  "vnp_ResponseCode": {
+                    "bsonType": "string"
+                  },
+                  "vnp_TxnRef": {
+                    "bsonType": "string"
+                  }
+                },
+                "required": [
+                  "vnp_BankCode",
+                  "vnp_ResponseCode",
+                  "vnp_TxnRef"
+                ]
+              },
+              {
+                "bsonType": "null"
+              }
+            ]
+          },
+          "method": {
+            "bsonType": "string"
+          },
+          "orderId": {
+            "bsonType": "int"
+          },
+          "paidAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "paymentUrl": {
+            "bsonType": "null"
+          },
+          "responseCode": {
+            "bsonType": "string"
+          },
+          "responseMessage": {
+            "bsonType": "string"
+          },
+          "status": {
+            "bsonType": "string"
+          },
+          "transactionCode": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "bookom.refresh_tokens": {
+      "ns": "bookom.refresh_tokens",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "expiryDate",
+          "token",
+          "userId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": [
+              "int",
+              "long"
+            ]
+          },
+          "_class": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "expiryDate": {
+            "bsonType": "date"
+          },
+          "token": {
+            "bsonType": "string"
+          },
+          "userId": {
+            "bsonType": [
+              "int",
+              "long"
+            ]
+          }
+        }
+      }
+    },
+    "bookom.reviews": {
+      "ns": "bookom.reviews",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "book",
+          "bookId",
+          "comment",
+          "createdAt",
+          "flags",
+          "helpfulCount",
+          "images",
+          "isVerifiedPurchase",
+          "moderation",
+          "orderId",
+          "rating",
+          "replies",
+          "schemaVersion",
+          "updatedAt",
+          "user",
+          "userId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "int"
+          },
+          "book": {
+            "bsonType": "object",
+            "properties": {
+              "categoryId": {
+                "bsonType": "int"
+              },
+              "categoryName": {
+                "bsonType": "string"
+              },
+              "imageUrl": {
+                "bsonType": "string"
+              },
+              "sellerId": {
+                "bsonType": "int"
+              },
+              "title": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "categoryId",
+              "categoryName",
+              "imageUrl",
+              "sellerId",
+              "title"
+            ]
+          },
+          "bookId": {
+            "bsonType": "int"
+          },
+          "comment": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "flags": {
+            "bsonType": "object",
+            "properties": {
+              "count": {
+                "bsonType": "int"
+              },
+              "reasons": {
+                "bsonType": "array",
+                "items": {
+                  "bsonType": "string"
+                }
+              }
+            },
+            "required": [
+              "count",
+              "reasons"
+            ]
+          },
+          "helpfulCount": {
+            "bsonType": "int"
+          },
+          "images": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "properties": {
+                "fileId": {
+                  "bsonType": "null"
+                },
+                "url": {
+                  "bsonType": "string"
+                }
+              },
+              "required": [
+                "fileId",
+                "url"
+              ]
+            }
+          },
+          "isVerifiedPurchase": {
+            "bsonType": "bool"
+          },
+          "moderation": {
+            "bsonType": "object",
+            "properties": {
+              "at": {
+                "bsonType": [
+                  "null",
+                  "date"
+                ]
+              },
+              "byUserId": {
+                "bsonType": [
+                  "null",
+                  "int"
+                ]
+              },
+              "history": {
+                "bsonType": "array",
+                "items": {
+                  "bsonType": "object",
+                  "properties": {
+                    "at": {
+                      "bsonType": "date"
+                    },
+                    "byUserId": {
+                      "bsonType": [
+                        "null",
+                        "int"
+                      ]
+                    },
+                    "status": {
+                      "bsonType": "string"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "byUserId",
+                    "status"
+                  ]
+                }
+              },
+              "reason": {
+                "bsonType": [
+                  "null",
+                  "string"
+                ]
+              },
+              "status": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "at",
+              "byUserId",
+              "history",
+              "reason",
+              "status"
+            ]
+          },
+          "orderId": {
+            "bsonType": "int"
+          },
+          "rating": {
+            "bsonType": "int"
+          },
+          "replies": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "properties": {
+                "content": {
+                  "bsonType": "string"
+                },
+                "createdAt": {
+                  "bsonType": "date"
+                },
+                "replyId": {
+                  "bsonType": "int"
+                },
+                "user": {
+                  "bsonType": "object",
+                  "properties": {
+                    "role": {
+                      "bsonType": "string"
+                    },
+                    "username": {
+                      "bsonType": "string"
+                    }
+                  },
+                  "required": [
+                    "role",
+                    "username"
+                  ]
+                },
+                "userId": {
+                  "bsonType": "int"
+                }
+              },
+              "required": [
+                "content",
+                "createdAt",
+                "replyId",
+                "user",
+                "userId"
+              ]
+            }
+          },
+          "schemaVersion": {
+            "bsonType": "int"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          },
+          "user": {
+            "bsonType": "object",
+            "properties": {
+              "avatarUrl": {
+                "bsonType": "string"
+              },
+              "fullName": {
+                "bsonType": "string"
+              },
+              "username": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "avatarUrl",
+              "fullName",
+              "username"
+            ]
+          },
+          "userId": {
+            "bsonType": "int"
+          }
+        }
+      }
+    },
+    "bookom.seller_shops": {
+      "ns": "bookom.seller_shops",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "address",
+          "approvalStatus",
+          "bannerUrl",
+          "city",
+          "contactEmail",
+          "contactPhone",
+          "createdAt",
+          "description",
+          "followerCount",
+          "location",
+          "logoUrl",
+          "province",
+          "rating",
+          "ratingCount",
+          "rejectionReason",
+          "seller",
+          "sellerId",
+          "shopName",
+          "slug",
+          "stats",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": [
+              "long",
+              "int"
+            ]
+          },
+          "address": {
+            "bsonType": "string"
+          },
+          "approvalStatus": {
+            "bsonType": "string"
+          },
+          "bannerUrl": {
+            "bsonType": "string"
+          },
+          "city": {
+            "bsonType": "string"
+          },
+          "contactEmail": {
+            "bsonType": "string"
+          },
+          "contactPhone": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "followerCount": {
+            "bsonType": [
+              "long",
+              "int"
+            ]
+          },
+          "location": {
+            "bsonType": "object",
+            "properties": {
+              "coordinates": {
+                "bsonType": "array",
+                "items": {
+                  "bsonType": "double"
+                }
+              },
+              "type": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "coordinates",
+              "type"
+            ]
+          },
+          "logoUrl": {
+            "bsonType": "string"
+          },
+          "province": {
+            "bsonType": "string"
+          },
+          "rating": {
+            "bsonType": [
+              "int",
+              "double"
+            ]
+          },
+          "ratingCount": {
+            "bsonType": [
+              "long",
+              "int"
+            ]
+          },
+          "rejectionReason": {
+            "bsonType": "null"
+          },
+          "seller": {
+            "bsonType": "object",
+            "properties": {
+              "avatarUrl": {
+                "bsonType": "string"
+              },
+              "email": {
+                "bsonType": "string"
+              },
+              "firstName": {
+                "bsonType": "string"
+              },
+              "fullName": {
+                "bsonType": "string"
+              },
+              "id": {
+                "bsonType": [
+                  "long",
+                  "int"
+                ]
+              },
+              "lastName": {
+                "bsonType": "string"
+              },
+              "phone": {
+                "bsonType": "null"
+              },
+              "shopName": {
+                "bsonType": "string"
+              },
+              "username": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "avatarUrl",
+              "email",
+              "fullName",
+              "id",
+              "username"
+            ]
+          },
+          "sellerId": {
+            "bsonType": [
+              "long",
+              "int"
+            ]
+          },
+          "shopName": {
+            "bsonType": "string"
+          },
+          "slug": {
+            "bsonType": "string"
+          },
+          "stats": {
+            "bsonType": "object",
+            "properties": {
+              "orderCount30d": {
+                "bsonType": [
+                  "long",
+                  "int"
+                ]
+              },
+              "productCount": {
+                "bsonType": "int"
+              },
+              "responseRate": {
+                "bsonType": [
+                  "int",
+                  "double"
+                ]
+              },
+              "revenue30d": {
+                "bsonType": "int"
+              }
+            },
+            "required": [
+              "orderCount30d",
+              "productCount",
+              "responseRate",
+              "revenue30d"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "bookom.support_tickets": {
+      "ns": "bookom.support_tickets",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "createdAt",
+          "description",
+          "priority",
+          "resolvedAt",
+          "status",
+          "subject",
+          "userId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "int"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "priority": {
+            "bsonType": "string"
+          },
+          "resolvedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "status": {
+            "bsonType": "string"
+          },
+          "subject": {
+            "bsonType": "string"
+          },
+          "userId": {
+            "bsonType": "int"
+          }
+        }
+      }
+    },
+    "bookom.system.profile": {
+      "ns": "bookom.system.profile",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "allUsers",
+          "appName",
+          "client",
+          "command",
+          "flowControl",
+          "isFromPriorityPortConnection",
+          "locks",
+          "millis",
+          "ns",
+          "numYield",
+          "op",
+          "opid",
+          "storage",
+          "ts",
+          "user"
+        ],
+        "properties": {
+          "allUsers": {
+            "bsonType": "array"
+          },
+          "appName": {
+            "bsonType": "string"
+          },
+          "client": {
+            "bsonType": "string"
+          },
+          "command": {
+            "bsonType": "object",
+            "properties": {
+              "$clusterTime": {
+                "bsonType": "object",
+                "properties": {
+                  "clusterTime": {
+                    "bsonType": "timestamp"
+                  },
+                  "signature": {
+                    "bsonType": "object",
+                    "properties": {
+                      "hash": {
+                        "bsonType": "binData"
+                      },
+                      "keyId": {
+                        "bsonType": "int"
+                      }
+                    },
+                    "required": [
+                      "hash",
+                      "keyId"
+                    ]
+                  }
+                },
+                "required": [
+                  "clusterTime",
+                  "signature"
+                ]
+              },
+              "$db": {
+                "bsonType": "string"
+              },
+              "aggregate": {
+                "bsonType": "string"
+              },
+              "autocommit": {
+                "bsonType": "bool"
+              },
+              "c": {
+                "bsonType": "object",
+                "properties": {
+                  "new": {
+                    "bsonType": "object",
+                    "properties": {
+                      "_id": {
+                        "bsonType": "int"
+                      },
+                      "avgOrderValue": {
+                        "bsonType": "double"
+                      },
+                      "items": {
+                        "bsonType": "array",
+                        "items": {
+                          "bsonType": "object",
+                          "properties": {
+                            "bookId": {
+                              "bsonType": "int"
+                            },
+                            "confidence": {
+                              "bsonType": "double"
+                            },
+                            "lift": {
+                              "bsonType": "double"
+                            },
+                            "support": {
+                              "bsonType": "double"
+                            }
+                          },
+                          "required": [
+                            "bookId",
+                            "confidence",
+                            "lift",
+                            "support"
+                          ]
+                        }
+                      },
+                      "lastOrderAt": {
+                        "bsonType": "date"
+                      },
+                      "orderCount": {
+                        "bsonType": "int"
+                      },
+                      "revenue": {
+                        "bsonType": "int"
+                      },
+                      "rfmFrequency": {
+                        "bsonType": "int"
+                      },
+                      "rfmLastOrder": {
+                        "bsonType": "date"
+                      },
+                      "rfmMonetary": {
+                        "bsonType": "int"
+                      },
+                      "sold": {
+                        "bsonType": "int"
+                      },
+                      "topReviews": {
+                        "bsonType": "array",
+                        "items": {
+                          "bsonType": "object",
+                          "properties": {
+                            "comment": {
+                              "bsonType": "string"
+                            },
+                            "createdAt": {
+                              "bsonType": "date"
+                            },
+                            "helpfulCount": {
+                              "bsonType": "int"
+                            },
+                            "rating": {
+                              "bsonType": "int"
+                            },
+                            "reviewId": {
+                              "bsonType": "int"
+                            },
+                            "userId": {
+                              "bsonType": "int"
+                            },
+                            "userName": {
+                              "bsonType": "string"
+                            }
+                          },
+                          "required": [
+                            "comment",
+                            "createdAt",
+                            "helpfulCount",
+                            "rating",
+                            "reviewId",
+                            "userId",
+                            "userName"
+                          ]
+                        }
+                      },
+                      "totalSpent": {
+                        "bsonType": "int"
+                      },
+                      "unitsSold": {
+                        "bsonType": "int"
+                      }
+                    },
+                    "required": [
+                      "_id"
+                    ]
+                  }
+                },
+                "required": [
+                  "new"
+                ]
+              },
+              "collation": {
+                "bsonType": "object",
+                "properties": {
+                  "locale": {
+                    "bsonType": "string"
+                  }
+                },
+                "required": [
+                  "locale"
+                ]
+              },
+              "cursor": {
+                "bsonType": "object",
+                "properties": {}
+              },
+              "filter": {
+                "bsonType": "object",
+                "properties": {
+                  "_id": {
+                    "bsonType": "int"
+                  },
+                  "$text": {
+                    "bsonType": "object",
+                    "properties": {
+                      "$search": {
+                        "bsonType": "string"
+                      }
+                    },
+                    "required": [
+                      "$search"
+                    ]
+                  },
+                  "approvalStatus": {
+                    "bsonType": "string"
+                  },
+                  "buyerId": {
+                    "bsonType": "int"
+                  },
+                  "ml.rfmFrequency": {
+                    "bsonType": "object",
+                    "properties": {
+                      "$gte": {
+                        "bsonType": "int"
+                      }
+                    },
+                    "required": [
+                      "$gte"
+                    ]
+                  }
+                }
+              },
+              "find": {
+                "bsonType": "string"
+              },
+              "limit": {
+                "bsonType": "int"
+              },
+              "listIndexes": {
+                "bsonType": "string"
+              },
+              "lsid": {
+                "bsonType": "object",
+                "properties": {
+                  "id": {
+                    "bsonType": "binData"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              },
+              "multi": {
+                "bsonType": "bool"
+              },
+              "pipeline": {
+                "bsonType": "array",
+                "items": {
+                  "bsonType": "object",
+                  "properties": {
+                    "$group": {
+                      "bsonType": "object",
+                      "properties": {
+                        "_id": {
+                          "bsonType": [
+                            "int",
+                            "string"
+                          ]
+                        },
+                        "n": {
+                          "bsonType": "object",
+                          "properties": {
+                            "$sum": {
+                              "bsonType": "int"
+                            }
+                          },
+                          "required": [
+                            "$sum"
+                          ]
+                        },
+                        "orderCount": {
+                          "bsonType": "object",
+                          "properties": {
+                            "$sum": {
+                              "bsonType": "int"
+                            }
+                          },
+                          "required": [
+                            "$sum"
+                          ]
+                        },
+                        "revenue": {
+                          "bsonType": "object",
+                          "properties": {
+                            "$sum": {
+                              "bsonType": "string"
+                            }
+                          },
+                          "required": [
+                            "$sum"
+                          ]
+                        },
+                        "unitsSold": {
+                          "bsonType": "object",
+                          "properties": {
+                            "$sum": {
+                              "bsonType": "string"
+                            }
+                          },
+                          "required": [
+                            "$sum"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_id"
+                      ]
+                    },
+                    "$match": {
+                      "bsonType": "object",
+                      "properties": {
+                        "buyerId": {
+                          "bsonType": "int"
+                        },
+                        "isActive": {
+                          "bsonType": "bool"
+                        },
+                        "isDeleted": {
+                          "bsonType": "object",
+                          "properties": {
+                            "$ne": {
+                              "bsonType": "bool"
+                            }
+                          },
+                          "required": [
+                            "$ne"
+                          ]
+                        },
+                        "role": {
+                          "bsonType": "string"
+                        },
+                        "subOrders.sellerId": {
+                          "bsonType": "int"
+                        },
+                        "subOrders.status": {
+                          "bsonType": "object",
+                          "properties": {
+                            "$nin": {
+                              "bsonType": "array",
+                              "items": {
+                                "bsonType": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "$nin"
+                          ]
+                        },
+                        "tags": {
+                          "bsonType": "string"
+                        }
+                      }
+                    },
+                    "$merge": {
+                      "bsonType": "object",
+                      "properties": {
+                        "into": {
+                          "bsonType": "string"
+                        },
+                        "on": {
+                          "bsonType": "string"
+                        },
+                        "whenMatched": {
+                          "bsonType": "array",
+                          "items": {
+                            "bsonType": "object",
+                            "properties": {
+                              "$set": {
+                                "bsonType": "object",
+                                "properties": {
+                                  "stats.revenue": {
+                                    "bsonType": "string"
+                                  },
+                                  "stats.shippedOrders": {
+                                    "bsonType": "string"
+                                  },
+                                  "stats.unitsSold": {
+                                    "bsonType": "string"
+                                  },
+                                  "updatedAt": {
+                                    "bsonType": "string"
+                                  }
+                                },
+                                "required": [
+                                  "stats.revenue",
+                                  "stats.shippedOrders",
+                                  "stats.unitsSold",
+                                  "updatedAt"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "$set"
+                            ]
+                          }
+                        },
+                        "whenNotMatched": {
+                          "bsonType": "string"
+                        }
+                      },
+                      "required": [
+                        "into",
+                        "on",
+                        "whenMatched",
+                        "whenNotMatched"
+                      ]
+                    },
+                    "$unwind": {
+                      "bsonType": "string"
+                    }
+                  }
+                }
+              },
+              "projection": {
+                "bsonType": "object",
+                "properties": {
+                  "_id": {
+                    "bsonType": "int"
+                  },
+                  "author": {
+                    "bsonType": "int"
+                  },
+                  "createdAt": {
+                    "bsonType": "int"
+                  },
+                  "ml.rfmFrequency": {
+                    "bsonType": "int"
+                  },
+                  "ml.rfmMonetary": {
+                    "bsonType": "int"
+                  },
+                  "orderCode": {
+                    "bsonType": "int"
+                  },
+                  "score": {
+                    "bsonType": "object",
+                    "properties": {
+                      "$meta": {
+                        "bsonType": "string"
+                      }
+                    },
+                    "required": [
+                      "$meta"
+                    ]
+                  },
+                  "status": {
+                    "bsonType": "int"
+                  },
+                  "title": {
+                    "bsonType": "int"
+                  },
+                  "totalAmount": {
+                    "bsonType": "int"
+                  },
+                  "username": {
+                    "bsonType": "int"
+                  }
+                }
+              },
+              "q": {
+                "bsonType": "object",
+                "properties": {
+                  "_id": {
+                    "bsonType": "int"
+                  },
+                  "sellerId": {
+                    "bsonType": "null"
+                  }
+                }
+              },
+              "skip": {
+                "bsonType": "int"
+              },
+              "sort": {
+                "bsonType": "object",
+                "properties": {
+                  "createdAt": {
+                    "bsonType": "int"
+                  },
+                  "score": {
+                    "bsonType": "object",
+                    "properties": {
+                      "$meta": {
+                        "bsonType": "string"
+                      }
+                    },
+                    "required": [
+                      "$meta"
+                    ]
+                  }
+                }
+              },
+              "txnNumber": {
+                "bsonType": "long"
+              },
+              "u": {
+                "anyOf": [
+                  {
+                    "bsonType": "array",
+                    "items": {
+                      "bsonType": "object",
+                      "properties": {
+                        "$set": {
+                          "bsonType": "object",
+                          "properties": {
+                            "boughtTogether": {
+                              "bsonType": "string"
+                            },
+                            "ml.rfmFrequency": {
+                              "bsonType": "string"
+                            },
+                            "ml.rfmLastOrder": {
+                              "bsonType": "string"
+                            },
+                            "ml.rfmMonetary": {
+                              "bsonType": "string"
+                            },
+                            "stats.avgOrderValue": {
+                              "bsonType": "string"
+                            },
+                            "stats.lastOrderAt": {
+                              "bsonType": "string"
+                            },
+                            "stats.orderCount": {
+                              "bsonType": "string"
+                            },
+                            "stats.revenue": {
+                              "bsonType": "string"
+                            },
+                            "stats.shippedOrders": {
+                              "bsonType": "string"
+                            },
+                            "stats.soldCount": {
+                              "bsonType": "string"
+                            },
+                            "stats.totalSpent": {
+                              "bsonType": "string"
+                            },
+                            "stats.unitsSold": {
+                              "bsonType": "string"
+                            },
+                            "topReviews": {
+                              "bsonType": "string"
+                            },
+                            "updatedAt": {
+                              "bsonType": "string"
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "$set"
+                      ]
+                    }
+                  },
+                  {
+                    "bsonType": "object",
+                    "properties": {
+                      "$pull": {
+                        "bsonType": "object",
+                        "properties": {
+                          "items": {
+                            "bsonType": "object",
+                            "properties": {
+                              "bookId": {
+                                "bsonType": "int"
+                              }
+                            },
+                            "required": [
+                              "bookId"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "items"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "$pull"
+                    ]
+                  }
+                ]
+              },
+              "upsert": {
+                "bsonType": "bool"
+              },
+              "upsertSupplied": {
+                "bsonType": "bool"
+              }
+            }
+          },
+          "cursorExhausted": {
+            "bsonType": "bool"
+          },
+          "docsExamined": {
+            "bsonType": "int"
+          },
+          "execStats": {
+            "bsonType": "object",
+            "properties": {
+              "advanced": {
+                "bsonType": "int"
+              },
+              "docsExamined": {
+                "bsonType": "int"
+              },
+              "executionTimeMillisEstimate": {
+                "bsonType": "int"
+              },
+              "indexName": {
+                "bsonType": "string"
+              },
+              "inputStage": {
+                "bsonType": "object",
+                "properties": {
+                  "advanced": {
+                    "bsonType": "int"
+                  },
+                  "alreadyHasObj": {
+                    "bsonType": "int"
+                  },
+                  "docsExamined": {
+                    "bsonType": "int"
+                  },
+                  "executionTimeMillisEstimate": {
+                    "bsonType": "int"
+                  },
+                  "filter": {
+                    "bsonType": "object",
+                    "properties": {
+                      "sellerId": {
+                        "bsonType": "object",
+                        "properties": {
+                          "$eq": {
+                            "bsonType": "null"
+                          }
+                        },
+                        "required": [
+                          "$eq"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "sellerId"
+                    ]
+                  },
+                  "inputStage": {
+                    "bsonType": "object",
+                    "properties": {
+                      "advanced": {
+                        "bsonType": "int"
+                      },
+                      "alreadyHasObj": {
+                        "bsonType": "int"
+                      },
+                      "direction": {
+                        "bsonType": "string"
+                      },
+                      "docsExamined": {
+                        "bsonType": "int"
+                      },
+                      "dupsDropped": {
+                        "bsonType": "int"
+                      },
+                      "dupsTested": {
+                        "bsonType": "int"
+                      },
+                      "executionTimeMillisEstimate": {
+                        "bsonType": "int"
+                      },
+                      "filter": {
+                        "bsonType": "object",
+                        "properties": {
+                          "approvalStatus": {
+                            "bsonType": "object",
+                            "properties": {
+                              "$eq": {
+                                "bsonType": "string"
+                              }
+                            },
+                            "required": [
+                              "$eq"
+                            ]
+                          },
+                          "ml.rfmFrequency": {
+                            "bsonType": "object",
+                            "properties": {
+                              "$gte": {
+                                "bsonType": "int"
+                              }
+                            },
+                            "required": [
+                              "$gte"
+                            ]
+                          }
+                        }
+                      },
+                      "indexBounds": {
+                        "bsonType": "object",
+                        "properties": {
+                          "sellerId": {
+                            "bsonType": "array",
+                            "items": {
+                              "bsonType": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "sellerId"
+                        ]
+                      },
+                      "indexName": {
+                        "bsonType": "string"
+                      },
+                      "indexVersion": {
+                        "bsonType": "int"
+                      },
+                      "inputStage": {
+                        "bsonType": "object",
+                        "properties": {
+                          "advanced": {
+                            "bsonType": "int"
+                          },
+                          "direction": {
+                            "bsonType": "string"
+                          },
+                          "docsRejected": {
+                            "bsonType": "int"
+                          },
+                          "dupsDropped": {
+                            "bsonType": "int"
+                          },
+                          "dupsTested": {
+                            "bsonType": "int"
+                          },
+                          "executionTimeMillisEstimate": {
+                            "bsonType": "int"
+                          },
+                          "indexBounds": {
+                            "bsonType": "object",
+                            "properties": {
+                              "buyerId": {
+                                "bsonType": "array",
+                                "items": {
+                                  "bsonType": "string"
+                                }
+                              },
+                              "createdAt": {
+                                "bsonType": "array",
+                                "items": {
+                                  "bsonType": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "buyerId",
+                              "createdAt"
+                            ]
+                          },
+                          "indexName": {
+                            "bsonType": "string"
+                          },
+                          "indexPrefix": {
+                            "bsonType": "object",
+                            "properties": {}
+                          },
+                          "indexVersion": {
+                            "bsonType": "int"
+                          },
+                          "inputStage": {
+                            "bsonType": "object",
+                            "properties": {
+                              "advanced": {
+                                "bsonType": "int"
+                              },
+                              "docsExamined": {
+                                "bsonType": "int"
+                              },
+                              "executionTimeMillisEstimate": {
+                                "bsonType": "int"
+                              },
+                              "inputStages": {
+                                "bsonType": "array",
+                                "items": {
+                                  "bsonType": "object",
+                                  "properties": {
+                                    "advanced": {
+                                      "bsonType": "int"
+                                    },
+                                    "direction": {
+                                      "bsonType": "string"
+                                    },
+                                    "dupsDropped": {
+                                      "bsonType": "int"
+                                    },
+                                    "dupsTested": {
+                                      "bsonType": "int"
+                                    },
+                                    "executionTimeMillisEstimate": {
+                                      "bsonType": "int"
+                                    },
+                                    "indexBounds": {
+                                      "bsonType": "object",
+                                      "properties": {}
+                                    },
+                                    "indexName": {
+                                      "bsonType": "string"
+                                    },
+                                    "indexVersion": {
+                                      "bsonType": "int"
+                                    },
+                                    "isEOF": {
+                                      "bsonType": "int"
+                                    },
+                                    "isMultiKey": {
+                                      "bsonType": "bool"
+                                    },
+                                    "isPartial": {
+                                      "bsonType": "bool"
+                                    },
+                                    "isSparse": {
+                                      "bsonType": "bool"
+                                    },
+                                    "isUnique": {
+                                      "bsonType": "bool"
+                                    },
+                                    "keyPattern": {
+                                      "bsonType": "object",
+                                      "properties": {
+                                        "_fts": {
+                                          "bsonType": "string"
+                                        },
+                                        "_ftsx": {
+                                          "bsonType": "int"
+                                        }
+                                      },
+                                      "required": [
+                                        "_fts",
+                                        "_ftsx"
+                                      ]
+                                    },
+                                    "keysExamined": {
+                                      "bsonType": "int"
+                                    },
+                                    "needTime": {
+                                      "bsonType": "int"
+                                    },
+                                    "needYield": {
+                                      "bsonType": "int"
+                                    },
+                                    "nReturned": {
+                                      "bsonType": "int"
+                                    },
+                                    "peakTrackedMemBytes": {
+                                      "bsonType": "int"
+                                    },
+                                    "restoreState": {
+                                      "bsonType": "int"
+                                    },
+                                    "saveState": {
+                                      "bsonType": "int"
+                                    },
+                                    "seeks": {
+                                      "bsonType": "int"
+                                    },
+                                    "stage": {
+                                      "bsonType": "string"
+                                    },
+                                    "works": {
+                                      "bsonType": "int"
+                                    }
+                                  },
+                                  "required": [
+                                    "advanced",
+                                    "direction",
+                                    "dupsDropped",
+                                    "dupsTested",
+                                    "executionTimeMillisEstimate",
+                                    "indexBounds",
+                                    "indexName",
+                                    "indexVersion",
+                                    "isEOF",
+                                    "isMultiKey",
+                                    "isPartial",
+                                    "isSparse",
+                                    "isUnique",
+                                    "keyPattern",
+                                    "keysExamined",
+                                    "needTime",
+                                    "needYield",
+                                    "nReturned",
+                                    "peakTrackedMemBytes",
+                                    "restoreState",
+                                    "saveState",
+                                    "seeks",
+                                    "stage",
+                                    "works"
+                                  ]
+                                }
+                              },
+                              "isEOF": {
+                                "bsonType": "int"
+                              },
+                              "needTime": {
+                                "bsonType": "int"
+                              },
+                              "needYield": {
+                                "bsonType": "int"
+                              },
+                              "nReturned": {
+                                "bsonType": "int"
+                              },
+                              "peakTrackedMemBytes": {
+                                "bsonType": "int"
+                              },
+                              "restoreState": {
+                                "bsonType": "int"
+                              },
+                              "saveState": {
+                                "bsonType": "int"
+                              },
+                              "spilledBytes": {
+                                "bsonType": "int"
+                              },
+                              "spilledDataStorageSize": {
+                                "bsonType": "int"
+                              },
+                              "spilledRecords": {
+                                "bsonType": "int"
+                              },
+                              "spills": {
+                                "bsonType": "int"
+                              },
+                              "stage": {
+                                "bsonType": "string"
+                              },
+                              "usedDisk": {
+                                "bsonType": "bool"
+                              },
+                              "works": {
+                                "bsonType": "int"
+                              }
+                            },
+                            "required": [
+                              "advanced",
+                              "docsExamined",
+                              "executionTimeMillisEstimate",
+                              "inputStages",
+                              "isEOF",
+                              "needTime",
+                              "needYield",
+                              "nReturned",
+                              "peakTrackedMemBytes",
+                              "restoreState",
+                              "saveState",
+                              "spilledBytes",
+                              "spilledDataStorageSize",
+                              "spilledRecords",
+                              "spills",
+                              "stage",
+                              "usedDisk",
+                              "works"
+                            ]
+                          },
+                          "isEOF": {
+                            "bsonType": "int"
+                          },
+                          "isMultiKey": {
+                            "bsonType": "bool"
+                          },
+                          "isPartial": {
+                            "bsonType": "bool"
+                          },
+                          "isSparse": {
+                            "bsonType": "bool"
+                          },
+                          "isUnique": {
+                            "bsonType": "bool"
+                          },
+                          "keyPattern": {
+                            "bsonType": "object",
+                            "properties": {
+                              "buyerId": {
+                                "bsonType": "int"
+                              },
+                              "createdAt": {
+                                "bsonType": "int"
+                              }
+                            },
+                            "required": [
+                              "buyerId",
+                              "createdAt"
+                            ]
+                          },
+                          "keysExamined": {
+                            "bsonType": "int"
+                          },
+                          "multiKeyPaths": {
+                            "bsonType": "object",
+                            "properties": {
+                              "buyerId": {
+                                "bsonType": "array"
+                              },
+                              "createdAt": {
+                                "bsonType": "array"
+                              }
+                            },
+                            "required": [
+                              "buyerId",
+                              "createdAt"
+                            ]
+                          },
+                          "needTime": {
+                            "bsonType": "int"
+                          },
+                          "needYield": {
+                            "bsonType": "int"
+                          },
+                          "nReturned": {
+                            "bsonType": "int"
+                          },
+                          "parsedTextQuery": {
+                            "bsonType": "object",
+                            "properties": {
+                              "negatedPhrases": {
+                                "bsonType": "array"
+                              },
+                              "negatedTerms": {
+                                "bsonType": "array"
+                              },
+                              "phrases": {
+                                "bsonType": "array",
+                                "items": {
+                                  "bsonType": "string"
+                                }
+                              },
+                              "terms": {
+                                "bsonType": "array",
+                                "items": {
+                                  "bsonType": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "negatedPhrases",
+                              "negatedTerms",
+                              "phrases",
+                              "terms"
+                            ]
+                          },
+                          "peakTrackedMemBytes": {
+                            "bsonType": "int"
+                          },
+                          "restoreState": {
+                            "bsonType": "int"
+                          },
+                          "saveState": {
+                            "bsonType": "int"
+                          },
+                          "seeks": {
+                            "bsonType": "int"
+                          },
+                          "stage": {
+                            "bsonType": "string"
+                          },
+                          "textIndexVersion": {
+                            "bsonType": "int"
+                          },
+                          "works": {
+                            "bsonType": "int"
+                          }
+                        },
+                        "required": [
+                          "advanced",
+                          "executionTimeMillisEstimate",
+                          "indexName",
+                          "isEOF",
+                          "needTime",
+                          "needYield",
+                          "nReturned",
+                          "restoreState",
+                          "saveState",
+                          "stage",
+                          "works"
+                        ]
+                      },
+                      "isEOF": {
+                        "bsonType": "int"
+                      },
+                      "isMultiKey": {
+                        "bsonType": "bool"
+                      },
+                      "isPartial": {
+                        "bsonType": "bool"
+                      },
+                      "isSparse": {
+                        "bsonType": "bool"
+                      },
+                      "isUnique": {
+                        "bsonType": "bool"
+                      },
+                      "keyPattern": {
+                        "bsonType": "object",
+                        "properties": {
+                          "sellerId": {
+                            "bsonType": "int"
+                          }
+                        },
+                        "required": [
+                          "sellerId"
+                        ]
+                      },
+                      "keysExamined": {
+                        "bsonType": "int"
+                      },
+                      "multiKeyPaths": {
+                        "bsonType": "object",
+                        "properties": {
+                          "sellerId": {
+                            "bsonType": "array"
+                          }
+                        },
+                        "required": [
+                          "sellerId"
+                        ]
+                      },
+                      "needTime": {
+                        "bsonType": "int"
+                      },
+                      "needYield": {
+                        "bsonType": "int"
+                      },
+                      "nReturned": {
+                        "bsonType": "int"
+                      },
+                      "peakTrackedMemBytes": {
+                        "bsonType": "int"
+                      },
+                      "restoreState": {
+                        "bsonType": "int"
+                      },
+                      "saveState": {
+                        "bsonType": "int"
+                      },
+                      "seeks": {
+                        "bsonType": "int"
+                      },
+                      "stage": {
+                        "bsonType": "string"
+                      },
+                      "works": {
+                        "bsonType": "int"
+                      }
+                    },
+                    "required": [
+                      "advanced",
+                      "executionTimeMillisEstimate",
+                      "isEOF",
+                      "needTime",
+                      "needYield",
+                      "nReturned",
+                      "restoreState",
+                      "saveState",
+                      "stage",
+                      "works"
+                    ]
+                  },
+                  "isEOF": {
+                    "bsonType": "int"
+                  },
+                  "keysExamined": {
+                    "bsonType": "int"
+                  },
+                  "limitAmount": {
+                    "bsonType": "int"
+                  },
+                  "memLimit": {
+                    "bsonType": "int"
+                  },
+                  "needTime": {
+                    "bsonType": "int"
+                  },
+                  "needYield": {
+                    "bsonType": "int"
+                  },
+                  "nReturned": {
+                    "bsonType": "int"
+                  },
+                  "peakTrackedMemBytes": {
+                    "bsonType": "int"
+                  },
+                  "restoreState": {
+                    "bsonType": "int"
+                  },
+                  "saveState": {
+                    "bsonType": "int"
+                  },
+                  "sortPattern": {
+                    "bsonType": "object",
+                    "properties": {
+                      "$computed0": {
+                        "bsonType": "object",
+                        "properties": {
+                          "$meta": {
+                            "bsonType": "string"
+                          }
+                        },
+                        "required": [
+                          "$meta"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "$computed0"
+                    ]
+                  },
+                  "spilledBytes": {
+                    "bsonType": "int"
+                  },
+                  "spilledDataStorageSize": {
+                    "bsonType": "int"
+                  },
+                  "spilledRecords": {
+                    "bsonType": "int"
+                  },
+                  "spills": {
+                    "bsonType": "int"
+                  },
+                  "stage": {
+                    "bsonType": "string"
+                  },
+                  "totalDataSizeSorted": {
+                    "bsonType": "int"
+                  },
+                  "transformBy": {
+                    "bsonType": "object",
+                    "properties": {}
+                  },
+                  "type": {
+                    "bsonType": "string"
+                  },
+                  "usedDisk": {
+                    "bsonType": "bool"
+                  },
+                  "works": {
+                    "bsonType": "int"
+                  }
+                },
+                "required": [
+                  "advanced",
+                  "executionTimeMillisEstimate",
+                  "isEOF",
+                  "needTime",
+                  "needYield",
+                  "nReturned",
+                  "restoreState",
+                  "saveState",
+                  "stage",
+                  "works"
+                ]
+              },
+              "isCached": {
+                "bsonType": "bool"
+              },
+              "isEOF": {
+                "bsonType": "int"
+              },
+              "keyPattern": {
+                "bsonType": "string"
+              },
+              "keysExamined": {
+                "bsonType": "int"
+              },
+              "limitAmount": {
+                "bsonType": "int"
+              },
+              "needTime": {
+                "bsonType": "int"
+              },
+              "needYield": {
+                "bsonType": "int"
+              },
+              "nMatched": {
+                "bsonType": "int"
+              },
+              "nReturned": {
+                "bsonType": "int"
+              },
+              "nWouldDelete": {
+                "bsonType": "int"
+              },
+              "nWouldModify": {
+                "bsonType": "int"
+              },
+              "nWouldUpsert": {
+                "bsonType": "int"
+              },
+              "restoreState": {
+                "bsonType": "int"
+              },
+              "saveState": {
+                "bsonType": "int"
+              },
+              "stage": {
+                "bsonType": "string"
+              },
+              "transformBy": {
+                "bsonType": "object",
+                "properties": {}
+              },
+              "works": {
+                "bsonType": "int"
+              }
+            },
+            "required": [
+              "isCached",
+              "nReturned",
+              "stage"
+            ]
+          },
+          "flowControl": {
+            "bsonType": "object",
+            "properties": {
+              "acquireCount": {
+                "bsonType": "long"
+              }
+            }
+          },
+          "hasSortStage": {
+            "bsonType": "bool"
+          },
+          "inUseTrackedMemBytes": {
+            "bsonType": "long"
+          },
+          "isFromPriorityPortConnection": {
+            "bsonType": "bool"
+          },
+          "keysDeleted": {
+            "bsonType": "int"
+          },
+          "keysExamined": {
+            "bsonType": "int"
+          },
+          "keysInserted": {
+            "bsonType": "int"
+          },
+          "locks": {
+            "bsonType": "object",
+            "properties": {
+              "Collection": {
+                "bsonType": "object",
+                "properties": {
+                  "acquireCount": {
+                    "bsonType": "object",
+                    "properties": {
+                      "w": {
+                        "bsonType": "long"
+                      }
+                    },
+                    "required": [
+                      "w"
+                    ]
+                  }
+                },
+                "required": [
+                  "acquireCount"
+                ]
+              },
+              "Database": {
+                "bsonType": "object",
+                "properties": {
+                  "acquireCount": {
+                    "bsonType": "object",
+                    "properties": {
+                      "w": {
+                        "bsonType": "long"
+                      }
+                    },
+                    "required": [
+                      "w"
+                    ]
+                  }
+                },
+                "required": [
+                  "acquireCount"
+                ]
+              },
+              "Global": {
+                "bsonType": "object",
+                "properties": {
+                  "acquireCount": {
+                    "bsonType": "object",
+                    "properties": {
+                      "r": {
+                        "bsonType": "long"
+                      },
+                      "w": {
+                        "bsonType": "long"
+                      }
+                    },
+                    "required": [
+                      "r"
+                    ]
+                  }
+                },
+                "required": [
+                  "acquireCount"
+                ]
+              },
+              "Metadata": {
+                "bsonType": "object",
+                "properties": {
+                  "acquireCount": {
+                    "bsonType": "object",
+                    "properties": {
+                      "W": {
+                        "bsonType": "long"
+                      }
+                    },
+                    "required": [
+                      "W"
+                    ]
+                  }
+                },
+                "required": [
+                  "acquireCount"
+                ]
+              },
+              "ReplicationStateTransition": {
+                "bsonType": "object",
+                "properties": {
+                  "acquireCount": {
+                    "bsonType": "object",
+                    "properties": {
+                      "w": {
+                        "bsonType": "long"
+                      }
+                    },
+                    "required": [
+                      "w"
+                    ]
+                  }
+                },
+                "required": [
+                  "acquireCount"
+                ]
+              }
+            }
+          },
+          "millis": {
+            "bsonType": "int"
+          },
+          "nBatches": {
+            "bsonType": "int"
+          },
+          "nMatched": {
+            "bsonType": "int"
+          },
+          "nModified": {
+            "bsonType": "int"
+          },
+          "nreturned": {
+            "bsonType": "int"
+          },
+          "ns": {
+            "bsonType": "string"
+          },
+          "numYield": {
+            "bsonType": "int"
+          },
+          "nUpserted": {
+            "bsonType": "int"
+          },
+          "op": {
+            "bsonType": "string"
+          },
+          "opid": {
+            "bsonType": "int"
+          },
+          "peakTrackedMemBytes": {
+            "bsonType": "long"
+          },
+          "planCacheKey": {
+            "bsonType": "string"
+          },
+          "planCacheShapeHash": {
+            "bsonType": "string"
+          },
+          "planningTimeMicros": {
+            "bsonType": "int"
+          },
+          "planSummary": {
+            "bsonType": "string"
+          },
+          "protocol": {
+            "bsonType": "string"
+          },
+          "queryFramework": {
+            "bsonType": "string"
+          },
+          "queryHash": {
+            "bsonType": "string"
+          },
+          "queryShapeHash": {
+            "bsonType": "string"
+          },
+          "readConcern": {
+            "bsonType": "object",
+            "properties": {
+              "afterClusterTime": {
+                "bsonType": "timestamp"
+              },
+              "level": {
+                "bsonType": "string"
+              },
+              "provenance": {
+                "bsonType": "string"
+              }
+            },
+            "required": [
+              "level",
+              "provenance"
+            ]
+          },
+          "resolvedViews": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "properties": {
+                "dependencyChain": {
+                  "bsonType": "array",
+                  "items": {
+                    "bsonType": "string"
+                  }
+                },
+                "resolvedPipeline": {
+                  "bsonType": "array",
+                  "items": {
+                    "bsonType": "object",
+                    "properties": {
+                      "$_internalUnpackBucket": {
+                        "bsonType": "object",
+                        "properties": {
+                          "bucketMaxSpanSeconds": {
+                            "bsonType": "int"
+                          },
+                          "metaField": {
+                            "bsonType": "string"
+                          },
+                          "timeField": {
+                            "bsonType": "string"
+                          }
+                        },
+                        "required": [
+                          "bucketMaxSpanSeconds",
+                          "metaField",
+                          "timeField"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "$_internalUnpackBucket"
+                    ]
+                  }
+                },
+                "viewNamespace": {
+                  "bsonType": "string"
+                }
+              },
+              "required": [
+                "dependencyChain",
+                "resolvedPipeline",
+                "viewNamespace"
+              ]
+            }
+          },
+          "responseLength": {
+            "bsonType": "int"
+          },
+          "storage": {
+            "bsonType": "object",
+            "properties": {
+              "data": {
+                "bsonType": "object",
+                "properties": {
+                  "bytesWritten": {
+                    "bsonType": "long"
+                  }
+                },
+                "required": [
+                  "bytesWritten"
+                ]
+              },
+              "timeWaitingMicros": {
+                "bsonType": "object",
+                "properties": {
+                  "storageEngineMicros": {
+                    "bsonType": "long"
+                  }
+                },
+                "required": [
+                  "storageEngineMicros"
+                ]
+              }
+            },
+            "required": [
+              "timeWaitingMicros"
+            ]
+          },
+          "totalOplogSlotDurationMicros": {
+            "bsonType": "int"
+          },
+          "ts": {
+            "bsonType": "date"
+          },
+          "user": {
+            "bsonType": "string"
+          },
+          "writeConcern": {
+            "bsonType": "object",
+            "properties": {
+              "provenance": {
+                "bsonType": "string"
+              },
+              "w": {
+                "bsonType": "string"
+              },
+              "wtimeout": {
+                "bsonType": "int"
+              }
+            },
+            "required": [
+              "provenance",
+              "w",
+              "wtimeout"
+            ]
+          }
+        }
+      }
+    },
+    "bookom.users": {
+      "ns": "bookom.users",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "addresses",
+          "createdAt",
+          "email",
+          "favoriteCategoryIds",
+          "isActive",
+          "passwordHash",
+          "role",
+          "schemaVersion",
+          "updatedAt",
+          "username",
+          "wishlistBookIds"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "long"
+          },
+          "_class": {
+            "bsonType": "string"
+          },
+          "addresses": {
+            "bsonType": "array"
+          },
+          "avatarUrl": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "email": {
+            "bsonType": "string"
+          },
+          "favoriteCategoryIds": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "long"
+            }
+          },
+          "firstName": {
+            "bsonType": "string"
+          },
+          "isActive": {
+            "bsonType": "bool"
+          },
+          "lastName": {
+            "bsonType": "string"
+          },
+          "passwordHash": {
+            "bsonType": "string"
+          },
+          "role": {
+            "bsonType": "string"
+          },
+          "schemaVersion": {
+            "bsonType": "int"
+          },
+          "shopAddress": {
+            "bsonType": "string"
+          },
+          "shopName": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          },
+          "username": {
+            "bsonType": "string"
+          },
+          "wishlistBookIds": {
+            "bsonType": "array"
+          }
+        }
+      }
+    }
+  },
+  "relationships": [
+    {
+      "id": "2640dc3d-cf1b-4896-b541-819eb70424aa",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "filter",
+            "ml.rfmFrequency",
+            "$gte"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "b48a66ee-6cf1-4caf-8431-b09958c3440b",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "pipeline",
+            "$group",
+            "orderCount",
+            "$sum"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "cffcfb31-4390-4f6c-923e-88c23637a139",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "projection",
+            "author"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "558313cf-36c7-4701-ade4-bb53cae952ea",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "projection",
+            "createdAt"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "19c0d009-87c2-4a91-993e-abd9c0b57f08",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "projection",
+            "ml.rfmFrequency"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "38ae12e1-5a41-4ca0-b9af-c988dd0db0cf",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "projection",
+            "ml.rfmMonetary"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "8791aef7-5d0e-4ccf-8d35-9fc497797c70",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "projection",
+            "orderCode"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "e5098e80-da82-4166-89db-3294372d89d6",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "projection",
+            "status"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "ea0ba8ab-2bd1-4d0c-a7b3-46d56234d89a",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "projection",
+            "title"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "080836ca-8d3c-4016-9348-15014874462e",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "projection",
+            "totalAmount"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "c47a158e-298b-474e-85bb-80de7a915323",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "projection",
+            "username"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "849f0836-06b4-4d5d-861f-61699240b9b1",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "execStats",
+            "inputStage",
+            "inputStage",
+            "filter",
+            "ml.rfmFrequency",
+            "$gte"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "56c7cd10-8253-404e-9c18-423855ea19ee",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "execStats",
+            "inputStage",
+            "inputStage",
+            "inputStage",
+            "indexVersion"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "dc12f1d4-28f4-4b75-93de-49719c14043c",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "execStats",
+            "inputStage",
+            "inputStage",
+            "inputStage",
+            "inputStage",
+            "isEOF"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "aa80df0a-a8b1-4f34-86dc-415e9fbed7ae",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "execStats",
+            "inputStage",
+            "inputStage",
+            "inputStage",
+            "keyPattern",
+            "buyerId"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "12d82b7e-1a89-4e26-9bc3-55e4034a9c5f",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "execStats",
+            "inputStage",
+            "inputStage",
+            "inputStage",
+            "keysExamined"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "4f7cbd27-4ab9-48a9-be92-0badb9c91c59",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "execStats",
+            "inputStage",
+            "inputStage",
+            "inputStage",
+            "seeks"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "31a272bb-a0e7-4335-85d9-3fc2e6efc0c7",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "execStats",
+            "inputStage",
+            "inputStage",
+            "inputStage",
+            "textIndexVersion"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "d671c67a-2e86-442a-87cd-8f29a85ae1d1",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "execStats",
+            "inputStage",
+            "limitAmount"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.categories",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "db168695-3e5e-4a92-8c2e-fbb154965407",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "listIndexes"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.counters",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "2eec259a-ceff-4aef-9168-40846d0160ca",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "pipeline",
+            "$merge",
+            "into"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.counters",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "cb441e86-d8f9-4642-9000-a26ffe83773d",
+      "relationship": [
+        {
+          "ns": "bookom.payment_transactions",
+          "fields": [
+            "orderId"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.orders",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "7d3ebc74-c28a-4b39-8d8e-829418595cf1",
+      "relationship": [
+        {
+          "ns": "bookom.system.profile",
+          "fields": [
+            "command",
+            "c",
+            "new",
+            "topReviews",
+            "reviewId"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "bookom.reviews",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    }
+  ]
+}
