@@ -54,7 +54,7 @@ public class VnpayService {
         Optional<PaymentTransaction> existingTransaction = paymentTransactionRepository.findByOrderId(order.getId());
         if (existingTransaction.isPresent()) {
             PaymentTransaction existing = existingTransaction.get();
-            if (existing.getStatus() == PaymentStatus.COMPLETED) {
+            if (existing.getStatus() == PaymentStatus.SUCCESS) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order already paid");
             }
             if (existing.getStatus() == PaymentStatus.PENDING) {
@@ -162,7 +162,7 @@ public class VnpayService {
 
             // Check if payment was successful (00 = success)
             if ("00".equals(responseCode) && "00".equals(transactionStatus)) {
-                transaction.setStatus(PaymentStatus.COMPLETED);
+                transaction.setStatus(PaymentStatus.SUCCESS);
                 transaction.setPaidAt(java.time.LocalDateTime.now());
                 transaction.setResponseCode(responseCode);
                 transaction.setResponseMessage("Thanh toán thành công");
@@ -229,7 +229,7 @@ public class VnpayService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
                         "No payment transaction found"));
 
-        if (transaction.getStatus() == PaymentStatus.COMPLETED) {
+        if (transaction.getStatus() == PaymentStatus.SUCCESS) {
             transaction.setStatus(PaymentStatus.REFUNDED);
             transaction.setResponseMessage("Đã hoàn tiền");
             paymentTransactionRepository.save(transaction);

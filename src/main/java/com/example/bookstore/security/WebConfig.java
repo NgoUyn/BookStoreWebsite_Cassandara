@@ -16,5 +16,10 @@ public class WebConfig implements WebMvcConfigurer {
         // Phục vụ ảnh upload cho shop (logo, banner) từ thư mục uploads/shops/
         registry.addResourceHandler("/uploads/shops/**")
                 .addResourceLocations("file:uploads/shops/");
+
+        // Phục vụ ảnh tài liệu pháp lý của hồ sơ người bán (uploads/legal-docs/)
+        // Ten file la UUID -> khong the doan/duyet danh sach (khong co API list).
+        registry.addResourceHandler("/uploads/legal-docs/**")
+                .addResourceLocations("file:uploads/legal-docs/");
     }
 }

@@ -2,6 +2,7 @@ package com.example.bookstore.service;
 
 import com.example.bookstore.dto.UserProfileResponse;
 import com.example.bookstore.dto.UserProfileUpdateRequest;
+import com.example.bookstore.dto.SellerApplicationRequest;
 import com.example.bookstore.model.Category;
 import com.example.bookstore.model.User;
 import com.example.bookstore.model.SellerShop;
@@ -44,6 +45,9 @@ public class AuthService {
     private SellerShopService sellerShopService;
 
     @Autowired
+    private SellerApplicationService sellerApplicationService;
+
+    @Autowired
     private CustomerAnalysisService customerAnalysisService;
 
     @Autowired
@@ -52,30 +56,25 @@ public class AuthService {
     /**
      * Submit a seller application: create a SellerShop record with PENDING approval.
      * Does NOT change the user's role — admin must approve to set role to SELLER.
+     *
+     * <p>LUONG CU (tuong thich nguoc): chi gui 5 field co ban. Luong moi day du
+     * phap ly/thue/dinh danh dung {@link #submitSellerApplication(Long, SellerApplicationRequest)}.</p>
      */
     public SellerShop submitSellerApplication(Long userId, String shopName, String shopAddress, String city, String province) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        SellerApplicationRequest request = new SellerApplicationRequest();
+        request.setShopName(shopName);
+        request.setAddress(shopAddress);
+        request.setCity(city);
+        request.setProvince(province);
+        return sellerApplicationService.submitApplication(userId, request);
+    }
 
-        // Prevent duplicate applications / existing shop
-        if (sellerShopRepository.findBySellerId(userId).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bạn đã gửi yêu cầu hoặc đã có cửa hàng.");
-        }
-
-        String slug = sellerShopService.generateUniqueSlug(user.getUsername());
-        com.example.bookstore.model.SellerShop newShop = com.example.bookstore.model.SellerShop.builder()
-                .sellerId(user.getId())
-                .seller(com.example.bookstore.model.embedded.UserSnapshot.of(user))
-                .slug(slug)
-                .shopName(shopName != null && !shopName.isBlank() ? shopName.trim() : user.getUsername())
-                .address(shopAddress != null && !shopAddress.isBlank() ? shopAddress.trim() : "Chưa cập nhật")
-                .city(city != null && !city.isBlank() ? city.trim() : "Chưa cập nhật")
-                .province(province != null && !province.isBlank() ? province.trim() : null)
-                .approvalStatus(ApprovalStatus.PENDING)
-                .build();
-
-        com.example.bookstore.model.SellerShop saved = sellerShopRepository.save(newShop);
-        return saved;
+    /**
+     * LUONG MOI: tao ho so dang ky nguoi ban day du (thong tin shop + phap ly/thue/
+     * dinh danh + anh tai lieu). Uy quyen cho {@link SellerApplicationService}.
+     */
+    public SellerShop submitSellerApplication(Long userId, SellerApplicationRequest request) {
+        return sellerApplicationService.submitApplication(userId, request);
     }
 
     //    Register

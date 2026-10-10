@@ -18,6 +18,19 @@
         .muted { color:#6b7280; font-size:.95rem }
         .btn { display:inline-flex; gap:.5rem; align-items:center; padding:.6rem 1rem; border-radius:.6rem; font-weight:700 }
         .btn-primary { background:#2E6F73; color:#fff }
+        .btn-ghost { border:1px solid rgba(17,24,39,.12); background:#fff; color:#111827 }
+        .btn-danger { border:1px solid #fecaca; background:#fff; color:#b91c1c }
+        .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem }
+        @media (max-width: 640px) { .grid-2 { grid-template-columns:1fr } }
+        .section-title { font-weight:800; margin-top:1.5rem; padding-top:1rem; border-top:1px dashed rgba(17,24,39,.14); }
+        .chip { display:inline-flex; align-items:center; gap:.45rem; padding:.45rem .85rem; border-radius:999px; border:1px solid rgba(17,24,39,.12); font-weight:700; cursor:pointer; background:#fff }
+        .chip input { accent-color:#2E6F73 }
+        .chip.on { border-color:#2E6F73; background:#E8F2F2 }
+        .doc-row { display:flex; align-items:center; gap:.8rem; border:1px solid rgba(17,24,39,.08); border-radius:.6rem; padding:.55rem; background:#fff }
+        .doc-thumb { width:56px; height:56px; object-fit:cover; border-radius:.5rem; border:1px solid rgba(17,24,39,.08); background:#f3f4f6 }
+        .doc-tag { display:inline-block; font-size:.7rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase; color:#0f5a5e; background:#E8F2F2; border-radius:999px; padding:.15rem .6rem }
+        .req { color:#b91c1c }
+        .hint { font-size:.82rem; color:#6b7280; margin-top:.25rem }
     </style>
 </head>
 <body>
@@ -25,9 +38,11 @@
         <h1 class="text-2xl font-black">Yêu cầu trở thành người bán</h1>
         <p class="muted">Gửi thông tin cửa hàng để admin xét duyệt. Sau khi admin duyệt, tài khoản của bạn sẽ được nâng lên Seller.</p>
 
-        <form id="becomeSellerForm" class="mt-6 space-y-4">
+        <form id="becomeSellerForm" class="mt-6 space-y-4" novalidate>
+            <div class="section-title">1. Thông tin cửa hàng</div>
+
             <div>
-                <label class="label" for="shopName">Tên cửa hàng</label>
+                <label class="label" for="shopName">Tên cửa hàng <span class="req">*</span></label>
                 <input id="shopName" name="shopName" class="input" required placeholder="Ví dụ: Nhà Sách Ngọc Lan">
             </div>
 
@@ -38,27 +53,111 @@
             </div>
 
             <div>
+                <label class="label" for="description">Mô tả cửa hàng — tuỳ chọn</label>
+                <textarea id="description" name="description" rows="3" class="textarea" placeholder="Giới thiệu ngắn về cửa hàng"></textarea>
+            </div>
+
+            <div>
                 <label class="label" for="address">Địa chỉ</label>
                 <input id="address" name="address" class="input" placeholder="Địa chỉ cửa hàng">
             </div>
-            <div>
-                <label class="label" for="city">Tỉnh / Thành phố</label>
-                <input id="city" name="city" class="input" required placeholder="Ví dụ: Hồ Chí Minh">
+
+            <div class="grid-2">
+                <div>
+                    <label class="label" for="city">Tỉnh / Thành phố <span class="req">*</span></label>
+                    <input id="city" name="city" class="input" required placeholder="Ví dụ: Hồ Chí Minh">
+                </div>
+                <div>
+                    <label class="label" for="province">Quận / Huyện hoặc Tỉnh — tuỳ chọn</label>
+                    <input id="province" name="province" class="input" placeholder="Ví dụ: Quận 1">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label class="label" for="contactEmail">Email liên hệ</label>
+                    <input id="contactEmail" name="contactEmail" type="email" class="input" placeholder="email@domain.com">
+                </div>
+                <div>
+                    <label class="label" for="contactPhone">Số điện thoại</label>
+                    <input id="contactPhone" name="contactPhone" class="input" placeholder="0123 456 789">
+                </div>
+            </div>
+
+            <div class="section-title">2. Loại hình kinh doanh &amp; định danh</div>
+
+            <div class="grid-2">
+                <div>
+                    <label class="label" for="businessType">Loại hình kinh doanh</label>
+                    <select id="businessType" name="businessType" class="input">
+                        <option value="INDIVIDUAL">Cá nhân</option>
+                        <option value="HOUSEHOLD" selected>Hộ kinh doanh</option>
+                        <option value="ENTERPRISE">Doanh nghiệp</option>
+                        <option value="SPECIAL">Ngành nghề đặc thù</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label" for="representativeName">Người đại diện — nếu có</label>
+                    <input id="representativeName" name="representativeName" class="input" placeholder="Họ tên người đại diện pháp luật">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label class="label" for="identityType">Loại giấy tờ tuỳ thân</label>
+                    <select id="identityType" name="identityType" class="input">
+                        <option value="CCCD" selected>Căn cước công dân (CCCD)</option>
+                        <option value="CMND">Chứng minh nhân dân (CMND)</option>
+                        <option value="PASSPORT">Hộ chiếu (Passport)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label" for="identityNumber">Số giấy tờ</label>
+                    <input id="identityNumber" name="identityNumber" class="input" placeholder="012345678901">
+                </div>
             </div>
 
             <div>
-                <label class="label" for="contactEmail">Email liên hệ</label>
-                <input id="contactEmail" name="contactEmail" type="email" class="input" placeholder="email@domain.com">
+                <label class="label" for="taxCode">Mã số thuế (MST) — nếu có</label>
+                <input id="taxCode" name="taxCode" class="input" placeholder="0101234567">
+                <div class="hint">Để trống nếu chưa đăng ký MST; admin sẽ thấy cảnh báo “chưa cập nhật MST”.</div>
             </div>
 
-            <div>
-                <label class="label" for="contactPhone">Số điện thoại</label>
-                <input id="contactPhone" name="contactPhone" class="input" placeholder="0123 456 789">
+            <div class="section-title">3. Đơn vị vận chuyển chấp nhận</div>
+            <div id="carrierGroup" class="flex flex-wrap gap-2"></div>
+            <div class="hint">Chọn ít nhất 1 đơn vị để người mua biết shop giao hàng qua đâu.</div>
+
+            <div class="section-title">4. Ảnh tài liệu pháp lý</div>
+            <div class="grid-2">
+                <div>
+                    <label class="label" for="docType">Loại tài liệu</label>
+                    <select id="docType" class="input">
+                        <option value="IDENTITY" selected>Giấy tờ tuỳ thân</option>
+                        <option value="BUSINESS_REGISTRATION">Đăng ký kinh doanh</option>
+                        <option value="TAX">Thuế / MST</option>
+                        <option value="SPECIAL_LICENSE">Giấy phép chuyên ngành</option>
+                        <option value="BRAND_DOC">Tài liệu thương hiệu</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label" for="docLabel">Tên tài liệu</label>
+                    <input id="docLabel" class="input" placeholder="Ví dụ: CCCD mặt trước">
+                </div>
             </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <input id="docFile" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">
+                <button id="docChooseBtn" type="button" class="btn btn-ghost">Chọn ảnh tài liệu</button>
+                <span id="docFileName" class="muted">Chưa chọn ảnh</span>
+            </div>
+
+            <div id="legalDocsList" class="space-y-2"></div>
+            <div id="legalDocsEmpty" class="muted">Chưa có tài liệu nào được tải lên.</div>
+            <div class="hint">Chỉ nhận JPG/PNG/WEBP, tối đa 5MB mỗi ảnh. Ảnh được tải lên ngay khi bạn chọn.</div>
 
             <div class="flex items-center gap-3 pt-3">
                 <button id="submitBtn" type="submit" class="btn btn-primary">Gửi yêu cầu</button>
-                <button id="cancelBtn" type="button" class="btn">Huỷ</button>
+                <button id="cancelBtn" type="button" class="btn btn-ghost">Huỷ</button>
             </div>
         </form>
     </div>

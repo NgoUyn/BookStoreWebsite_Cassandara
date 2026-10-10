@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -29,4 +31,28 @@ public class SellerShopUpsertRequest {
     private String address;
     private String city;
     private String province;
+
+    // ------------------------------------------------------------------
+    // Hồ sơ pháp lý / thuế / định danh (bổ sung cho trang hồ sơ gian hàng).
+    // KHÔNG đặt @NotBlank để không phá vỡ dữ liệu cũ chưa có thông tin pháp lý.
+    // ------------------------------------------------------------------
+    private String businessType;      // INDIVIDUAL | HOUSEHOLD | ENTERPRISE | SPECIAL
+    private String taxCode;
+    private String identityType;      // CCCD | CMND | PASSPORT
+    private String identityNumber;
+    private String representativeName;
+    private List<String> shippingCarriers;
+    private List<LegalDocumentDto> legalDocuments;
+
+    /** Một ảnh tài liệu pháp lý (đã upload qua /api/seller-applications/upload-document). */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LegalDocumentDto {
+        private String type;      // IDENTITY | BUSINESS_REGISTRATION | TAX | SPECIAL_LICENSE | BRAND_DOC
+        private String label;
+        private String imageUrl;  // /uploads/legal-docs/{uuid}.ext
+        private String note;
+    }
 }

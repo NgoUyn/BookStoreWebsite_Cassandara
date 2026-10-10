@@ -39,8 +39,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Long sellerId = null;
 
         // 1. Try to extract from JWT Token
+        // 1a. Bearer token trong header (luồng thông thường)
+        String bearerToken = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+            bearerToken = authHeader.substring(7);
+        } else if (isStreamingRequest(request)) {
+            // 1b. Endpoint streaming (SSE): trình duyệt dùng EventSource nên KHÔNG thể set
+            // header Authorization -> chấp nhận token qua query param, chỉ với các path SSE.
+            bearerToken = firstNonBlank(request.getParameter("access_token"), request.getParameter("token"));
+        }
+
+        // 1c. Try to extract from JWT Token
+        if (bearerToken != null && !bearerToken.isBlank()) {
+            String token = bearerToken;
             try {
                 userId = jwtTokenProvider.extractUserId(token);
                 roles = jwtTokenProvider.extractRoles(token);
@@ -90,6 +101,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Path streaming (SSE) mà client không thể gửi header: EventSource chỉ tạo được URL,
+     * nên phải nhận token qua query param. Giới hạn path để tránh rò rỉ token vào log
+     * của các API thông thường.
+     */
+    private boolean isStreamingRequest(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri == null) return false;
+        return uri.endsWith("/subscribe") || uri.endsWith("/stream") || uri.contains("/sse/");
+    }
+
+    private static String firstNonBlank(String... values) {
+        if (values == null) return null;
+        for (String value : values) {
+            if (value != null && !value.isBlank()) return value;
+        }
+        return null;
     }
 
     private List<SimpleGrantedAuthority> mapAuthorities(List<String> roles) {

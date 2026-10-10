@@ -337,7 +337,7 @@ public class AuthController {
     @PreAuthorize("hasAuthority('BUYER')")
     public ResponseEntity<?> becomeSeller(
             @AuthenticationPrincipal org.springframework.security.core.userdetails.User principalUser,
-            @RequestBody Map<String, String> body
+            @RequestBody com.example.bookstore.dto.SellerApplicationRequest request
     ) {
         // principalUser may be null depending on security config; try JwtAuthenticatedPrincipal otherwise
         Long userId = null;
@@ -354,12 +354,8 @@ public class AuthController {
         }
 
         try {
-            String shopName = body.getOrDefault("shopName", null);
-            String shopAddress = body.getOrDefault("address", null);
-            String city = body.getOrDefault("city", null);
-            String province = body.getOrDefault("province", null);
-            // Submit a seller application instead of immediately upgrading role.
-            authService.submitSellerApplication(userId, shopName, shopAddress, city, province);
+            // Lưu hồ sơ đầy đủ: thông tin shop + pháp lý/thuế/định danh + ảnh tài liệu
+            authService.submitSellerApplication(userId, request);
 
             // Return 202 Accepted to indicate the request was received and is pending admin approval
             return ResponseEntity.status(HttpStatus.ACCEPTED).body("Yêu cầu trở thành người bán đã được gửi. Vui lòng chờ admin duyệt.");

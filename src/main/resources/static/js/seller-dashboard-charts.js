@@ -34,19 +34,25 @@
 
     // Status colors for doughnut chart
     const STATUS_COLORS = {
+        'PENDING': '#F97316',          // orange - Chờ xác nhận
         'PROCESSING': '#F59E0B',       // amber - Đang xác nhận
-        'COMFIRMED': '#6366F1',        // indigo - Đã xác nhận
+        'CONFIRMED': '#6366F1',        // indigo - Đã xác nhận
         'SHIPPING': '#06B6D4',         // cyan - Đang giao
+        'DELIVERED': '#14B8A6',        // teal - Đã giao
         'COMPLETED': '#10B981',        // emerald - Đã hoàn thành
-        'CANCELLED': '#EF4444'         // red - Đã hủy
+        'CANCELLED': '#EF4444',        // red - Đã hủy
+        'RETURNED': '#A16207'          // yellow-brown - Đã trả hàng
     };
 
     const STATUS_LABELS = {
+        'PENDING': 'Chờ xác nhận',
         'PROCESSING': 'Đang xác nhận',
-        'COMFIRMED': 'Đã xác nhận',
+        'CONFIRMED': 'Đã xác nhận',
         'SHIPPING': 'Đang giao',
+        'DELIVERED': 'Đã giao',
         'COMPLETED': 'Đã hoàn thành',
-        'CANCELLED': 'Đã hủy'
+        'CANCELLED': 'Đã hủy',
+        'RETURNED': 'Đã trả hàng'
     };
 
     // Category chart palette

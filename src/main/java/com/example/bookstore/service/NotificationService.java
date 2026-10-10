@@ -28,6 +28,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationService {
 
+    /**
+     * Thoi gian song cua mot thong bao (ngay). Duoc ghi vao {@code expiresAt} de TTL index
+     * {@code ttl_notifications_expires} cua collection {@code notifications} tu dong don.
+     */
+    private static final int NOTIFICATION_TTL_DAYS = 90;
+
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final NotificationDeliveryQueue deliveryQueue;
@@ -162,7 +168,24 @@ public class NotificationService {
         return firstCreated;
     }
 
+    /**
+     * Tao entity {@link Notification} va luu xuong Mongo.
+     *
+     * <p><b>Vi sao phai set tay {@code isRead} + {@code createdAt} + {@code expiresAt}:</b>
+     * validator {@code $jsonSchema} cua collection {@code notifications}
+     * (xem {@code db/mongo/01_create_collections_validators.js}) bat buoc co
+     * {@code userId, type, title, isRead, createdAt}. {@link Notification} la
+     * {@code SequencedDocument} (khong phai {@code AuditableDocument}) nen
+     * {@code MongoAuditCallback} KHONG tu dien {@code createdAt}. Neu thieu 2 field nay,
+     * MongoDB tra {@code WriteError code=121 'Document failed validation'} -> khong co
+     * thong bao nao duoc tao (admin duyet shop nhung seller khong nhan duoc thong bao).</p>
+     *
+     * <p>{@code expiresAt} de TTL index ({@code ttl_notifications_expires}) tu don
+     * thong bao cu sau {@link #NOTIFICATION_TTL_DAYS} ngay.</p>
+     */
     private Notification saveNotification(User user, NotificationCreateRequest req) {
+        LocalDateTime now = LocalDateTime.now();
+
         Notification n = Notification.builder()
             .userId(user.getId())
             .type(req.getType())
@@ -170,6 +193,9 @@ public class NotificationService {
             .message(req.getMessage())
             .payloadJson(req.getPayloadJson())
             .priority(req.getPriority() == null ? NotificationPriority.NORMAL : req.getPriority())
+            .isRead(false)
+            .createdAt(now)
+            .expiresAt(now.plusDays(NOTIFICATION_TTL_DAYS))
             .build();
 
         return notificationRepository.save(n);

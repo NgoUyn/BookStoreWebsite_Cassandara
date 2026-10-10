@@ -51,9 +51,102 @@
     aside.sidebar.collapsed #sidebarToggle {
         margin-left: 0 !important;
     }
+    /* Logout button when collapsed */
+    aside.sidebar.collapsed nav .sidebar-logout-btn {
+        justify-content: center;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
 </style>
 
 <aside th:fragment="sidebar(activeMenu)" id="mainSidebar" class="sidebar sticky top-0 h-screen z-50 border-r bg-white px-5 overflow-hidden">
+
+    <!-- =========================================================
+         AUTH GUARD + LOGOUT (Admin)
+         - Chặn truy cập trang admin khi chưa đăng nhập bằng ADMIN
+         - Đăng xuất -> về /main/auth và KHÔNG thể dùng nút Back quay lại
+         ========================================================= -->
+    <script th:inline="javascript">
+        (function () {
+            var ADMIN_LOGIN_URL = '/main/auth';
+
+            function readAdminAuth() {
+                var token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken') ||
+                            localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+                var role = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+
+                // Nếu thiếu role thì bóc tách từ payload JWT (giống api-service.js)
+                if (!role && token) {
+                    try {
+                        var base64Url = token.split('.')[1];
+                        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                        while (base64.length % 4) { base64 += '='; }
+                        var payload = JSON.parse(window.atob(base64));
+                        var roles = payload.roles || (payload.role ? [payload.role] : []);
+                        role = Array.isArray(roles) ? roles[0] : roles;
+                        if (role) role = String(role).replace('ROLE_', '').toUpperCase();
+                    } catch (e) { /* token hỏng -> coi như chưa đăng nhập */ }
+                }
+                return { token: token, role: role };
+            }
+
+            // Chặn ngay khi không phải ADMIN (chạy đồng bộ, trước khi render nội dung)
+            function enforceAdminAuth() {
+                var auth = readAdminAuth();
+                if (!auth.token || auth.role !== 'ADMIN') {
+                    window.location.replace(ADMIN_LOGIN_URL);
+                    return false;
+                }
+                return true;
+            }
+
+            if (!enforceAdminAuth()) {
+                return;
+            }
+
+            // Nếu trang được khôi phục từ bfcache (bấm nút Back) -> kiểm tra lại và đá ra login
+            window.addEventListener('pageshow', function () {
+                enforceAdminAuth();
+            });
+
+            function clearAuthStorage() {
+                ['userId', 'accessToken', 'userRole', 'sellerId', 'refreshToken', 'access_token'].forEach(function (key) {
+                    try { localStorage.removeItem(key); } catch (e) {}
+                    try { sessionStorage.removeItem(key); } catch (e) {}
+                });
+                try { localStorage.clear(); } catch (e) {}
+            }
+
+            function handleAdminLogout() {
+                // 1) Gọi server logout (best-effort - JWT stateless nên chỉ để ghi log)
+                try {
+                    fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    }).catch(function () {});
+                } catch (e) { /* bỏ qua lỗi mạng */ }
+
+                // 2) Xóa toàn bộ dữ liệu xác thực
+                clearAuthStorage();
+
+                // 3) replace() -> xóa trang admin khỏi lịch sử => nút Back không quay lại được
+                window.location.replace(ADMIN_LOGIN_URL);
+            }
+
+            function initAdminLogout() {
+                var sidebarLogoutBtn = document.getElementById('admin-logout-btn');
+                var headerLogoutBtn = document.getElementById('admin-header-logout-btn');
+                if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', handleAdminLogout);
+                if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', handleAdminLogout);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initAdminLogout);
+            } else {
+                initAdminLogout();
+            }
+        })();
+    </script>
     <div class="sidebar-header h-20 px-6 flex items-center border-b shrink-0">
         <a th:href="@{/admin}" class="flex items-center gap-2 overflow-hidden">
             <span class="logo-text-display font-bold text-gray-800">BOOKOM ADMIN</span>
@@ -108,6 +201,15 @@
             <span class="menu-label">Kiểm duyệt sách</span>
         </a>
 
+        <!-- Đăng xuất -->
+        <hr class="border-gray-100 my-4">
+        <button id="admin-logout-btn" type="button"
+                class="sidebar-logout-btn group flex items-center gap-3 rounded-xl px-4 py-3 transition-all w-full text-left text-red-500 font-extrabold hover:bg-red-50 hover:text-red-600"
+                title="Đăng xuất">
+            <div class="h-2 w-2 rounded-full shrink-0 bg-red-400"></div>
+            <span class="menu-label">Đăng xuất</span>
+        </button>
+
     </nav>
 
     <script th:inline="javascript">
@@ -156,6 +258,16 @@
     <div class="flex items-center gap-3">
         <a th:href="@{/}" class="hidden sm:inline-flex text-sm font-black text-[#5D4037]/70 hover:text-[#5D4037]">Về trang mua sắm</a>
         <div th:replace="fragments/notifications_fragment :: notifications()"></div>
+        <button id="admin-header-logout-btn" type="button"
+                class="inline-flex items-center gap-2 rounded-xl border border-[#E5CBB5] bg-white px-3 py-2 text-sm font-black text-red-500 shadow-sm hover:bg-red-50 hover:text-red-600 transition-all"
+                title="Đăng xuất">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span class="hidden sm:inline">Đăng xuất</span>
+        </button>
         <div class="h-10 w-10 rounded-full bg-[#D19C74] text-white flex items-center justify-center text-xs font-black shadow-sm">AD</div>
     </div>
 </header>

@@ -435,8 +435,9 @@ public class OrderService {
 
     /**
      * Seller xác nhận đơn hàng - tự động chuyển trạng thái dựa trên trạng thái hiện tại:
-     * - PROCESSING  -> COMFIRMED  (xác nhận đơn)
-     * - COMFIRMED   -> SHIPPING   (xác nhận đang giao)
+     * - PENDING     -> PROCESSING (tiếp nhận đơn)
+     * - PROCESSING  -> CONFIRMED  (xác nhận đơn)
+     * - CONFIRMED   -> SHIPPING   (xác nhận đang giao)
      * - SHIPPING    -> COMPLETED  (xác nhận hoàn thành)
      * Các trạng thái khác -> throw lỗi
      */
@@ -450,10 +451,13 @@ public class OrderService {
         OrderStatus nextStatus;
 
         switch (currentStatus) {
-            case PROCESSING:
-                nextStatus = OrderStatus.COMFIRMED;
+            case PENDING:
+                nextStatus = OrderStatus.PROCESSING;
                 break;
-            case COMFIRMED:
+            case PROCESSING:
+                nextStatus = OrderStatus.CONFIRMED;
+                break;
+            case CONFIRMED:
                 nextStatus = OrderStatus.SHIPPING;
                 break;
             case SHIPPING:
@@ -461,7 +465,7 @@ public class OrderService {
                 break;
             default:
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        String.format("Không thể xác nhận đơn hàng ở trạng thái '%s'. Chỉ có thể xác nhận đơn ở trạng thái: PROCESSING, COMFIRMED, SHIPPING",
+                        String.format("Không thể xác nhận đơn hàng ở trạng thái '%s'. Chỉ có thể xác nhận đơn ở trạng thái: PENDING, PROCESSING, CONFIRMED, SHIPPING",
                                 currentStatus));
         }
 
@@ -501,11 +505,14 @@ public class OrderService {
     private String getStatusDisplayName(OrderStatus status) {
         if (status == null) return "Không xác định";
         switch (status) {
+            case PENDING:         return "Chờ xác nhận";
             case PROCESSING:      return "Đang xác nhận";
-            case COMFIRMED:       return "Đã xác nhận";
+            case CONFIRMED:       return "Đã xác nhận";
             case SHIPPING:        return "Đang giao";
+            case DELIVERED:       return "Đã giao";
             case COMPLETED:       return "Đã hoàn thành";
             case CANCELLED:       return "Đã hủy";
+            case RETURNED:        return "Đã trả hàng";
             default:              return status.name();
         }
     }
@@ -721,22 +728,27 @@ public class OrderService {
             return OrderStatus.PROCESSING;
         }
 
-        if (order.getSubOrders().stream().allMatch(so -> so.getStatus() == OrderStatus.CANCELLED)) {
+        // Nếu tất cả sub-order đều bị hủy/trả hàng, đơn hàng coi như đã hủy
+        if (order.getSubOrders().stream()
+                .allMatch(so -> so.getStatus() == OrderStatus.CANCELLED || so.getStatus() == OrderStatus.RETURNED)) {
             return OrderStatus.CANCELLED;
         }
 
-        // If all sub-orders are completed, order is completed
-        if (order.getSubOrders().stream().allMatch(so -> so.getStatus() == OrderStatus.COMPLETED)) {
+        // If all sub-orders are completed (or delivered), order is completed
+        if (order.getSubOrders().stream()
+                .allMatch(so -> so.getStatus() == OrderStatus.COMPLETED || so.getStatus() == OrderStatus.DELIVERED)) {
             return OrderStatus.COMPLETED;
         }
 
-        // If any sub-order is shipping, order is being shipped
-        if (order.getSubOrders().stream().anyMatch(so -> so.getStatus() == OrderStatus.SHIPPING)) {
+        // If any sub-order is shipping (or already delivered), order is being shipped
+        if (order.getSubOrders().stream()
+                .anyMatch(so -> so.getStatus() == OrderStatus.SHIPPING || so.getStatus() == OrderStatus.DELIVERED)) {
             return OrderStatus.SHIPPING;
         }
 
-        // If any sub-order is processing, order is processing
-        if (order.getSubOrders().stream().anyMatch(so -> so.getStatus() == OrderStatus.PROCESSING)) {
+        // If any sub-order is processing (or pending), order is processing
+        if (order.getSubOrders().stream()
+                .anyMatch(so -> so.getStatus() == OrderStatus.PROCESSING || so.getStatus() == OrderStatus.PENDING)) {
             return OrderStatus.PROCESSING;
         }
 
@@ -751,7 +763,9 @@ public class OrderService {
             return status == OrderStatus.PROCESSING;
         }
 
-        if (status == OrderStatus.CANCELLED || status == OrderStatus.COMPLETED || status == OrderStatus.PROCESSING) {
+        if (status == OrderStatus.CANCELLED || status == OrderStatus.RETURNED
+                || status == OrderStatus.COMPLETED || status == OrderStatus.DELIVERED
+                || status == OrderStatus.PROCESSING || status == OrderStatus.PENDING) {
             return order.getSubOrders().stream()
                 .allMatch(subOrder -> subOrder.getStatus() == status);
         }
@@ -765,11 +779,12 @@ public class OrderService {
             return true;
         }
 
-        // Allow cancellation only if all sub-orders are in PROCESSING state
-        // Cannot cancel: COMFIRMED, SHIPPING, COMPLETED, CANCELLED
+        // Allow cancellation only if all sub-orders are still PENDING/PROCESSING
+        // Cannot cancel: CONFIRMED, SHIPPING, DELIVERED, COMPLETED, CANCELLED, RETURNED
         return order.getSubOrders().stream()
-            .allMatch(subOrder -> 
-                subOrder.getStatus() == OrderStatus.PROCESSING);
+            .allMatch(subOrder ->
+                subOrder.getStatus() == OrderStatus.PENDING
+                    || subOrder.getStatus() == OrderStatus.PROCESSING);
     }
 
     private void notifyOrderCreated(Order order, User buyer) {

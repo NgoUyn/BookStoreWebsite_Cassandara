@@ -331,11 +331,13 @@
 
       return getJson(url).then(function (page) {
         var rows = (page.content || []).map(function (o) {
-          var statusClass = o.status === "PROCESSING" ? "text-indigo-600"
-              : o.status === "COMFIRMED" ? "text-amber-600"
-                  : o.status === "SHIPPING" ? "text-blue-600"
-                      : o.status === "COMPLETED" ? "text-emerald-600"
-                          : "text-rose-600";
+          var statusClass = o.status === "PENDING" ? "text-orange-600"
+              : o.status === "PROCESSING" ? "text-indigo-600"
+                  : o.status === "CONFIRMED" ? "text-amber-600"
+                      : o.status === "SHIPPING" ? "text-blue-600"
+                          : o.status === "DELIVERED" ? "text-cyan-600"
+                              : o.status === "COMPLETED" ? "text-emerald-600"
+                                  : "text-rose-600";
 
           return (
               "<tr>" +
@@ -564,22 +566,28 @@
     var sEl = document.getElementById("orders-status");
     function getStatusColor(status) {
       switch(status) {
+        case 'PENDING': return 'text-orange-600';
         case 'PROCESSING': return 'text-indigo-600';
-        case 'COMFIRMED': return 'text-amber-600';
+        case 'CONFIRMED': return 'text-amber-600';
         case 'SHIPPING': return 'text-blue-600';
+        case 'DELIVERED': return 'text-cyan-600';
         case 'COMPLETED': return 'text-emerald-600';
         case 'CANCELLED': return 'text-slate-500';
+        case 'RETURNED': return 'text-rose-600';
         default: return 'text-gray-600';
       }
     }
 
     function getStatusLabel(status) {
       var labels = {
+        'PENDING': 'Chờ xác nhận',
         'PROCESSING': 'Đang xác nhận',
-        'COMFIRMED': 'Đã xác nhận',
+        'CONFIRMED': 'Đã xác nhận',
         'SHIPPING': 'Đang giao',
+        'DELIVERED': 'Đã giao',
         'COMPLETED': 'Đã hoàn thành',
-        'CANCELLED': 'Đã hủy'
+        'CANCELLED': 'Đã hủy',
+        'RETURNED': 'Đã trả hàng'
       };
       return labels[status] || status;
     }
@@ -659,8 +667,9 @@
 
     window.confirmSellerOrder = function(subOrderId, currentStatus) {
       var statusLabel = {
+        'PENDING': 'Đang xác nhận',
         'PROCESSING': 'Đã xác nhận',
-        'COMFIRMED': 'Đang giao',
+        'CONFIRMED': 'Đang giao',
         'SHIPPING': 'Đã hoàn thành'
       }[currentStatus] || 'xác nhận';
 

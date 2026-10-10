@@ -13,8 +13,26 @@
     const API_READ_ALL = '/api/notifications/me/read-all';
     const API_MARK = (id) => `/api/notifications/me/${id}/read`;
     const SSE_URL = '/api/notifications/me/subscribe';
+    const SSE_MAX_RETRY = 5;
 
     let es = null;
+
+    /**
+     * Header xác thực cho các API notification (trước đây chỉ gửi Content-Type -> 401).
+     * Ưu tiên ApiService.getHeaders() để dùng chung logic lấy token/X-User-Id toàn app.
+     */
+    const authHeaders = () => {
+        if (window.ApiService && typeof window.ApiService.getHeaders === 'function') {
+            try { return window.ApiService.getHeaders(); } catch (e) { /* fallback bên dưới */ }
+        }
+        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId') || '';
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        const headers = { 'Content-Type': 'application/json', 'X-User-Id': userId };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        return headers;
+    };
+
+    const getToken = () => localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
 
     const showBadge = (n) => {
         if (!notifBadge) return;
@@ -40,7 +58,7 @@
         div.appendChild(right);
         div.addEventListener('click', async () => {
             try {
-                await fetch(API_MARK(item.id), { method: 'PATCH', headers: { 'Content-Type':'application/json' } });
+                await fetch(API_MARK(item.id), { method: 'PATCH', headers: authHeaders() });
                 // mark visually
                 right.innerHTML = 'Đã đọc';
                 // decrement badge
@@ -60,7 +78,7 @@
 
     const loadUnread = async () => {
         try {
-            const res = await fetch(API_UNREAD, { headers: { 'Content-Type':'application/json' } });
+            const res = await fetch(API_UNREAD, { headers: authHeaders() });
             if (!res.ok) return showBadge(0);
             const data = await res.json();
             showBadge(data?.unread || 0);
@@ -72,7 +90,7 @@
     const loadList = async () => {
         notifList.innerHTML = '<div class="p-4 text-sm text-gray-500">Đang tải…</div>';
         try {
-            const res = await fetch(API_LIST, { headers: { 'Content-Type':'application/json' } });
+            const res = await fetch(API_LIST, { headers: authHeaders() });
             if (!res.ok) { notifList.innerHTML = '<div class="p-4 text-sm text-red-600">Không tải được.</div>'; return; }
             const data = await res.json();
             const items = Array.isArray(data?.items) ? data.items : [];
@@ -89,7 +107,7 @@
 
     const markAllRead = async () => {
         try {
-            const res = await fetch(API_READ_ALL, { method: 'PATCH', headers: { 'Content-Type':'application/json' } });
+            const res = await fetch(API_READ_ALL, { method: 'PATCH', headers: authHeaders() });
             if (!res.ok) throw new Error('Failed');
             const json = await res.json();
             showBadge(0);
@@ -108,14 +126,37 @@
         }
     };
 
+    let sseRetry = 0;
+    let sseTimer = null;
+
+    /** Retry có giới hạn + backoff luỹ tiến (2s, 4s, 8s, 16s, 30s) thay cho vòng lặp 5s vô hạn. */
+    const scheduleReconnect = () => {
+        if (sseRetry >= SSE_MAX_RETRY) {
+            console.warn(`SSE: dừng kết nối lại sau ${sseRetry} lần thử.`);
+            return;
+        }
+        const delay = Math.min(2000 * Math.pow(2, sseRetry), 30000);
+        sseRetry += 1;
+        clearTimeout(sseTimer);
+        sseTimer = setTimeout(connectSse, delay);
+    };
+
     const connectSse = () => {
+        const token = getToken();
+        if (!token) {
+            // Chưa đăng nhập -> chắc chắn 401, không mở vòng reconnect vô hạn.
+            console.debug('SSE: bỏ qua vì chưa đăng nhập.');
+            return;
+        }
         try {
-            // Try to attach token if present (EventSource can't set headers)
-            const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-            const url = token ? `${SSE_URL}?access_token=${encodeURIComponent(token)}` : SSE_URL;
+            // EventSource không set được header -> server đọc token qua query param
+            // (JwtAuthenticationFilter chỉ chấp nhận query param cho path streaming).
+            const url = `${SSE_URL}?access_token=${encodeURIComponent(token)}`;
+            if (es) { try { es.close(); } catch (e) { /* ignore */ } }
             es = new EventSource(url);
 
             es.addEventListener('subscribed', (e) => {
+                sseRetry = 0; // handshake OK -> reset backoff
                 console.log('SSE subscribed', e.data);
             });
 
@@ -134,12 +175,14 @@
 
             es.onerror = (err) => {
                 console.warn('SSE error', err);
-                // Attempt reconnect with backoff
-                es.close();
-                setTimeout(connectSse, 5000);
+                // Vòng lặp tự kết nối lại có giới hạn (không còn setTimeout 5s vô hạn)
+                try { es.close(); } catch (e) { /* ignore */ }
+                es = null;
+                scheduleReconnect();
             };
         } catch (e) {
             console.error('SSE not supported/failed', e);
+            scheduleReconnect();
         }
     };
 
@@ -149,6 +192,12 @@
     // init
     loadUnread();
     connectSse();
+
+    // Đóng SSE khi rời trang để server giải phóng emitter ngay
+    window.addEventListener('beforeunload', () => {
+        clearTimeout(sseTimer);
+        if (es) { try { es.close(); } catch (e) { /* ignore */ } }
+    });
 
     // close dropdown on outside click
     document.addEventListener('click', (ev) => {

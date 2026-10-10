@@ -16,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -126,6 +128,25 @@ public class PanelPageController {
         model.addAttribute("pageSubtitle", "Quản lý đối tác và thông tin pháp lý");
         model.addAttribute("activeMenu", "admin-shops");
         return "admin/Admin_Shops";
+    }
+
+    /**
+     * Trang chi tiết 1 hồ sơ đăng ký người bán (read-only).
+     * Dữ liệu được nạp bằng JS qua /api/admin/seller-shops-management/{id}.
+     *
+     * @param from nguồn điều hướng ('seller-applications' | 'admin-shops') để nút
+     *             "Quay lại" trỏ về đúng trang trước đó.
+     */
+    @GetMapping("/admin/shops/{id}")
+    public String adminShopDetail(@PathVariable("id") Long id,
+                                  @RequestParam(value = "from", required = false) String from,
+                                  Model model) {
+        model.addAttribute("pageTitle", "Chi tiết gian hàng");
+        model.addAttribute("pageSubtitle", "Hồ sơ đăng ký người bán (chỉ xem)");
+        model.addAttribute("activeMenu", "admin-shops");
+        model.addAttribute("shopId", id);
+        model.addAttribute("from", (from == null || from.isBlank()) ? "seller-applications" : from);
+        return "admin/Admin_Shop_Detail";
     }
 
     @GetMapping("/admin/orders")

@@ -172,7 +172,7 @@ ensureCollection("orders", {
           sellerId: { bsonType: ["int", "long"] },
           seller: { bsonType: ["object", "null"] },
           status: {
-            enum: ["PENDING", "PROCESSING", "SHIPPING", "DELIVERED",
+            enum: ["PENDING", "PROCESSING", "CONFIRMED", "SHIPPING", "DELIVERED",
                    "COMPLETED", "CANCELLED", "RETURNED"]
           },
           subTotal: { bsonType: ["double", "int", "long"] },
@@ -213,6 +213,14 @@ ensureCollection("seller_shops", {
     followerCount: { bsonType: ["int", "long", "null"] },
     rating: { bsonType: ["double", "int", "null"] },
     ratingCount: { bsonType: ["int", "long", "null"] },
+    // --- Ho so phap ly / thue / dinh danh (bo sung cho quy trinh dang ky) ---
+    businessType: { bsonType: ["string", "null"] },
+    taxCode: { bsonType: ["string", "null"] },
+    identityType: { bsonType: ["string", "null"] },
+    identityNumber: { bsonType: ["string", "null"] },
+    representativeName: { bsonType: ["string", "null"] },
+    shippingCarriers: { bsonType: ["array", "null"] },
+    legalDocuments: { bsonType: ["array", "null"] },
     stats: { bsonType: ["object", "null"] },
     createdAt: { bsonType: ["date", "null"] },
     updatedAt: { bsonType: ["date", "null"] }

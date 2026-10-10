@@ -241,6 +241,42 @@ var ApiService = window.ApiService || (() => {
             }
 
             return parsed;
+        },
+        /**
+         * Upload ảnh tài liệu pháp lý cho hồ sơ đăng ký người bán.
+         * Dùng chung cho BUYER (gửi yêu cầu) và SELLER (bổ sung hồ sơ).
+         *
+         * @param {File} file    ảnh JPG/PNG/WEBP (<= 5MB)
+         * @param {string} type  IDENTITY | BUSINESS_REGISTRATION | TAX | SPECIAL_LICENSE | BRAND_DOC
+         * @returns {string} URL ảnh dạng /uploads/legal-docs/{uuid}.ext
+         */
+        uploadLegalDocument: async (file, type = 'IDENTITY') => {
+            if (!file) throw new Error('Chưa chọn file ảnh.');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', type);
+
+            const { userId, token } = getAuth();
+            const headers = {};
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            if (userId) headers['X-User-Id'] = userId;
+
+            const response = await fetch(`${API_BASE}/seller-applications/upload-document`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            const data = await parseResponse(response);
+            if (!response.ok) {
+                const message = (typeof data === 'string' && data.trim())
+                    ? data : (data?.message || 'Không tải được tài liệu pháp lý');
+                const error = new Error(message);
+                error.status = response.status;
+                throw error;
+            }
+            return data?.imageUrl;
         }
     };
 
@@ -437,6 +473,10 @@ var ApiService = window.ApiService || (() => {
             if (q && `${q}`.trim()) params.set('q', q.trim());
             console.log("Đang kích hoạt gọi API listSellerApplications với URL:", `${API_BASE}/admin/seller-shops-management?${params.toString()}`);
             const response = await fetch(`${API_BASE}/admin/seller-shops-management?${params.toString()}`, { headers: getHeaders() });
+            return handleResponse(response);
+        },
+        getShopApplication: async (shopId) => {
+            const response = await fetch(`${API_BASE}/admin/seller-shops-management/${encodeURIComponent(shopId)}`, { headers: getHeaders() });
             return handleResponse(response);
         },
         approveSellerApplication: async (shopId) => {
@@ -1024,7 +1064,7 @@ var ApiService = window.ApiService || (() => {
             }
         },
         // Helper: Logout - Xóa toàn bộ dữ liệu xác thực và chống rollback
-        logout: async () => {
+        logout: async (redirectTo = '/') => {
             // 1. Gọi server logout để invalidate token (nếu có)
             try {
                 await fetch('/api/auth/logout', {
@@ -1053,7 +1093,7 @@ var ApiService = window.ApiService || (() => {
 
             // 5. Dùng replace() để xóa trang hiện tại khỏi lịch sử trình duyệt
             //    User KHÔNG THỂ bấm nút Back để quay lại trang seller
-            window.location.replace('/');
+            window.location.replace(redirectTo);
         }
     };
 })();

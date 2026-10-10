@@ -45,7 +45,8 @@ public class RecommendationJob {
             // Lấy danh sách (OrderId, BookId) của các đơn hàng thành công/đang xử lý
             LocalDateTime windowStart = LocalDateTime.now().minusDays(SLIDING_WINDOW_DAYS);
             List<Object[]> pairs = orderItemRepository.findOrderBookPairsByStatusesAndDateRange(
-                Arrays.asList(OrderStatus.PROCESSING, OrderStatus.COMFIRMED, OrderStatus.SHIPPING, OrderStatus.COMPLETED),
+                Arrays.asList(OrderStatus.PENDING, OrderStatus.PROCESSING, OrderStatus.CONFIRMED, OrderStatus.SHIPPING,
+                        OrderStatus.DELIVERED, OrderStatus.COMPLETED),
                 windowStart
             );
 

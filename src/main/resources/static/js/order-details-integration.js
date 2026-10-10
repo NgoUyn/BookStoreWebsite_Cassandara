@@ -82,23 +82,27 @@
     const getStatusLabel = (status) => {
         const labels = {
             'PENDING': '⏳ Chờ xác nhận',
+            'PROCESSING': '⏳ Đang xác nhận',
             'CONFIRMED': '✓ Đã xác nhận',
-            'PACKED': '📦 Đã đóng gói',
-            'SHIPPED': '🚚 Đang giao',
+            'SHIPPING': '🚚 Đang giao',
             'DELIVERED': '🏠 Đã giao',
-            'CANCELLED': '✗ Đã hủy'
+            'COMPLETED': '✅ Hoàn thành',
+            'CANCELLED': '✗ Đã hủy',
+            'RETURNED': '↩ Đã trả hàng'
         };
         return labels[status] || status;
     };
 
     const getProgressPercentage = (status) => {
         const percentages = {
-            'PENDING': 20,
-            'CONFIRMED': 40,
-            'PACKED': 60,
-            'SHIPPED': 80,
-            'DELIVERED': 100,
-            'CANCELLED': 0
+            'PENDING': 15,
+            'PROCESSING': 30,
+            'CONFIRMED': 55,
+            'SHIPPING': 80,
+            'DELIVERED': 95,
+            'COMPLETED': 100,
+            'CANCELLED': 0,
+            'RETURNED': 0
         };
         return percentages[status] || 0;
     };
@@ -228,7 +232,7 @@
         }
 
         // Update status steps
-        const statusOrder = ['PENDING', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED'];
+        const statusOrder = ['PENDING', 'PROCESSING', 'CONFIRMED', 'SHIPPING', 'COMPLETED'];
         statusStepsEl.forEach((step, index) => {
             const stepStatus = statusOrder[index];
             const isActive = statusOrder.indexOf(status) >= index;

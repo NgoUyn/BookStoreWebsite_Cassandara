@@ -8,13 +8,16 @@ import com.example.bookstore.model.enums.ApprovalStatus;
 import com.example.bookstore.service.NotificationService;
 import com.example.bookstore.service.MailService;
 import com.example.bookstore.service.SellerShopService;
+import com.example.bookstore.repository.BookRepository;
 import com.example.bookstore.repository.SellerShopRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +41,9 @@ public class AdminSellerController {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private BookRepository bookRepository;
 
     private static final Logger log = LoggerFactory.getLogger(AdminSellerController.class);
 
@@ -84,25 +90,105 @@ public class AdminSellerController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * CHI TIET 1 ho so dang ky nguoi ban (read-only) cho trang Admin_Shop_Detail.
+     *
+     * <p>Tra ve day du: thong tin shop + snapshot nguoi gui + ho so phap ly/thue/
+     * dinh danh + so san pham dang ban. Toan bo field deu null-safe de tranh loi
+     * voi du lieu cu (chua co thong tin phap ly).</p>
+     */
+    @GetMapping("/{shopId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> getShopApplication(@PathVariable Long shopId) {
+        SellerShop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy hồ sơ gian hàng."));
+
+        Map<String, Object> detail = new LinkedHashMap<>();
+        detail.put("id", shop.getId());
+        detail.put("shopName", shop.getShopName());
+        detail.put("slug", shop.getSlug());
+        detail.put("description", shop.getDescription());
+        detail.put("logoUrl", shop.getLogoUrl());
+        detail.put("bannerUrl", shop.getBannerUrl());
+        detail.put("contactEmail", shop.getContactEmail());
+        detail.put("contactPhone", shop.getContactPhone());
+        detail.put("address", shop.getAddress());
+        detail.put("city", shop.getCity());
+        detail.put("province", shop.getProvince());
+        detail.put("rejectionReason", shop.getRejectionReason());
+        detail.put("approvalStatus", shop.getApprovalStatus() != null ? shop.getApprovalStatus().name() : "PENDING");
+        detail.put("followerCount", shop.getFollowerCount());
+        detail.put("rating", shop.getRating());
+        detail.put("ratingCount", shop.getRatingCount());
+        detail.put("createdAt", shop.getCreatedAt());
+        detail.put("updatedAt", shop.getUpdatedAt());
+
+        // --- Ho so phap ly / thue / dinh danh ---
+        detail.put("businessType", shop.getBusinessType());
+        detail.put("taxCode", shop.getTaxCode());
+        detail.put("identityType", shop.getIdentityType());
+        detail.put("identityNumber", shop.getIdentityNumber());
+        detail.put("representativeName", shop.getRepresentativeName());
+        detail.put("shippingCarriers", shop.getShippingCarriers() != null ? shop.getShippingCarriers() : List.of());
+        detail.put("legalDocuments", shop.getLegalDocuments() != null ? shop.getLegalDocuments() : List.of());
+
+        // --- Snapshot nguoi gui (nam san trong document shop) ---
+        Map<String, Object> seller = new LinkedHashMap<>();
+        if (shop.getSeller() != null) {
+            // Ưu tiên sellerId cấp document (hồ sơ legacy có thể thiếu seller.id trong snapshot)
+            seller.put("id", SellerShopService.resolveSellerId(shop));
+            seller.put("username", shop.getSeller().getUsername());
+            seller.put("fullName", shop.getSeller().getFullName() != null && !shop.getSeller().getFullName().isBlank()
+                    ? shop.getSeller().getFullName() : shop.getSeller().getUsername());
+            seller.put("email", shop.getSeller().getEmail());
+            seller.put("phone", shop.getSeller().getPhone());
+            seller.put("avatarUrl", shop.getSeller().getAvatarUrl());
+        }
+        detail.put("seller", seller);
+
+        // --- So san pham dang ban (dem nhe, co the bo qua neu loi) ---
+        long productCount = 0L;
+        try {
+            if (shop.getSellerId() != null) {
+                productCount = bookRepository.countBySellerId(shop.getSellerId());
+            }
+        } catch (Exception e) {
+            log.warn("Khong dem duoc san pham cua shop {}: {}", shopId, e.getMessage());
+        }
+        detail.put("productCount", productCount);
+
+        return ResponseEntity.ok(detail);
+    }
+
     @PutMapping("/{shopId}/approve")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> approve(@PathVariable Long shopId) {
-        SellerShop shop = shopRepository.findById(shopId).orElseThrow(() -> new RuntimeException("Shop not found"));
-        // Promote user and approve via service
-        var result = sellerShopService.adminApproveSeller(shop.getSeller().getId());
+        SellerShop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy hồ sơ gian hàng."));
+
+        // Duyệt theo shopId: service tự resolve sellerId (ưu tiên field top-level sellerId) nên hồ sơ
+        // legacy thiếu snapshot `seller.id` không còn gây IllegalArgumentException -> HTTP 500.
+        var result = sellerShopService.adminApproveSellerByShop(shopId);
+        Long sellerId = SellerShopService.resolveSellerId(shop);
 
         Map<String, Object> resp = new LinkedHashMap<>();
         resp.put("result", result);
 
         // Notify seller (catch lỗi để không ảnh hưởng tới response chính)
         try {
-            NotificationCreateRequest nc = new NotificationCreateRequest();
-            nc.setType(com.example.bookstore.model.enums.NotificationType.SHOP_APPROVAL_UPDATED);
-            nc.setTitle("Yêu cầu mở cửa hàng đã được duyệt");
-            nc.setMessage("Cửa hàng của bạn đã được admin duyệt và kích hoạt.");
-            nc.setPayloadJson(String.format("{\"shopId\":%d,\"status\":\"APPROVED\"}", shop.getId()));
-            var notificationResp = notificationService.createNotification(null, shop.getSeller().getId(), nc);
-            resp.put("notificationId", notificationResp != null ? notificationResp.getId() : null);
+            // Không resolve được sellerId (hồ sơ legacy thiếu hẳn người bán) -> bỏ qua notification
+            // thay vì tạo thông báo với userId = null (fan-out nhầm cho toàn bộ người dùng).
+            if (sellerId == null) {
+                resp.put("notificationId", null);
+            } else {
+                NotificationCreateRequest nc = new NotificationCreateRequest();
+                nc.setType(com.example.bookstore.model.enums.NotificationType.SHOP_APPROVAL_UPDATED);
+                nc.setTitle("Yêu cầu mở cửa hàng đã được duyệt");
+                nc.setMessage("Cửa hàng của bạn đã được admin duyệt và kích hoạt.");
+                nc.setPayloadJson(String.format("{\"shopId\":%d,\"status\":\"APPROVED\"}", shop.getId()));
+                var notificationResp = notificationService.createNotification(null, sellerId, nc);
+                resp.put("notificationId", notificationResp != null ? notificationResp.getId() : null);
+            }
         } catch (Exception e) {
             log.warn("Approve OK but notification failed for shop {}: {}", shopId, e.getMessage());
             resp.put("notificationId", null);
@@ -171,7 +257,8 @@ public class AdminSellerController {
                 nc.setPayloadJson("{\"status\":\"REJECTED\"}");
             }
 
-            var notificationResp = notificationService.createNotification(null, shop.getSeller().getId(), nc);
+            Long rejectSellerId = SellerShopService.resolveSellerId(shop);
+            var notificationResp = rejectSellerId == null ? null : notificationService.createNotification(null, rejectSellerId, nc);
             resp.put("notificationId", notificationResp != null ? notificationResp.getId() : null);
         } catch (Exception e) {
             log.warn("Reject OK but notification failed for shop {}: {}", shopId, e.getMessage());
@@ -208,7 +295,14 @@ public class AdminSellerController {
     @PutMapping("/{shopId}/resend-notification")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> resendNotification(@PathVariable Long shopId, @RequestParam(defaultValue = "rejected") String type) {
-        SellerShop shop = shopRepository.findById(shopId).orElseThrow(() -> new RuntimeException("Shop not found"));
+        SellerShop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy hồ sơ gian hàng."));
+        Long sellerId = SellerShopService.resolveSellerId(shop);
+        if (sellerId == null) {
+            // Tránh createNotification(null, null, ...) gây fan-out cho TẤT CẢ người dùng
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Hồ sơ gian hàng thiếu thông tin người bán (sellerId) — không thể gửi thông báo.");
+        }
         NotificationCreateRequest nc = new NotificationCreateRequest();
         nc.setType(com.example.bookstore.model.enums.NotificationType.SHOP_APPROVAL_UPDATED);
         if ("approved".equalsIgnoreCase(type)) {
@@ -220,7 +314,7 @@ public class AdminSellerController {
             nc.setMessage("Yêu cầu của bạn bị từ chối" + (shop.getRejectionReason() != null ? (": " + shop.getRejectionReason()) : "."));
             nc.setPayloadJson(String.format("{\"shopId\":%d,\"status\":\"REJECTED\",\"reason\":\"%s\"}", shop.getId(), shop.getRejectionReason() == null ? "" : shop.getRejectionReason().replaceAll("\"","\\\"")));
         }
-        var notificationResp = notificationService.createNotification(null, shop.getSeller().getId(), nc);
+        var notificationResp = notificationService.createNotification(null, sellerId, nc);
         return ResponseEntity.ok(Map.of("notificationId", notificationResp != null ? notificationResp.getId() : null));
     }
 
@@ -242,7 +336,7 @@ public class AdminSellerController {
     private Map<String, Object> toAdminRow(SellerShop shop) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("id", shop.getId());
-        row.put("sellerId", shop.getSeller() != null ? shop.getSeller().getId() : null);
+        row.put("sellerId", SellerShopService.resolveSellerId(shop));
         row.put("sellerUsername", shop.getSeller() != null ? shop.getSeller().getUsername() : null);
         row.put("sellerEmail", shop.getSeller() != null ? shop.getSeller().getEmail() : null);
         row.put("slug", shop.getSlug());

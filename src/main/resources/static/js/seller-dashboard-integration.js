@@ -59,11 +59,13 @@
     const getStatusBadgeClass = (status) => {
         const classMap = {
             'PENDING': 'bg-yellow-100 text-yellow-800',
+            'PROCESSING': 'bg-purple-100 text-purple-800',
             'CONFIRMED': 'bg-blue-100 text-blue-800',
-            'PACKED': 'bg-purple-100 text-purple-800',
-            'SHIPPED': 'bg-cyan-100 text-cyan-800',
-            'DELIVERED': 'bg-green-100 text-green-800',
-            'CANCELLED': 'bg-red-100 text-red-800'
+            'SHIPPING': 'bg-cyan-100 text-cyan-800',
+            'DELIVERED': 'bg-teal-100 text-teal-800',
+            'COMPLETED': 'bg-green-100 text-green-800',
+            'CANCELLED': 'bg-red-100 text-red-800',
+            'RETURNED': 'bg-yellow-100 text-yellow-800'
         };
         return classMap[status] || 'bg-gray-100 text-gray-800';
     };
@@ -71,11 +73,13 @@
     const getStatusLabel = (status) => {
         const labels = {
             'PENDING': '⏳ Chờ xác nhận',
+            'PROCESSING': '⏳ Đang xác nhận',
             'CONFIRMED': '✓ Đã xác nhận',
-            'PACKED': '📦 Đã đóng gói',
-            'SHIPPED': '🚚 Đang giao',
-            'DELIVERED': '✓ Đã giao',
-            'CANCELLED': '✗ Đã hủy'
+            'SHIPPING': '🚚 Đang giao',
+            'DELIVERED': '🏠 Đã giao',
+            'COMPLETED': '✅ Hoàn thành',
+            'CANCELLED': '✗ Đã hủy',
+            'RETURNED': '↩ Đã trả hàng'
         };
         return labels[status] || status;
     };
@@ -126,7 +130,7 @@
         const totalOrders = orders.length;
         const pendingOrders = orders.filter(o => o.status === 'PROCESSING' || o.status === 'PENDING').length;
         const confirmedOrders = orders.filter(o => o.status === 'CONFIRMED').length;
-        const shippedOrders = orders.filter(o => o.status === 'SHIPPING' || o.status === 'SHIPPED').length;
+        const shippedOrders = orders.filter(o => o.status === 'SHIPPING').length;
         const deliveredOrders = orders.filter(o => o.status === 'DELIVERED').length;
 
         console.log('📊 Dashboard Stats:', { totalRevenue, totalOrders, pendingOrders });
@@ -216,14 +220,10 @@
                         class="border-2 border-gray-200 rounded px-3 py-1 text-sm font-semibold transition 
                                  hover:border-brand-orange focus:border-brand-orange focus:outline-none"
                         onchange="window.updateOrderStatus(${order.id}, this.value)"
-                        value="${order.status || 'PENDING'}"
                     >
-                        <option value="PENDING">Chờ xác nhận</option>
-                        <option value="CONFIRMED">Đã xác nhận</option>
-                        <option value="PACKED">Đã đóng gói</option>
-                        <option value="SHIPPED">Đang giao</option>
-                        <option value="DELIVERED">Đã giao</option>
-                        <option value="CANCELLED">Hủy</option>
+                        ${['PENDING', 'PROCESSING', 'CONFIRMED', 'SHIPPING', 'DELIVERED', 'COMPLETED', 'CANCELLED']
+                            .map((value) => `<option value="${value}"${order.status === value ? ' selected' : ''}>${getStatusLabel(value)}</option>`)
+                            .join('')}
                     </select>
                 </td>
                 <td class="px-4 py-3">

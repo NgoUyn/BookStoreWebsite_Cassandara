@@ -3,6 +3,7 @@ package com.example.bookstore.sse;
 import com.example.bookstore.model.Notification;
 import com.example.bookstore.model.NotificationDelivery;
 import com.example.bookstore.repository.NotificationDeliveryRepository;
+import com.example.bookstore.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -118,6 +119,7 @@ public class NotificationDeliveryQueue {
     private final NotificationDeliveryRepository deliveryRepo;
     private final NotificationSseService sseService;
     private final HeartbeatService heartbeatService;
+    private final NotificationRepository notificationRepository;
     
     /**
      * Enqueue a new delivery task
@@ -140,6 +142,7 @@ public class NotificationDeliveryQueue {
             .status(NotificationDelivery.DeliveryStatus.PENDING)
             .attemptCount(0)
             .nextRetryAt(LocalDateTime.now())
+            .createdAt(LocalDateTime.now())
             .build();
         
         deliveryRepo.save(delivery);
@@ -196,17 +199,18 @@ public class NotificationDeliveryQueue {
         try {
             log.debug("Processing delivery {} for notification {}, attempt {}/{}",
                       task.getId(),
-                      task.getNotification().getId(),
+                      task.getNotificationId(),
                       task.getAttemptCount(),
                       MAX_ATTEMPTS);
             
-            Long userId = task.getNotification().getUser().getId();
+            Long userId = resolveUserId(task);
+            Notification notification = loadFullNotification(task);
             
             // Attempt delivery via SSE
             boolean delivered = sseService.sendEventToUser(
                 userId,
                 "notification",
-                task.getNotification()
+                notification
             );
             
             if (delivered) {
@@ -218,7 +222,7 @@ public class NotificationDeliveryQueue {
                 deliveryRepo.save(task);
                 
                 log.info("✓ Notification {} delivered to user {} via {} at attempt {}",
-                         task.getNotification().getId(),
+                         task.getNotificationId(),
                          userId,
                          task.getChannel(),
                          task.getAttemptCount() + 1);
@@ -240,7 +244,7 @@ public class NotificationDeliveryQueue {
                     
                     long backoffMs = calculateBackoffMs(nextAttemptCount);
                     log.warn("⚠ Notification {} delivery failed, retry {} in {} ms",
-                             task.getNotification().getId(),
+                             task.getNotificationId(),
                              nextAttemptCount,
                              backoffMs);
                     
@@ -254,7 +258,7 @@ public class NotificationDeliveryQueue {
                     deliveryRepo.save(task);
                     
                     log.error("✗ Notification {} DROPPED after {} attempts for user {}",
-                              task.getNotification().getId(),
+                              task.getNotificationId(),
                               MAX_ATTEMPTS,
                               userId);
                 }
@@ -276,6 +280,44 @@ public class NotificationDeliveryQueue {
             
             deliveryRepo.save(task);
         }
+    }
+
+    /**
+     * Xac dinh userId nhan thong bao cua mot delivery task.
+     *
+     * <p>Uu tien field {@code userId} luu san tren delivery; fallback sang
+     * {@code notification.userId} (tuong thich cac ban ghi cu chi co notificationId).</p>
+     */
+    private Long resolveUserId(NotificationDelivery task) {
+        if (task.getUserId() != null) {
+            return task.getUserId();
+        }
+        Notification stub = task.getNotification();
+        return stub == null ? null : stub.getUserId();
+    }
+
+    /**
+     * Doc lai document {@code notification} DAY DU tu DB truoc khi push SSE.
+     *
+     * <p><b>Vi sao can:</b> {@code NotificationDelivery} chi giu {@code notificationId}
+     * (collection tham chieu), nen {@link NotificationDelivery#getNotification()} chi tra ve
+     * mot Notification "vo" (co {@code id} + {@code userId}, con lai null). Neu push luon
+     * doi tuong "vo" do thi client nhan event {@code notification} voi
+     * {@code type/title/message/isRead/createdAt = null} -> hien thi dong thong bao trong.</p>
+     *
+     * <p>Fallback ve doi tuong "vo" khi document khong con trong DB (bi TTL index don sau
+     * {@code expiresAt}) de khong lam hong luong retry cua delivery.</p>
+     */
+    private Notification loadFullNotification(NotificationDelivery task) {
+        if (task.getNotificationId() != null) {
+            var found = notificationRepository.findById(task.getNotificationId());
+            if (found.isPresent()) {
+                return found.get();
+            }
+            log.warn("Notification {} khong con trong DB (het han?) - push payload rut gon",
+                     task.getNotificationId());
+        }
+        return task.getNotification();
     }
     
     /**

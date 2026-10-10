@@ -388,15 +388,18 @@ const statusLabel = (status) => {
 };
 
 const statusClass = (status) => {
-    if (status === 'PENDING') return 'badge badge-warn';
-    if (status === 'APPROVED') return 'badge badge-success';
-    if (status === 'REJECTED') return 'badge badge-danger';
-    return 'badge';
+    if (status === 'PENDING') return 'inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-black text-amber-700';
+    if (status === 'APPROVED') return 'inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-black text-emerald-700';
+    if (status === 'REJECTED') return 'inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-xs font-black text-rose-700';
+    return 'inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-black text-gray-600';
 };
 
 const setLoading = (loading) => {
     state.loading = loading;
-    if (els.tableContainer) els.tableContainer.classList.toggle('is-loading', loading);
+    if (els.tableContainer) {
+        els.tableContainer.classList.toggle('opacity-60', loading);
+        els.tableContainer.classList.toggle('pointer-events-none', loading);
+    }
     if (els.loadingState) els.loadingState.style.display = loading ? 'flex' : 'none';
 };
 
@@ -435,42 +438,58 @@ const renderRows = (items) => {
 
     items.forEach((item, index) => {
         const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#FAF5E8]/50 transition-colors cursor-pointer';
 
         const createCell = (text, className) => {
             const td = document.createElement('td');
-            if (className) td.className = className;
+            td.className = className ? 'px-6 py-4 ' + className : 'px-6 py-4';
             td.textContent = text;
             return td;
         };
 
-        tr.appendChild(createCell(String(state.page * state.size + index + 1), 'muted-col'));
-        tr.appendChild(createCell(item.shopName || '—'));
-        tr.appendChild(createCell(item.sellerUsername || '—'));
-        tr.appendChild(createCell(item.sellerEmail || '—'));
-        tr.appendChild(createCell(item.slug || '—', 'mono-col'));
-        tr.appendChild(createCell(item.address || '—'));
+        tr.appendChild(createCell(String(state.page * state.size + index + 1), 'w-14 text-center font-black text-gray-400'));
+        tr.appendChild(createCell(item.shopName || '—', 'w-[20%] font-black text-[#5D4037]'));
+        tr.appendChild(createCell(item.sellerUsername || '—', 'w-[12%] font-bold text-[#5D4037]/80'));
+
+        // Email: 1 dòng, cắt bớt bằng truncate + tooltip
+        const emailTd = document.createElement('td');
+        emailTd.className = 'px-6 py-4 w-[18%] font-bold text-[#5D4037]/80 truncate';
+        emailTd.textContent = item.sellerEmail || '—';
+        emailTd.title = item.sellerEmail || '';
+        tr.appendChild(emailTd);
+
+        // Địa chỉ: tối đa 2 dòng, giữ tooltip đầy đủ
+        const addressTd = document.createElement('td');
+        addressTd.className = 'px-6 py-4 w-[26%] font-bold text-[#5D4037]/70';
+        addressTd.title = item.address || '';
+        const addressSpan = document.createElement('span');
+        addressSpan.className = 'block line-clamp-2 whitespace-normal';
+        addressSpan.textContent = item.address || '—';
+        addressTd.appendChild(addressSpan);
+        tr.appendChild(addressTd);
 
         const statusTd = document.createElement('td');
+        statusTd.className = 'px-6 py-4 w-[10%] text-center';
         const badge = document.createElement('span');
         badge.className = statusClass(item.approvalStatus);
         badge.textContent = statusLabel(item.approvalStatus);
         statusTd.appendChild(badge);
         tr.appendChild(statusTd);
 
-        const reasonTd = document.createElement('td');
-        reasonTd.textContent = item.rejectionReason || '';
-        tr.appendChild(reasonTd);
-
-        tr.appendChild(createCell(formatDate(item.createdAt), 'time-col'));
+        tr.appendChild(createCell(formatDate(item.createdAt), 'w-[12%] text-gray-500 whitespace-nowrap'));
 
         const actionTd = document.createElement('td');
-        actionTd.className = 'action-col';
+        actionTd.className = 'px-6 py-4 w-[12%] text-right whitespace-nowrap';
+        const actionWrap = document.createElement('div');
+        actionWrap.className = 'inline-flex items-center gap-2';
+        actionTd.appendChild(actionWrap);
 
         const approveBtn = document.createElement('button');
         approveBtn.type = 'button';
-        approveBtn.className = 'btn btn-primary';
+        approveBtn.className = 'inline-flex items-center justify-center rounded-xl bg-[#ea580c] px-3.5 py-2 text-xs font-black text-white shadow-sm transition-all hover:bg-[#c2410c] disabled:opacity-50';
         approveBtn.textContent = 'Duyệt';
-        approveBtn.addEventListener('click', async () => {
+        approveBtn.addEventListener('click', async (event) => {
+            event.stopPropagation();
             const confirm = await Swal.fire({
                 title: 'Duyệt ứng dụng này?',
                 text: `${item.shopName || ''} sẽ được chuyển sang trạng thái SELLER.`,
@@ -514,9 +533,10 @@ const renderRows = (items) => {
 
         const rejectBtn = document.createElement('button');
         rejectBtn.type = 'button';
-        rejectBtn.className = 'btn btn-ghost';
+        rejectBtn.className = 'inline-flex items-center justify-center rounded-xl border border-[#E5CBB5] bg-white px-3.5 py-2 text-xs font-black text-[#5D4037] transition-all hover:bg-[#FAF5E8] disabled:opacity-50';
         rejectBtn.textContent = 'Từ chối';
-        rejectBtn.addEventListener('click', () => {
+        rejectBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
             const m = window._adminRejectModal;
             if (m) {
                 m.currentShopId = item.id;
@@ -528,9 +548,16 @@ const renderRows = (items) => {
             }
         });
 
-        actionTd.appendChild(approveBtn);
-        actionTd.appendChild(rejectBtn);
+        actionWrap.appendChild(approveBtn);
+        actionWrap.appendChild(rejectBtn);
         tr.appendChild(actionTd);
+
+        // Click vào dòng → mở trang chi tiết gian hàng (read-only)
+        tr.addEventListener('click', () => {
+            if (!item.id) return;
+            window.location.href = `/admin/shops/${encodeURIComponent(item.id)}?from=seller-applications`;
+        });
+
         els.tbody.appendChild(tr);
     });
 };

@@ -63,6 +63,33 @@ public class SellerShop implements SequencedDocument, AuditableDocument {
     private Double rating;
     private Integer ratingCount;
 
+    // ======================================================================
+    // HO SO PHAP LY / THUE / DINH DANH (bo sung cho quy trinh dang ky nguoi ban)
+    // LUU Y: day la du lieu nhay cam -> chi tra ve cho chu shop va ADMIN,
+    // KHONG lo ra API cong khai theo slug.
+    // ======================================================================
+
+    /** INDIVIDUAL | HOUSEHOLD | ENTERPRISE | SPECIAL (xem BusinessType ben frontend). */
+    private String businessType;
+
+    /** Ma so thue (MST) / ma so doanh nghiep. */
+    private String taxCode;
+
+    /** Loai giay to tuy than: CCCD | CMND | PASSPORT. */
+    private String identityType;
+
+    /** So giay to tuy than (CCCD/CMND/Ho chieu) cua chu shop hoac nguoi dai dien. */
+    private String identityNumber;
+
+    /** Nguoi dai dien phap luat (bat buoc voi HO KINH DOANH / DOANH NGHIEP). */
+    private String representativeName;
+
+    /** Cac don vi van chuyen shop chap nhan (GHN, GHTK, Viettel Post...). */
+    private List<String> shippingCarriers;
+
+    /** Anh chup tai lieu phap ly (CCCD 2 mat, DKKD, MST, giay phep...). */
+    private List<LegalDocument> legalDocuments;
+
     private ShopStats stats;
 
     @Field("createdAt")
@@ -96,5 +123,23 @@ public class SellerShop implements SequencedDocument, AuditableDocument {
         private Double responseRate;
         private Integer unitsSold;
         private Integer shippedOrders;
+    }
+
+    // ======================================================================
+    /**
+     * Mot anh tai lieu phap ly (embedded array {@code legalDocuments[]}).
+     *
+     * <p>{@code type}: IDENTITY | BUSINESS_REGISTRATION | TAX | SPECIAL_LICENSE | BRAND_DOC.</p>
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LegalDocument {
+        private String type;
+        private String label;
+        private String imageUrl;
+        private String note;
+        private LocalDateTime uploadedAt;
     }
 }

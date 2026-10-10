@@ -117,8 +117,8 @@ public class OrderController {
 
     /**
      * Seller xác nhận đơn hàng - tự động chuyển trạng thái theo luồng:
-     * - PROCESSING  -> COMFIRMED  (xác nhận đơn)
-     * - COMFIRMED   -> SHIPPING   (xác nhận đang giao)
+     * - PROCESSING  -> CONFIRMED  (xác nhận đơn)
+     * - CONFIRMED   -> SHIPPING   (xác nhận đang giao)
      * - SHIPPING    -> COMPLETED  (xác nhận hoàn thành)
      * 
      * Frontend chỉ cần gọi API này, không cần gửi trạng thái đích.

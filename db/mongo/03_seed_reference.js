@@ -174,9 +174,32 @@ print("    inserted users: " + users.length +
 // [3/9] SELLER_SHOPS (aggregate: seller snapshot + geo + stats)
 // ===========================================================================
 print("--- [3/9] seller_shops ---");
+// Loai hinh kinh doanh + don vi van chuyen + mau tai lieu phap ly (demo Admin_Shop_Detail)
+const BUSINESS_TYPES = ["INDIVIDUAL", "HOUSEHOLD", "ENTERPRISE", "SPECIAL"];
+const SHIPPING_CARRIERS = ["GHN", "GHTK", "Viettel Post", "VNPost", "J&T Express", "Ninja Van"];
+const LEGAL_DOC_SAMPLES = [
+  { type: "IDENTITY", label: "CCCD mặt trước", imageUrl: "/uploads/legal-docs/demo_cccd_truoc.jpg" },
+  { type: "IDENTITY", label: "CCCD mặt sau", imageUrl: "/uploads/legal-docs/demo_cccd_sau.jpg" },
+  { type: "BUSINESS_REGISTRATION", label: "Giấy chứng nhận đăng ký kinh doanh", imageUrl: "/uploads/legal-docs/demo_dkkd.jpg" },
+  { type: "TAX", label: "Giấy xác nhận mã số thuế", imageUrl: "/uploads/legal-docs/demo_mst.jpg" }
+];
+
 const shops = sellerIds.map(function (sid, idx) {
   const owner = users.find(u => u._id === sid);
   const loc = CITIES[idx % CITIES.length];
+  // ~15% shop duoc xem nhu du lieu cu: chua cap nhat ho so phap ly (test trang thai "Chua cap nhat")
+  const hasLegal = rnd() >= 0.15;
+  const bizType = BUSINESS_TYPES[idx % BUSINESS_TYPES.length];
+  const docCount = bizType === "INDIVIDUAL" ? 2 : LEGAL_DOC_SAMPLES.length;
+  const legalDocuments = hasLegal
+    ? LEGAL_DOC_SAMPLES.slice(0, docCount).map(function (d, dIdx) {
+        return {
+          type: d.type, label: d.label, imageUrl: d.imageUrl,
+          note: dIdx === 0 ? "Anh mau demo cho do an" : null,
+          uploadedAt: daysAgo(rint(5, 90))
+        };
+      })
+    : [];
   return {
     _id: 1000 + sid,
     sellerId: sid,
@@ -208,6 +231,14 @@ const shops = sellerIds.map(function (sid, idx) {
     followerCount: rint(0, 5000),
     rating: Math.round((3 + rnd() * 2) * 10) / 10,
     ratingCount: rint(0, 800),
+    // --- Ho so phap ly / thue / dinh danh ---
+    businessType: hasLegal ? bizType : null,
+    taxCode: hasLegal ? "0" + rint(1000000000, 9999999999) : null,
+    identityType: hasLegal ? "CCCD" : null,
+    identityNumber: hasLegal ? "0" + rint(10000000000, 99999999999) : null,
+    representativeName: hasLegal ? (owner.profile.lastName + " " + owner.profile.firstName) : null,
+    shippingCarriers: hasLegal ? SHIPPING_CARRIERS.slice(0, rint(1, SHIPPING_CARRIERS.length)) : [],
+    legalDocuments: legalDocuments,
     stats: {
       productCount: 0, orderCount30d: rint(0, 300),
       revenue30d: rint(0, 90000) * 1000, responseRate: Math.round(rnd() * 100) / 100

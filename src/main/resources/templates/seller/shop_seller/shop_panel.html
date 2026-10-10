@@ -74,6 +74,67 @@
                     <input id="city" class="rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="Thành phố">
                 </div>
                 <input id="province" class="w-full rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="Tỉnh/Thành">
+
+                <!-- ===== Hồ sơ pháp lý / thuế / định danh ===== -->
+                <div class="pt-2 mt-1 border-t border-brand-border">
+                    <p class="text-xs font-black text-brand-dark">Hồ sơ pháp lý &amp; thuế</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label for="businessType" class="text-xs font-bold">Loại hình kinh doanh</label>
+                        <select id="businessType" class="mt-1 w-full rounded-md border border-brand-border px-3 py-2 text-sm">
+                            <option value="">— Chưa chọn —</option>
+                            <option value="INDIVIDUAL">Cá nhân</option>
+                            <option value="HOUSEHOLD">Hộ kinh doanh</option>
+                            <option value="ENTERPRISE">Doanh nghiệp</option>
+                            <option value="SPECIAL">Ngành nghề đặc thù</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="identityType" class="text-xs font-bold">Loại giấy tờ</label>
+                        <select id="identityType" class="mt-1 w-full rounded-md border border-brand-border px-3 py-2 text-sm">
+                            <option value="">— Chưa chọn —</option>
+                            <option value="CCCD">CCCD</option>
+                            <option value="CMND">CMND</option>
+                            <option value="PASSPORT">Hộ chiếu</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input id="identityNumber" class="rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="Số CCCD/CMND/Hộ chiếu">
+                    <input id="representativeName" class="rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="Người đại diện (nếu có)">
+                </div>
+
+                <input id="taxCode" class="w-full rounded-md border border-brand-border px-3 py-2 text-sm" placeholder="Mã số thuế (MST)">
+
+                <div>
+                    <label class="text-xs font-bold">Đơn vị vận chuyển chấp nhận</label>
+                    <div id="carrier-group" class="mt-1 flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold">Ảnh tài liệu pháp lý</label>
+                    <div class="mt-1 flex gap-2">
+                        <select id="docType" class="w-1/2 rounded-md border border-brand-border px-2 py-2 text-xs">
+                            <option value="IDENTITY">Giấy tờ tuỳ thân</option>
+                            <option value="BUSINESS_REGISTRATION">Đăng ký kinh doanh</option>
+                            <option value="TAX">Thuế / MST</option>
+                            <option value="SPECIAL_LICENSE">Giấy phép chuyên ngành</option>
+                            <option value="BRAND_DOC">Tài liệu thương hiệu</option>
+                        </select>
+                        <input id="docLabel" class="w-1/2 rounded-md border border-brand-border px-2 py-2 text-xs" placeholder="Tên tài liệu">
+                    </div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <input type="file" id="doc-file-input" accept="image/png,image/jpeg,image/webp" class="hidden" />
+                        <button type="button" id="doc-choose-btn" class="rounded-md border border-brand-border px-3 py-1.5 text-xs font-bold hover:bg-brand-bg transition">Chọn ảnh</button>
+                        <span id="doc-file-name" class="text-[10px] text-brand-dark/60">Chưa chọn ảnh</span>
+                    </div>
+                    <div id="legal-docs-list" class="mt-2 space-y-1.5"></div>
+                    <p id="legal-docs-empty" class="mt-1 text-[10px] text-brand-dark/50">Chưa có tài liệu pháp lý. Ảnh được tải lên ngay khi chọn (JPG/PNG/WEBP, tối đa 5MB).</p>
+                </div>
+
                 <div class="flex flex-wrap gap-2 pt-1">
                     <button id="shop-panel-save" type="submit" class="rounded-md bg-brand-brown text-white px-3 py-2 text-xs font-bold hover:bg-brand-brown-dark transition">Lưu</button>
                     <button id="shop-panel-cancel" type="button" class="rounded-md border border-brand-border px-3 py-2 text-xs font-bold hover:bg-brand-bg transition">Hủy</button>

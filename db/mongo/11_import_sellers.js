@@ -177,6 +177,19 @@ SELLERS.forEach(function (s, index) {
     followerCount: NumberLong("0"),
     rating: 0,
     ratingCount: NumberLong("0"),
+    // --- Ho so phap ly / thue / dinh danh (du lieu that cho nha ban) ---
+    businessType: (index % 3 === 0) ? "ENTERPRISE" : "HOUSEHOLD",
+    taxCode: "0" + String(1000000000 + index * 7919),
+    identityType: "CCCD",
+    identityNumber: "0" + String(10000000000 + index * 104729),
+    representativeName: s.name,
+    shippingCarriers: ["GHN", "GHTK", "Viettel Post"].slice(0, 2 + (index % 2)),
+    legalDocuments: [
+      { type: "IDENTITY", label: "CCCD mặt trước", imageUrl: "/uploads/legal-docs/demo_cccd_truoc.jpg", note: null, uploadedAt: NOW },
+      { type: "IDENTITY", label: "CCCD mặt sau", imageUrl: "/uploads/legal-docs/demo_cccd_sau.jpg", note: null, uploadedAt: NOW },
+      { type: "BUSINESS_REGISTRATION", label: "Giấy chứng nhận đăng ký kinh doanh", imageUrl: "/uploads/legal-docs/demo_dkkd.jpg", note: null, uploadedAt: NOW },
+      { type: "TAX", label: "Giấy xác nhận mã số thuế", imageUrl: "/uploads/legal-docs/demo_mst.jpg", note: null, uploadedAt: NOW }
+    ],
     stats: {
       productCount: NumberInt(0),
       orderCount30d: NumberLong("0"),

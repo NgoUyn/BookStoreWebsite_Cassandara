@@ -83,6 +83,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/seller/**").hasAuthority("SELLER")
                         .requestMatchers("/api/books/seller/**").hasAuthority("SELLER")
 
+                        // Upload tài liệu pháp lý của hồ sơ đăng ký người bán
+                        .requestMatchers("/api/seller-applications/**").hasAnyAuthority("BUYER", "SELLER")
+
                         .requestMatchers("/api/panel/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/notifications/admin").hasAuthority("ADMIN")

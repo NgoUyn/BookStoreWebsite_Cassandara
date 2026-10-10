@@ -33,4 +33,15 @@ public class SellerShopResponse {
     private LocalDateTime updatedAt;
     private String rejectionReason;
 
+    // ------------------------------------------------------------------
+    // Hồ sơ pháp lý / thuế / định danh (trả về cho chính chủ shop + admin)
+    // ------------------------------------------------------------------
+    private String businessType;
+    private String taxCode;
+    private String identityType;
+    private String identityNumber;
+    private String representativeName;
+    private java.util.List<String> shippingCarriers;
+    private java.util.List<com.example.bookstore.model.SellerShop.LegalDocument> legalDocuments;
+
 }

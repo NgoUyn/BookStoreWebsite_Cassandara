@@ -2,10 +2,10 @@ package com.example.bookstore.model.enums;
 
 public enum PaymentStatus {
     PENDING("Chờ thanh toán"),
-    PROCESSING("Đang xử lý"),
-    COMPLETED("Thanh toán thành công"),
+    SUCCESS("Thanh toán thành công"),
     FAILED("Thanh toán thất bại"),
     CANCELLED("Hủy thanh toán"),
+    EXPIRED("Hết hạn thanh toán"),
     REFUNDED("Đã hoàn tiền");
 
     private final String displayName;
