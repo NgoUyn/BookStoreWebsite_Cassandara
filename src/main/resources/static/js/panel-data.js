@@ -85,23 +85,6 @@
       setText("metric-gmv", vnd(data.gmv));
       setText("metric-books", String(data.books || 0).replace(/\B(?=(\d{3})+(?!\d))/g, "."));
       setText("metric-categories", String(data.categories || 0));
-      setText("metric-shops", String(data.shops || 0));
-
-      var latestShops = data.latestShops || [];
-      var rows = latestShops.map(function (s, idx) {
-        return (
-            "<tr>" +
-            '<td class="px-6 py-4 font-bold text-[#5D4037]">' + esc(s.shopName) + "</td>" +
-            '<td class="px-6 py-4">' + esc(s.owner) + "</td>" +
-            '<td class="px-6 py-4 font-mono text-gray-500">MST0' + (1000 + idx) + '</td>' +
-            '<td class="px-6 py-4 text-gray-500">' + esc(s.joined) + '</td>' +
-            '<td class="px-6 py-4 text-right"><span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase text-emerald-600">' + esc(s.status) + '</span></td>' +
-            "</tr>"
-        );
-      })
-          .join("");
-      setHtml("admin-dashboard-shops", rows || '<tr><td class="px-6 py-10 text-center" colspan="5">Không có dữ liệu gian hàng</td></tr>');
-
       var catStats = data.categoryStats || {};
       chart(
           "admin-category-chart",
@@ -126,31 +109,6 @@
           }
       );
 
-      var stockBuckets = data.stockBuckets || {};
-      chart(
-          "admin-stock-chart",
-          "doughnut",
-          {
-            labels: ["Thấp (Low)", "Bình thường", "Cao (High)"],
-            datasets: [{
-              data: [stockBuckets.low || 0, stockBuckets.normal || 0, stockBuckets.high || 0],
-              backgroundColor: ["#ea580c", "#D19C74", "#5D4037"],
-              borderWidth: 0,
-              hoverOffset: 10
-            }]
-          },
-          {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: 'bottom',
-                labels: { padding: 20, usePointStyle: true, font: { weight: 'bold' } }
-              }
-            },
-            cutout: '70%'
-          }
-      );
       // populate small quick metrics from /dashboard if available
       getJson(API_ROOT + "/dashboard").then(function(dash) {
         try { setText('metric-orders', String(dash.ordersCount || 0)); } catch(e) {}

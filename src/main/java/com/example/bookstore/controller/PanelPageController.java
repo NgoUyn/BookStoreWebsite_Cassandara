@@ -134,8 +134,8 @@ public class PanelPageController {
      * Trang chi tiết 1 hồ sơ đăng ký người bán (read-only).
      * Dữ liệu được nạp bằng JS qua /api/admin/seller-shops-management/{id}.
      *
-     * @param from nguồn điều hướng ('seller-applications' | 'admin-shops') để nút
-     *             "Quay lại" trỏ về đúng trang trước đó.
+     * @param from nguồn điều hướng để nút "Quay lại" trỏ về đúng trang trước đó
+     *             (mặc định: 'seller-applications').
      */
     @GetMapping("/admin/shops/{id}")
     public String adminShopDetail(@PathVariable("id") Long id,
@@ -143,7 +143,7 @@ public class PanelPageController {
                                   Model model) {
         model.addAttribute("pageTitle", "Chi tiết gian hàng");
         model.addAttribute("pageSubtitle", "Hồ sơ đăng ký người bán (chỉ xem)");
-        model.addAttribute("activeMenu", "admin-shops");
+        model.addAttribute("activeMenu", "admin-seller-applications");
         model.addAttribute("shopId", id);
         model.addAttribute("from", (from == null || from.isBlank()) ? "seller-applications" : from);
         return "admin/Admin_Shop_Detail";
@@ -171,6 +171,14 @@ public class PanelPageController {
         model.addAttribute("pageSubtitle", "Tạo và quản lý các mã giảm giá trên toàn sàn");
         model.addAttribute("activeMenu", "admin-coupons");
         return "admin/Admin_Coupons";
+    }
+
+    @GetMapping("/admin/backup")
+    public String adminBackup(Model model) {
+        model.addAttribute("pageTitle", "Sao lưu hệ thống");
+        model.addAttribute("pageSubtitle", "Sao lưu & phục hồi toàn bộ dữ liệu và hình ảnh");
+        model.addAttribute("activeMenu", "admin-backup");
+        return "admin/Admin_Backup";
     }
 
     @GetMapping("/admin/customers")

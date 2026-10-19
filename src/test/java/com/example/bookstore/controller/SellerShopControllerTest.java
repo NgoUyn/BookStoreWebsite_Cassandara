@@ -6,6 +6,7 @@ import com.example.bookstore.model.enums.ApprovalStatus;
 import com.example.bookstore.repository.BookRepository;
 import com.example.bookstore.security.JwtAuthenticatedPrincipal;
 import com.example.bookstore.service.SellerShopService;
+import com.example.bookstore.service.storage.FileStorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,12 +40,16 @@ class SellerShopControllerTest {
     @Mock
     private BookRepository bookRepository;
 
+    /** Kho luu tru file (GridFS/local) - controller chi uy quyen, test khong can hanh vi that. */
+    @Mock
+    private FileStorageService fileStorageService;
+
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        SellerShopController controller = new SellerShopController(sellerShopService, bookRepository);
+        SellerShopController controller = new SellerShopController(sellerShopService, bookRepository, fileStorageService);
 
         mockMvc = MockMvcBuilders
             .standaloneSetup(controller)

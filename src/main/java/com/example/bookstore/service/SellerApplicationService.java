@@ -35,7 +35,9 @@ public class SellerApplicationService {
     private static final Set<String> IDENTITY_TYPES = Set.of("CCCD", "CMND", "PASSPORT");
     private static final Set<String> LEGAL_DOC_TYPES = Set.of(
             "IDENTITY", "BUSINESS_REGISTRATION", "TAX", "SPECIAL_LICENSE", "BRAND_DOC");
-    private static final Set<String> ALLOWED_URL_PREFIXES = Set.of("/uploads/legal-docs/", "/uploads/shops/", "/images/");
+    private static final Set<String> ALLOWED_URL_PREFIXES = Set.of(
+            "/uploads/legal-docs/", "/uploads/shops/", "/images/",
+            com.example.bookstore.service.storage.FileUrls.PREFIX);
 
     @Autowired
     private SellerShopRepository sellerShopRepository;
@@ -136,6 +138,7 @@ public class SellerApplicationService {
                     .type(normalizeEnum(doc.getType(), LEGAL_DOC_TYPES))
                     .label(text(doc.getLabel(), null, 150))
                     .imageUrl(imageUrl)
+                    .fileId(com.example.bookstore.service.storage.FileUrls.gridFsIdOf(imageUrl))
                     .note(text(doc.getNote(), null, 300))
                     .uploadedAt(LocalDateTime.now())
                     .build());

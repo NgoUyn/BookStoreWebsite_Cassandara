@@ -4,7 +4,11 @@
 > Đích: Spring Boot + **MongoDB 8.x** (replica set) | Ngày cập nhật: 21/09/2026
 
 ---
+cách chạy:
 
+cd tools
+mongo-dev-start.bat
+run-app.bat
 ## 1. Mục tiêu & phạm vi
 
 | Mục tiêu | Cách làm |
@@ -181,7 +185,7 @@ Tất cả có **validator `$jsonSchema`** (`validationLevel: moderate`, `valida
 | Time-series collection | `activity_log` + TTL 180 ngày | `01`, `03` |
 | `counters` + `findAndModify $inc` | Cấp Long id | `MongoSequenceService.java` |
 | Partial / collation / multikey index | Ràng buộc & tối ưu | `02_indexes.js` |
-| GridFS | Lưu ảnh (Phase 4) | `MongoConfig.gridFsTemplate` |
+| GridFS | Lưu ảnh (Phase 4) | `MongoConfig.gridFsTemplate` + `FileStorageService`/`GridFsStorageService` (`app.storage.type=gridfs`, URL `/api/files/{id}`) |
 
 ---
 
@@ -198,7 +202,7 @@ com.example.bookstore
 ├── repository/       (derived + @Query JSON)
 │   └── aggregation/  (MongoTemplate + Aggregation cho truy vấn nâng cao)
 ├── service/          (business, không biết Mongo)
-│   └── mongo/        MongoSequenceService · (Phase 4: BackupService, QueryExplorerService, …)
+│   └── mongo/        MongoSequenceService · BackupService + MongoToolsLocator (Phase 4) · (còn: QueryExplorerService, …)
 └── mapper/           Document ↔ DTO (giữ nguyên shape JSON)
 ```
 
@@ -318,6 +322,9 @@ REM 6) Chay ung dung Spring Boot
 1. **Chụp ảnh Compass** theo `GUI_TOOL_GUIDE.md` (khoảng 15–18 ảnh) → lưu vào `docs/mongodb/screenshots/`.
 2. ~~**Phase 3**: chuyển 22 entity → document/embedded; 21 repository → MongoRepository/Aggregation; ~10 service~~ ✅ **XONG** — `src/main` (225 file) `BUILD SUCCESS`, 15 file test compile được.
 3. **Phase 4**: Backup Manager / Query Explorer / Explain Viewer / Index Manager trong panel admin; GridFS cho ảnh; Change Stream push SSE.
+   * ~~GridFS cho ảnh~~ ✅ **XONG** — `service/storage/FileStorageService` (+ `GridFsStorageService`/`LocalFileStorageService`, chọn bằng `app.storage.type=gridfs|local`), ảnh bìa/logo/banner/tài liệu pháp lý lưu vào `fs.files`+`fs.chunks`, phục vụ qua `GET /api/files/{objectId}` (`FileController`); di trú ảnh cũ bằng `db/mongo/15_migrate_uploads_to_gridfs.js` + `tools\migrate-uploads-to-gridfs.bat`.
+   * ~~Backup Manager~~ ✅ **XONG** — `service/mongo/BackupService` + `MongoToolsLocator` + `controller/admin/AdminBackupController` (`/api/admin/backup`), giao diện `/admin/backup` (`Admin_Backup.html` + `static/js/admin-backup.js`): tạo bản sao lưu `mongodump --gzip --archive`, phục hồi `mongorestore --drop`, tải về, xoá. Vì ảnh nằm trong GridFS nên **1 file `.archive` chứa cả dữ liệu lẫn ảnh**.
+   * Còn lại: Query Explorer / Explain Viewer / Index Manager; Change Stream push SSE.
 4. ~~**Phase 5**: gỡ JPA + Flyway + mssql-jdbc khỏi `pom.xml`, xoá `db/migration/*.sql`~~ ✅ **XONG** — `pom.xml` chỉ còn `spring-boot-starter-data-mongodb`; xoá `spring.datasource.*`/`spring.jpa.*`/`spring.flyway.*` trong `application.properties`; `git rm` 35 file `db/migration/V*.sql`.
 5. **Phase 6**: kiểm thử end-to-end trên MongoDB (login → duyệt sách → giỏ → checkout → dashboard seller) + báo cáo/slide/kịch bản demo.
 
@@ -327,7 +334,7 @@ REM 6) Chay ung dung Spring Boot
 tools\run-tests.bat        REM can MongoDB 27018 dang chay; log -> logs\test-bg.log
 ```
 
-* 15 file test / 54 test case. **Trước đây bộ test chưa từng chạy được** vì `pom.xml` cố định `skipTests=true` và `.m2` thiếu `surefire-junit-platform:3.2.5`.
+* 18 file test / 74 test case (chạy thật `Tests run: 74, Failures: 0, Errors: 0`). **Trước đây bộ test chưa từng chạy được** vì `pom.xml` cố định `skipTests=true` và `.m2` thiếu `surefire-junit-platform:3.2.5`.
 * `BookRepositoryYearFilterTest` đã chuyển `@DataJpaTest` (H2) → `@DataMongoTest` trỏ vào DB riêng `bookom_test` ở cổng 27018 ⇒ không đụng dữ liệu thật, không cần H2/flapdoodle.
 * `BookStoreApplicationTests.contextLoads` nay khởi động context thật trên MongoDB ⇒ phát hiện được các lỗi wiring chỉ lộ khi chạy (mục 9.10 – 9.15).
 * Các test legacy được nới `@MockitoSettings(strictness = LENIENT)` (Mockito 5 mặc định STRICT_STUBS) — stub cũ không còn dùng sau khi chuyển Mongo.

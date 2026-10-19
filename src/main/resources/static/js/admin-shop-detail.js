@@ -114,7 +114,7 @@
         shopId = els.context ? els.context.dataset.shopId : null;
         fromPage = (els.context && els.context.dataset.from) || 'seller-applications';
         if (els.backBtn) {
-            els.backBtn.href = fromPage === 'admin-shops' ? '/admin/shops' : '/admin/seller-applications';
+            els.backBtn.href = '/admin/seller-applications';
         }
         els.refreshBtn?.addEventListener('click', load);
 

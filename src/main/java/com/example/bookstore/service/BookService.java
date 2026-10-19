@@ -31,8 +31,9 @@ public class BookService {
     @Autowired
     private com.example.bookstore.repository.CategoryRepository categoryRepository;
 
-    @Value("${app.uploads.covers-dir:uploads/covers}")
-    private String coversDir;
+    /** Kho luu tru file (GridFS hoặc uploads/ — chọn bằng app.storage.type). */
+    @Autowired
+    private com.example.bookstore.service.storage.FileStorageService fileStorageService;
 
     // Function lay all book
     public List<Book> getAllBook() {
@@ -316,37 +317,28 @@ public class BookService {
             throw new RuntimeException("Không có quyền upload ảnh cho sách này");
         }
 
-        // Chống RCE bằng cách check File Signature
-        org.apache.tika.Tika tika = new org.apache.tika.Tika();
-        String mimeType = tika.detect(file.getInputStream());
-        if (!mimeType.equals("image/jpeg") && !mimeType.equals("image/png") && !mimeType.equals("image/webp")) {
-            throw new RuntimeException("File tải lên không phải là định dạng ảnh hợp lệ!");
+        // Chống RCE (kiểm tra chữ ký file bằng Apache Tika), sinh tên chống path traversal
+        // và lưu file — TẤT CẢ nằm trong FileStorageService:
+        //   - app.storage.type=gridfs (mặc định) -> GridFS trong MongoDB
+        //     => mongodump là sao lưu được cả DB lẫn ảnh bìa
+        //   - app.storage.type=local -> uploads/covers/ như trước đây
+        com.example.bookstore.service.storage.StoredFile stored =
+                fileStorageService.store(file, "covers");
+
+        // Lưu URL công khai vào DB (/api/files/{id} với GridFS)
+        existingBook.setImageUrl(stored.url());
+        existingBook.setMediumImageUrl(stored.url()); // gán tạm cở trung
+        existingBook.setLargeimageUrl(stored.url()); // gán tạm cở lớn
+
+        // Giữ thêm ObjectId trong fs.files để truy vết file trong GridFS (Phase 4 DESIGN.md)
+        if (com.example.bookstore.service.storage.FileStorageService.GRIDFS.equals(fileStorageService.backend())
+                && org.bson.types.ObjectId.isValid(stored.id())) {
+            existingBook.setCoverFileId(new org.bson.types.ObjectId(stored.id()));
         }
 
-        // Sinh tên file mới chống Path Traversal
-        String originalFilename = file.getOriginalFilename();
-        String extension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-        String safeFileName = java.util.UUID.randomUUID().toString() + extension;
-
-        // --- ĐOẠN LƯU FILE THẬT VÀO Ổ CỨNG ---
-        java.nio.file.Path uploadPath = java.nio.file.Paths.get(coversDir);
-        if (!java.nio.file.Files.exists(uploadPath)) {
-            java.nio.file.Files.createDirectories(uploadPath);
-        }
-        java.nio.file.Path filePath = uploadPath.resolve(safeFileName);
-        java.nio.file.Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-        // Lưu URL thật vào DB
-        String realFileUrl = "/images/covers/" + safeFileName;
-        existingBook.setImageUrl(realFileUrl);
-        existingBook.setMediumImageUrl(realFileUrl); // gán tạm cở trung
-        existingBook.setLargeimageUrl(realFileUrl); // gán tạm cở lớn
         bookRepository.save(existingBook);
 
-        return realFileUrl;
+        return stored.url();
     }
 
     public void deleteBookForSeller(Long bookId, Long sellerId) {

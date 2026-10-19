@@ -47,6 +47,13 @@ public class SellerShop implements SequencedDocument, AuditableDocument {
 
     private String logoUrl;
     private String bannerUrl;
+
+    /**
+     * ObjectId trong {@code fs.files} của logo/banner khi ảnh được lưu trong GridFS
+     * (Phase 4 DESIGN.md). Song song với {@code logoUrl}/{@code bannerUrl} để truy vết file.
+     */
+    private String logoFileId;
+    private String bannerFileId;
     private String contactEmail;
     private String contactPhone;
     private String address;
@@ -139,6 +146,8 @@ public class SellerShop implements SequencedDocument, AuditableDocument {
         private String type;
         private String label;
         private String imageUrl;
+        /** ObjectId trong {@code fs.files} khi ảnh tài liệu được lưu trong GridFS. */
+        private String fileId;
         private String note;
         private LocalDateTime uploadedAt;
     }

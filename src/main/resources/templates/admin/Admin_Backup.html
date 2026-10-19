@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/panel_head :: head(${pageTitle}, false)}"></head>
+<body class="font-sans bg-[#fbfaf8] text-[#5D4037]">
+<div class="flex min-h-screen">
+    <div th:replace="~{fragments/admin_layout :: sidebar(${activeMenu})}"></div>
+    <div class="flex-1 min-w-0">
+        <div th:replace="~{fragments/admin_layout :: header(${pageTitle}, ${pageSubtitle})}"></div>
+        <main class="p-4 md:p-8 space-y-6">
+
+            <!-- ============ Giới thiệu chức năng ============ -->
+            <section class="rounded-2xl border border-[#E5CBB5] bg-[#FAF5E8] p-6 shadow-sm">
+                <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="space-y-2 max-w-3xl">
+                        <div class="inline-flex items-center gap-2 rounded-full border border-[#E5CBB5] bg-white px-4 py-1.5 w-fit">
+                            <span class="h-2.5 w-2.5 rounded-full bg-[#ea580c]"></span>
+                            <span class="text-xs font-black uppercase tracking-wider text-[#5D4037]/80">Admin · Sao lưu hệ thống</span>
+                        </div>
+                        <p class="text-sm font-bold text-[#5D4037]/80">
+                            Mỗi bản sao lưu là 1 file <code class="font-black">.archive</code> (nén gzip) chứa
+                            <b>toàn bộ database bookom</b> — gồm cả <b>ảnh bìa sách, logo/banner shop và ảnh tài liệu
+                            pháp lý</b> vì các ảnh này được lưu trong GridFS của chính database.
+                        </p>
+                        <p class="text-xs font-bold text-[#5D4037]/60">
+                            Lưu ý: chat realtime vẫn nằm trên Firebase Firestore (dịch vụ bên thứ ba) nên KHÔNG nằm
+                            trong file .archive. Thư mục <code class="font-black">backups/</code> đã được .gitignore bỏ qua.
+                        </p>
+                    </div>
+                    <div class="flex flex-col gap-3 shrink-0">
+                        <button id="btn-create-backup"
+                                class="rounded-xl bg-[#ea580c] px-6 py-3 font-black text-white shadow-sm hover:bg-[#c2410c] transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                            Tạo bản sao lưu ngay
+                        </button>
+                        <button id="btn-reload-backup"
+                                class="rounded-xl border border-[#E5CBB5] bg-white px-6 py-2.5 font-black text-[#5D4037] hover:bg-[#FAF5E8] transition-all">
+                            Làm mới danh sách
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ Tình trạng hệ thống ============ -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="rounded-2xl border border-[#E5CBB5] bg-white p-5 shadow-sm">
+                    <p class="text-[10px] font-black uppercase tracking-wider text-[#5D4037]/60">Kho ảnh đang dùng</p>
+                    <p id="status-storage" class="mt-2 text-lg font-black text-[#5D4037]">—</p>
+                    <p class="mt-1 text-xs font-bold text-[#5D4037]/60">gridfs = ảnh nằm trong DB, sao lưu kèm 1 lệnh</p>
+                </div>
+                <div class="rounded-2xl border border-[#E5CBB5] bg-white p-5 shadow-sm">
+                    <p class="text-[10px] font-black uppercase tracking-wider text-[#5D4037]/60">Công cụ MongoDB</p>
+                    <p id="status-tools" class="mt-2 text-lg font-black text-[#5D4037]">—</p>
+                    <p class="mt-1 text-xs font-bold text-[#5D4037]/60">mongodump (sao lưu) &amp; mongorestore (phục hồi)</p>
+                </div>
+                <div class="rounded-2xl border border-[#E5CBB5] bg-white p-5 shadow-sm">
+                    <p class="text-[10px] font-black uppercase tracking-wider text-[#5D4037]/60">Thư mục sao lưu</p>
+                    <p id="status-dir" class="mt-2 text-sm font-black text-[#5D4037] break-all">—</p>
+                    <p id="status-total" class="mt-1 text-xs font-bold text-[#5D4037]/60">—</p>
+                </div>
+            </section>
+
+            <!-- ============ Danh sách bản sao lưu ============ -->
+            <section class="rounded-2xl border border-[#E5CBB5] bg-white shadow-sm overflow-hidden">
+                <div class="border-b border-[#E5CBB5] bg-[#FAF5E8] px-6 py-4 flex items-center justify-between">
+                    <h2 class="text-sm font-black uppercase tracking-wider text-[#5D4037]/80">Danh sách bản sao lưu</h2>
+                    <span id="backup-count" class="text-xs font-black text-[#5D4037]/60">—</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-[#FAF5E8] text-[#5D4037]/70 border-b border-[#E5CBB5]">
+                        <tr>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">File</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Dung lượng</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Thời điểm</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px]">Trạng thái</th>
+                            <th class="px-6 py-4 font-black uppercase tracking-wider text-[10px] text-right">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="backup-table-body" class="divide-y divide-[#E5CBB5]">
+                        <tr><td colspan="5" class="px-6 py-10 text-center text-gray-400 font-bold">Đang tải danh sách bản sao lưu…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ============ Log chi tiết ============ -->
+            <section id="backup-log-section" class="hidden rounded-2xl border border-[#E5CBB5] bg-white p-6 shadow-sm">
+                <h2 class="text-sm font-black uppercase tracking-wider text-[#5D4037]/80">Log tiến trình</h2>
+                <pre id="backup-log" class="mt-3 max-h-72 overflow-auto rounded-xl bg-[#2b211c] p-4 text-xs font-mono text-[#f0e6df] whitespace-pre-wrap"></pre>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script th:src="@{/js/api-service.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/admin-backup.js}"></script>
+<script>
+    window.initAdminBackupPage();
+</script>
+</body>
+</html>

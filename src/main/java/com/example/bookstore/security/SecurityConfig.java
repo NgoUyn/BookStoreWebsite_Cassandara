@@ -86,6 +86,10 @@ public class SecurityConfig {
                         // Upload tài liệu pháp lý của hồ sơ đăng ký người bán
                         .requestMatchers("/api/seller-applications/**").hasAnyAuthority("BUYER", "SELLER")
 
+                        // Ảnh lưu trong GridFS: phục vụ công khai theo ObjectId không đoán được
+                        // (giống /images/**). Hồ sơ pháp lý vẫn được lọc ở tầng service.
+                        .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
+
                         .requestMatchers("/api/panel/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/notifications/admin").hasAuthority("ADMIN")

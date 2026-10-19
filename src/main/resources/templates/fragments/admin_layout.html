@@ -135,9 +135,7 @@
 
             function initAdminLogout() {
                 var sidebarLogoutBtn = document.getElementById('admin-logout-btn');
-                var headerLogoutBtn = document.getElementById('admin-header-logout-btn');
                 if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', handleAdminLogout);
-                if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', handleAdminLogout);
             }
 
             if (document.readyState === 'loading') {
@@ -171,12 +169,6 @@
             <span class="menu-label">Người dùng</span>
         </a>
 
-        <a th:href="@{/admin/shops}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
-           th:classappend="${activeMenu == 'admin-shops'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
-            <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-shops'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
-            <span class="menu-label">Gian hàng</span>
-        </a>
-
         <a th:href="@{/admin/categories}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
            th:classappend="${activeMenu == 'admin-categories'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
             <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-categories'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
@@ -187,6 +179,13 @@
            th:classappend="${activeMenu == 'admin-coupons'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
             <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-coupons'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
             <span class="menu-label">Mã khuyến mãi</span>
+        </a>
+
+        <!-- Sao lưu / phục hồi toàn bộ hệ thống (DB + ảnh GridFS) -->
+        <a th:href="@{/admin/backup}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
+           th:classappend="${activeMenu == 'admin-backup'} ? ' bg-[#FAF5E8] text-[#ea580c] shadow-sm' : ' text-gray-600 hover:bg-gray-50'">
+            <div class="h-2 w-2 rounded-full shrink-0" th:classappend="${activeMenu == 'admin-backup'} ? ' bg-[#ea580c]' : ' bg-gray-300 group-hover:bg-gray-400'"></div>
+            <span class="menu-label">Sao lưu hệ thống</span>
         </a>
 
           <a th:href="@{/admin/seller-applications}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all"
@@ -204,9 +203,13 @@
         <!-- Đăng xuất -->
         <hr class="border-gray-100 my-4">
         <button id="admin-logout-btn" type="button"
-                class="sidebar-logout-btn group flex items-center gap-3 rounded-xl px-4 py-3 transition-all w-full text-left text-red-500 font-extrabold hover:bg-red-50 hover:text-red-600"
+                class="sidebar-logout-btn group flex items-center gap-2 rounded-xl border border-[#E5CBB5] bg-white px-4 py-2.5 text-sm font-black text-red-500 shadow-sm hover:bg-red-50 hover:text-red-600 transition-all w-full text-left"
                 title="Đăng xuất">
-            <div class="h-2 w-2 rounded-full shrink-0 bg-red-400"></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
             <span class="menu-label">Đăng xuất</span>
         </button>
 
@@ -258,16 +261,6 @@
     <div class="flex items-center gap-3">
         <a th:href="@{/}" class="hidden sm:inline-flex text-sm font-black text-[#5D4037]/70 hover:text-[#5D4037]">Về trang mua sắm</a>
         <div th:replace="fragments/notifications_fragment :: notifications()"></div>
-        <button id="admin-header-logout-btn" type="button"
-                class="inline-flex items-center gap-2 rounded-xl border border-[#E5CBB5] bg-white px-3 py-2 text-sm font-black text-red-500 shadow-sm hover:bg-red-50 hover:text-red-600 transition-all"
-                title="Đăng xuất">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span class="hidden sm:inline">Đăng xuất</span>
-        </button>
         <div class="h-10 w-10 rounded-full bg-[#D19C74] text-white flex items-center justify-center text-xs font-black shadow-sm">AD</div>
     </div>
 </header>

@@ -7,9 +7,10 @@ import com.example.bookstore.model.enums.ApprovalStatus;
 import com.example.bookstore.repository.BookRepository;
 import com.example.bookstore.security.JwtAuthenticatedPrincipal;
 import com.example.bookstore.service.SellerShopService;
+import com.example.bookstore.service.storage.FileStorageService;
+import com.example.bookstore.service.storage.StoredFile;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
  
 
@@ -36,6 +32,7 @@ public class SellerShopController {
 
     private final SellerShopService shopService;
     private final BookRepository bookRepository;
+    private final FileStorageService fileStorageService;
 
     // ==========================================
     // ENDPOINTS DÀNH CHO SELLER QUẢN LÝ SHOP
@@ -95,9 +92,6 @@ public class SellerShopController {
     // UPLOAD ẢNH CHO SHOP (LOGO / BANNER)
     // ==========================================
 
-    @Value("${app.uploads.shops-dir:uploads/shops}")
-    private String shopsUploadDir;
-
     @PostMapping(value = "/seller/me/shop/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('SELLER')")
     public ResponseEntity<String> uploadShopImage(
@@ -117,34 +111,15 @@ public class SellerShopController {
             return ResponseEntity.badRequest().body("File không được để trống");
         }
 
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            return ResponseEntity.badRequest().body("Chỉ chấp nhận file ảnh");
-        }
-
         try {
-            // Ensure upload directory exists
-            Path uploadPath = Paths.get(shopsUploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+            // FileStorageService tự xác thực CHỮ KÝ FILE (Tika, chỉ nhận JPG/PNG/WEBP),
+            // sinh tên file chống path traversal và lưu vào kho (GridFS hoặc uploads/shops/).
+            // URL trả về được frontend lưu vào logoUrl/bannerUrl của shop.
+            StoredFile stored = fileStorageService.store(file, "shops");
+            return ResponseEntity.ok(stored.url());
 
-            // Generate unique filename
-            String originalName = file.getOriginalFilename();
-            String extension = "";
-            if (originalName != null && originalName.contains(".")) {
-                extension = originalName.substring(originalName.lastIndexOf("."));
-            }
-            String safeFileName = type + "_" + sellerId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
-            Path filePath = uploadPath.resolve(safeFileName);
-
-            // Save file
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            // Return URL path (relative, frontend will prepend base URL)
-            String imageUrl = "/uploads/shops/" + safeFileName;
-            return ResponseEntity.ok(imageUrl);
-
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (IOException e) {
             return ResponseEntity.internalServerError().body("Upload thất bại: " + e.getMessage());
         }

@@ -30,7 +30,9 @@ public class SellerShopService {
     private static final Set<String> IDENTITY_TYPES = Set.of("CCCD", "CMND", "PASSPORT");
     private static final Set<String> LEGAL_DOC_TYPES = Set.of(
             "IDENTITY", "BUSINESS_REGISTRATION", "TAX", "SPECIAL_LICENSE", "BRAND_DOC");
-    private static final Set<String> ALLOWED_IMAGE_PREFIXES = Set.of("/uploads/legal-docs/", "/uploads/shops/", "/images/");
+    private static final Set<String> ALLOWED_IMAGE_PREFIXES = Set.of(
+            "/uploads/legal-docs/", "/uploads/shops/", "/images/",
+            com.example.bookstore.service.storage.FileUrls.PREFIX);
 
     private final SellerShopRepository shopRepository;
     private final UserRepository userRepository;
@@ -81,6 +83,8 @@ public class SellerShopService {
 
         // Hồ sơ pháp lý / thuế / định danh (nếu request có gửi lên)
         applyLegalProfile(newShop, request);
+        // Truy vết file ảnh trong GridFS (logo/banner) — Phase 4 DESIGN.md
+        applyFileIds(newShop);
 
         SellerShop savedShop = shopRepository.save(newShop);
         return mapToResponse(savedShop);
@@ -115,6 +119,8 @@ public class SellerShopService {
 
         // Hồ sơ pháp lý / thuế / định danh (chỉ ghi đè field nào request có gửi)
         applyLegalProfile(shop, request);
+        // Truy vết file ảnh trong GridFS (logo/banner) — Phase 4 DESIGN.md
+        applyFileIds(shop);
 
         SellerShop updatedShop = shopRepository.save(shop);
         return mapToResponse(updatedShop);
@@ -419,6 +425,7 @@ public class SellerShopService {
                     .type(normalizeEnum(dto.getType(), LEGAL_DOC_TYPES))
                     .label(trimTo(dto.getLabel(), 150))
                     .imageUrl(imageUrl)
+                    .fileId(com.example.bookstore.service.storage.FileUrls.gridFsIdOf(imageUrl))
                     .note(trimTo(dto.getNote(), 300))
                     .uploadedAt(uploadedAtByUrl.getOrDefault(imageUrl, LocalDateTime.now()))
                     .build());
@@ -449,4 +456,16 @@ public class SellerShopService {
         }
         return null;
     }
+
+    /**
+     * Suy ra ObjectId GridFS từ URL ảnh ({@code /api/files/{id}}) để lưu kèm
+     * {@code logoFileId}/{@code bannerFileId} — nhờ vậy file trong GridFS truy vết
+     * được ngay từ document shop. URL legacy (/uploads/..., /images/...) → null.
+     */
+    private static void applyFileIds(SellerShop shop) {
+        shop.setLogoFileId(com.example.bookstore.service.storage.FileUrls.gridFsIdOf(shop.getLogoUrl()));
+        shop.setBannerFileId(com.example.bookstore.service.storage.FileUrls.gridFsIdOf(shop.getBannerUrl()));
+    }
+
+
 }

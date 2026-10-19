@@ -202,6 +202,9 @@ ensureCollection("seller_shops", {
     seller: { bsonType: ["object", "null"] },
     logoUrl: { bsonType: ["string", "null"] },
     bannerUrl: { bsonType: ["string", "null"] },
+    // ObjectId trong fs.files khi logo/banner duoc luu trong GridFS (Phase 4)
+    logoFileId: { bsonType: ["string", "null"] },
+    bannerFileId: { bsonType: ["string", "null"] },
     contactEmail: { bsonType: ["string", "null"] },
     contactPhone: { bsonType: ["string", "null"] },
     address: { bsonType: ["string", "null"] },
