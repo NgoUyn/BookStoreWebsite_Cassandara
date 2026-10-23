@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
     if (!window.ApiService) {
         return;
     }
@@ -36,9 +36,9 @@
         return Array.from(grouped.values());
     };
 
-// TÌM VÀ THAY THẾ TOÀN BỘ HÀM NÀY:
+// TÃŒM VÃ€ THAY THáº¾ TOÃ€N Bá»˜ HÃ€M NÃ€Y:
     const renderCart = (cart) => {
-        // 1. Xử lý trường hợp giỏ hàng trống
+        // 1. Xá»­ lÃ½ trÆ°á»ng há»£p giá» hÃ ng trá»‘ng
         if (!cart || !cart.items || cart.items.length === 0) {
             liveContainer.innerHTML = '';
             const emptyState = document.getElementById('cart-empty-state');
@@ -46,11 +46,11 @@
             return;
         }
 
-        // 2. Ẩn thông báo trống nếu có hàng
+        // 2. áº¨n thÃ´ng bÃ¡o trá»‘ng náº¿u cÃ³ hÃ ng
         const emptyState = document.getElementById('cart-empty-state');
         if (emptyState) emptyState.classList.add('hidden');
 
-        // 3. Gom nhóm sản phẩm và vẽ HTML chứa ẢNH SẢN PHẨM
+        // 3. Gom nhÃ³m sáº£n pháº©m vÃ  váº½ HTML chá»©a áº¢NH Sáº¢N PHáº¨M
         const grouped = buildGrouped(cart.items);
 
         liveContainer.innerHTML = grouped.map((shop) => {
@@ -67,16 +67,16 @@
                 }
                             
                             <div class="flex flex-col justify-center gap-1.5 mt-1">
-                                <a href="/book/${item.bookId}" class="font-bold text-brand-dark text-sm leading-relaxed line-clamp-2 hover:text-brand-orange transition-colors">${item.title || 'Không có tên'}</a>
-                                <span class="text-xs text-gray-500 font-medium">Tác giả: ${item.author || 'Đang cập nhật'}</span>
+                                <a href="/book/${item.bookId}" class="font-bold text-brand-dark text-sm leading-relaxed line-clamp-2 hover:text-brand-orange transition-colors">${item.title || 'KhÃ´ng cÃ³ tÃªn'}</a>
+                                <span class="text-xs text-gray-500 font-medium">TÃ¡c giáº£: ${item.author || 'Äang cáº­p nháº­t'}</span>
                             </div>
                         </div>
                         <div class="w-full md:w-2/12 flex md:flex-col justify-between md:justify-center items-center md:text-center text-sm ml-8 md:ml-0">
-                            <span class="md:hidden text-gray-500 font-medium">Đơn giá:</span>
+                            <span class="md:hidden text-gray-500 font-medium">ÄÆ¡n giÃ¡:</span>
                             <div class="font-bold text-brand-dark">${formatVnd(item.unitPrice)}</div>
                         </div>
                         <div class="w-full md:w-2/12 flex justify-between md:justify-center items-center ml-8 md:ml-0">
-                            <span class="md:hidden text-gray-500 text-sm font-medium">Số lượng:</span>
+                            <span class="md:hidden text-gray-500 text-sm font-medium">Sá»‘ lÆ°á»£ng:</span>
                             <div class="flex items-center border border-gray-200 rounded-md overflow-hidden shadow-sm bg-white">
                                 <button type="button" data-action="decrease" data-item-id="${currentItemId}" data-current-qty="${item.quantity}" class="w-8 h-8 text-gray-500 hover:bg-gray-100 transition-colors font-bold outline-none border-r border-gray-200 flex items-center justify-center">-</button>
                                 <input type="number" min="1" value="${item.quantity}" data-item-id="${currentItemId}" class="w-11 h-8 text-center text-sm font-bold text-brand-dark outline-none appearance-none cart-qty-input">
@@ -84,11 +84,11 @@
                             </div>
                         </div>
                         <div class="w-full md:w-2/12 flex justify-between md:justify-center items-center ml-8 md:ml-0">
-                            <span class="md:hidden text-gray-500 text-sm font-medium">Thành tiền:</span>
+                            <span class="md:hidden text-gray-500 text-sm font-medium">ThÃ nh tiá»n:</span>
                             <div class="font-black text-brand-orange text-base">${formatVnd(item.lineTotal)}</div>
                         </div>
                         <div class="w-full md:w-1/12 flex justify-end md:justify-center items-center">
-                            <button type="button" data-action="remove" data-item-id="${currentItemId}" class="text-gray-400 hover:text-red-500 transition-colors p-2 bg-white rounded-full hover:bg-red-50" title="Xóa sản phẩm">
+                            <button type="button" data-action="remove" data-item-id="${currentItemId}" class="text-gray-400 hover:text-red-500 transition-colors p-2 bg-white rounded-full hover:bg-red-50" title="XÃ³a sáº£n pháº©m">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
@@ -108,7 +108,7 @@
         }).join('');
     };
 
-    // Hàm tính tổng tiền dựa trên các checkbox được chọn
+    // HÃ m tÃ­nh tá»•ng tiá»n dá»±a trÃªn cÃ¡c checkbox Ä‘Æ°á»£c chá»n
     const computeSelectedTotal = (cart) => {
         if (!cart || !cart.items || cart.items.length === 0) {
             return { selectedCount: 0, selectedAmount: 0 };
@@ -158,35 +158,35 @@
     const fetchCart = async () => {
         let { userId, role, token } = window.ApiService.getAuth();
 
-        // 🛡️ BỌC THÉP: Nếu localStorage mất userId, tự động bẻ khóa JWT Token để lấy lại
+        // ðŸ›¡ï¸ Bá»ŒC THÃ‰P: Náº¿u localStorage máº¥t userId, tá»± Ä‘á»™ng báº» khÃ³a JWT Token Ä‘á»ƒ láº¥y láº¡i
         if (token && (!userId || !role)) {
             try {
-                // Giải mã payload của JWT
+                // Giáº£i mÃ£ payload cá»§a JWT
                 const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
                 const payload = JSON.parse(atob(base64));
 
-                // Lấy thông tin từ bên trong Token
+                // Láº¥y thÃ´ng tin tá»« bÃªn trong Token
                 userId = payload.userId || payload.id;
                 role = payload.roles ? payload.roles[0] : (payload.role || 'BUYER');
 
-                // Khôi phục lại vào bộ nhớ để dùng cho các trang khác
+                // KhÃ´i phá»¥c láº¡i vÃ o bá»™ nhá»› Ä‘á»ƒ dÃ¹ng cho cÃ¡c trang khÃ¡c
                 if (userId) localStorage.setItem('userId', String(userId));
                 if (role) localStorage.setItem('userRole', role.replace('ROLE_', '').toUpperCase());
             } catch (e) {
-                console.warn("Lỗi bẻ khóa Token:", e);
+                console.warn("Lá»—i báº» khÃ³a Token:", e);
             }
         }
 
-        // Chuẩn hóa role
+        // Chuáº©n hÃ³a role
         const normalizedRole = role ? role.replace('ROLE_', '').toUpperCase() : '';
 
-        // Block chặt chẽ nếu không phải BUYER
+        // Block cháº·t cháº½ náº¿u khÃ´ng pháº£i BUYER
         if (!userId || normalizedRole !== 'BUYER') {
             liveContainer.innerHTML = `
                 <div class="bg-white border border-gray-100 rounded-2xl py-16 px-6 text-center shadow-[0_4px_20px_rgba(93,64,55,0.01)]">
-                    <p class="text-gray-500 text-sm font-medium mb-5">Vui lòng đăng nhập tài khoản Người mua để quản lý giỏ hàng.</p>
+                    <p class="text-gray-500 text-sm font-medium mb-5">Vui lÃ²ng Ä‘Äƒng nháº­p tÃ i khoáº£n NgÆ°á»i mua Ä‘á»ƒ quáº£n lÃ½ giá» hÃ ng.</p>
                     <a href="/main/auth" class="inline-flex items-center justify-center bg-brand-dark text-white text-xs font-bold tracking-widest uppercase px-6 py-3 rounded-lg hover:bg-brand-biscuit transition-all">
-                        Đăng nhập ngay
+                        ÄÄƒng nháº­p ngay
                     </a>
                 </div>
             `;
@@ -194,16 +194,16 @@
             return null;
         }
 
-        // Đã có ID số 8 -> Gọi API
+        // ÄÃ£ cÃ³ ID sá»‘ 8 -> Gá»i API
         try {
             const cart = await ApiService.Cart.get(userId);
-            // Lưu cart data để checkbox change handler có thể dùng
+            // LÆ°u cart data Ä‘á»ƒ checkbox change handler cÃ³ thá»ƒ dÃ¹ng
             window.__cartData = cart;
             renderCart(cart);
             updateSummary(cart);
             return cart;
         } catch (error) {
-            console.error("Lỗi fetch giỏ hàng:", error);
+            console.error("Lá»—i fetch giá» hÃ ng:", error);
         }
 
     };
@@ -220,7 +220,7 @@
     const addToCart = async (bookId, quantity = 1) => {
         let { userId, role, token } = window.ApiService.getAuth();
 
-        // 🛡️ BỌC THÉP: Tự động lấy lại userId từ Token khi người dùng bấm Thêm sản phẩm
+        // ðŸ›¡ï¸ Bá»ŒC THÃ‰P: Tá»± Ä‘á»™ng láº¥y láº¡i userId tá»« Token khi ngÆ°á»i dÃ¹ng báº¥m ThÃªm sáº£n pháº©m
         if (token && (!userId || !role)) {
             try {
                 const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
@@ -233,7 +233,7 @@
         const normalizedRole = role ? role.replace('ROLE_', '').toUpperCase() : '';
 
         if (!userId || normalizedRole !== 'BUYER') {
-            alert('Vui lòng đăng nhập tài khoản Người mua để thêm vào giỏ hàng.');
+            alert('Vui lÃ²ng Ä‘Äƒng nháº­p tÃ i khoáº£n NgÆ°á»i mua Ä‘á»ƒ thÃªm vÃ o giá» hÃ ng.');
             window.location.href = '/main/auth';
             return;
         }
@@ -247,7 +247,7 @@
         }
 
         if (!Array.isArray(books) || books.length === 0) {
-            recommendationsGrid.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-brand-accent bg-brand-cream/30 px-5 py-6 text-sm text-gray-500 font-semibold">Chưa có gợi ý phù hợp.</div>';
+            recommendationsGrid.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-brand-accent bg-brand-cream/30 px-5 py-6 text-sm text-gray-500 font-semibold">ChÆ°a cÃ³ gá»£i Ã½ phÃ¹ há»£p.</div>';
             return;
         }
 
@@ -257,8 +257,8 @@
                     <img src="${book.imageUrl || 'https://via.placeholder.com/240x320?text=No+Cover'}" alt="${book.title || ''}" class="book-cover w-full h-full object-cover transition-transform duration-500" onerror="this.src='https://via.placeholder.com/240x320?text=Error'" />
                 </div>
                 <div class="flex flex-col grow">
-                    <h3 class="text-xs md:text-sm font-bold text-brand-dark leading-snug mb-1 line-clamp-2 group-hover:text-brand-biscuit transition-colors">${book.title || 'Không rõ'}</h3>
-                    <div class="text-[10px] text-gray-500 mb-2 line-clamp-1">${book.author || 'Đang cập nhật'}</div>
+                    <h3 class="text-xs md:text-sm font-bold text-brand-dark leading-snug mb-1 line-clamp-2 group-hover:text-brand-biscuit transition-colors">${book.title || 'KhÃ´ng rÃµ'}</h3>
+                    <div class="text-[10px] text-gray-500 mb-2 line-clamp-1">${book.author || 'Äang cáº­p nháº­t'}</div>
                     <div class="mt-auto flex items-center justify-between gap-2">
                         <span class="text-brand-orange font-black text-sm">${formatVnd(book.price)}</span>
                         <button type="button" data-add-to-cart-recommendation="true" data-book-id="${book.id}" class="w-9 h-9 bg-brand-biscuit text-white rounded-full shadow-lg flex items-center justify-center hover:bg-brand-dark transition-colors">
@@ -275,13 +275,13 @@
             return;
         }
 
-        recommendationsGrid.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-brand-accent bg-brand-cream/30 px-5 py-6 text-sm text-gray-500 font-semibold">Đang tải gợi ý sản phẩm...</div>';
+        recommendationsGrid.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-brand-accent bg-brand-cream/30 px-5 py-6 text-sm text-gray-500 font-semibold">Äang táº£i gá»£i Ã½ sáº£n pháº©m...</div>';
 
         try {
             const books = await ApiService.Book.bestSellers(6);
             renderRecommendations(Array.isArray(books) ? books : []);
         } catch (error) {
-            recommendationsGrid.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-red-200 bg-red-50 px-5 py-6 text-sm text-red-600 font-semibold">Không tải được gợi ý sản phẩm.</div>';
+            recommendationsGrid.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-red-200 bg-red-50 px-5 py-6 text-sm text-red-600 font-semibold">KhÃ´ng táº£i Ä‘Æ°á»£c gá»£i Ã½ sáº£n pháº©m.</div>';
         }
     };
 
@@ -344,13 +344,13 @@
                 await addToCart(bookId, 1);
                 await fetchCart();
                 if (window.UIEnhancements && window.UIEnhancements.ToastService) {
-                    window.UIEnhancements.ToastService.success('Đã thêm sản phẩm vào giỏ hàng.');
+                    window.UIEnhancements.ToastService.success('ÄÃ£ thÃªm sáº£n pháº©m vÃ o giá» hÃ ng.');
                 }
             } catch (error) {
                 if (window.UIEnhancements && window.UIEnhancements.ApiErrorHandler) {
-                    window.UIEnhancements.ApiErrorHandler.handle(error, 'Thêm vào giỏ hàng thất bại.');
+                    window.UIEnhancements.ApiErrorHandler.handle(error, 'ThÃªm vÃ o giá» hÃ ng tháº¥t báº¡i.');
                 } else {
-                    const message = error?.message || 'Thêm vào giỏ hàng thất bại.';
+                    const message = error?.message || 'ThÃªm vÃ o giá» hÃ ng tháº¥t báº¡i.';
                     alert(message);
                 }
             }
@@ -363,9 +363,9 @@
         }
     });
 
-    // Hàm cập nhật tổng tiền khi checkbox thay đổi
+    // HÃ m cáº­p nháº­t tá»•ng tiá»n khi checkbox thay Ä‘á»•i
     const refreshSummaryFromCheckboxes = () => {
-        // Lấy cart từ biến đã lưu (nếu có) hoặc từ DOM
+        // Láº¥y cart tá»« biáº¿n Ä‘Ã£ lÆ°u (náº¿u cÃ³) hoáº·c tá»« DOM
         const cartData = window.__cartData;
         if (cartData) {
             updateSummary(cartData);
@@ -380,12 +380,12 @@
         refreshSummaryFromCheckboxes();
     });
 
-    // Lắng nghe sự kiện thay đổi trên tất cả checkbox (row + shop)
+    // Láº¯ng nghe sá»± kiá»‡n thay Ä‘á»•i trÃªn táº¥t cáº£ checkbox (row + shop)
     liveContainer.addEventListener('change', (event) => {
         const checkbox = event.target.closest('.row-checkbox, .shop-checkbox');
         if (!checkbox) return;
 
-        // Nếu là shop-checkbox, đồng bộ các row-checkbox trong cùng shop
+        // Náº¿u lÃ  shop-checkbox, Ä‘á»“ng bá»™ cÃ¡c row-checkbox trong cÃ¹ng shop
         if (checkbox.classList.contains('shop-checkbox')) {
             const shopSection = checkbox.closest('.bg-white.border');
             if (shopSection) {
@@ -396,7 +396,7 @@
             }
         }
 
-        // Cập nhật trạng thái "Chọn tất cả"
+        // Cáº­p nháº­t tráº¡ng thÃ¡i "Chá»n táº¥t cáº£"
         const allRows = document.querySelectorAll('.row-checkbox');
         const checkedRows = document.querySelectorAll('.row-checkbox:checked');
         const selectAllCheckbox = document.getElementById('selectAll');
@@ -413,45 +413,45 @@
     // ==========================================
 
     /**
-     * Kiểm tra độ tuổi người dùng trước khi cho phép checkout
-     * Yêu cầu: người dùng phải từ 13 tuổi trở lên
-     * Sử dụng ValidationUtils.validateDateOfBirth để đảm bảo đồng nhất logic
+     * Kiá»ƒm tra Ä‘á»™ tuá»•i ngÆ°á»i dÃ¹ng trÆ°á»›c khi cho phÃ©p checkout
+     * YÃªu cáº§u: ngÆ°á»i dÃ¹ng pháº£i tá»« 13 tuá»•i trá»Ÿ lÃªn
+     * Sá»­ dá»¥ng ValidationUtils.validateDateOfBirth Ä‘á»ƒ Ä‘áº£m báº£o Ä‘á»“ng nháº¥t logic
      */
     async function checkAgeBeforeCheckout() {
         try {
             const headers = ApiService.getHeaders();
             const response = await fetch('/buyer/profile/api/profile', { headers });
-            if (!response.ok) return true; // Nếu không lấy được profile, vẫn cho checkout
+            if (!response.ok) return true; // Náº¿u khÃ´ng láº¥y Ä‘Æ°á»£c profile, váº«n cho checkout
 
             const profile = await response.json();
             const dob = profile.dateOfBirth;
             if (!dob) {
-                // Nếu chưa có ngày sinh, cảnh báo nhưng vẫn cho checkout
+                // Náº¿u chÆ°a cÃ³ ngÃ y sinh, cáº£nh bÃ¡o nhÆ°ng váº«n cho checkout
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Thiếu thông tin',
-                    text: 'Vui lòng cập nhật ngày sinh trong hồ sơ để xác thực độ tuổi.',
-                    confirmButtonText: 'Để sau'
+                    title: 'Thiáº¿u thÃ´ng tin',
+                    text: 'Vui lÃ²ng cáº­p nháº­t ngÃ y sinh trong há»“ sÆ¡ Ä‘á»ƒ xÃ¡c thá»±c Ä‘á»™ tuá»•i.',
+                    confirmButtonText: 'Äá»ƒ sau'
                 });
                 return true;
             }
 
-            // Sử dụng ValidationUtils.validateDateOfBirth với minAge = 13
+            // Sá»­ dá»¥ng ValidationUtils.validateDateOfBirth vá»›i minAge = 13
             if (window.ValidationUtils) {
                 const result = ValidationUtils.validateDateOfBirth(dob, 13);
                 if (!result.valid) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Không đủ điều kiện',
+                        title: 'KhÃ´ng Ä‘á»§ Ä‘iá»u kiá»‡n',
                         text: result.error,
-                        confirmButtonText: 'Đã hiểu'
+                        confirmButtonText: 'ÄÃ£ hiá»ƒu'
                     });
                     return false;
                 }
                 return true;
             }
 
-            // Fallback nếu ValidationUtils chưa load
+            // Fallback náº¿u ValidationUtils chÆ°a load
             const birthDate = new Date(dob);
             const today = new Date();
             let age = today.getFullYear() - birthDate.getFullYear();
@@ -463,9 +463,9 @@
             if (age < 13) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Không đủ điều kiện',
-                    text: 'Bạn phải từ 13 tuổi trở lên để thực hiện giao dịch trên BOOKOM.',
-                    confirmButtonText: 'Đã hiểu'
+                    title: 'KhÃ´ng Ä‘á»§ Ä‘iá»u kiá»‡n',
+                    text: 'Báº¡n pháº£i tá»« 13 tuá»•i trá»Ÿ lÃªn Ä‘á»ƒ thá»±c hiá»‡n giao dá»‹ch trÃªn BOOKOM.',
+                    confirmButtonText: 'ÄÃ£ hiá»ƒu'
                 });
                 return false;
             }
@@ -473,20 +473,46 @@
             return true;
         } catch (error) {
             console.error('Age check error:', error);
-            return true; // Nếu có lỗi, vẫn cho checkout
+            return true; // Náº¿u cÃ³ lá»—i, váº«n cho checkout
         }
     }
 
-    // Thêm age check vào nút checkout
+    // ThÃªm age check vÃ o nÃºt checkout
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', async (e) => {
+            const selectedItemIds = [];
+            document.querySelectorAll('.row-checkbox:checked').forEach((cb) => {
+                const row = cb.closest('[data-item-id]');
+                if (row) {
+                    const id = Number(row.getAttribute('data-item-id'));
+                    if (id) selectedItemIds.push(id);
+                }
+            });
+
+            if (selectedItemIds.length === 0) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Chưa chọn sản phẩm',
+                        text: 'Vui lòng chọn ít nhất một sản phẩm trong giỏ hàng để thanh toán.',
+                        confirmButtonText: 'Đã hiểu'
+                    });
+                } else {
+                    alert('Vui lòng chọn ít nhất một sản phẩm trong giỏ hàng để thanh toán.');
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+
+            sessionStorage.setItem('checkout_selected_item_ids', JSON.stringify(selectedItemIds));
             const isAllowed = await checkAgeBeforeCheckout();
             if (!isAllowed) {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
-            // Nếu đủ tuổi, cho phép chuyển hướng bình thường
+            // Náº¿u Ä‘á»§ tuá»•i, cho phÃ©p chuyá»ƒn hÆ°á»›ng bÃ¬nh thÆ°á»ng
             window.location.href = '/main/checkout';
         });
     }

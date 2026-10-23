@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Value;
 import com.example.bookstore.dto.OrderCompletedEvent;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,16 +61,21 @@ public class OrderService {
     private String recommendationRoutingKey;
     @Transactional
     public CheckoutResponse checkoutFromCart(CheckoutRequest request) {
-        return checkoutInternal(request.getBuyerId(), request.getShippingAddress(), request.getCouponCode());
+        return checkoutInternal(request.getBuyerId(), request.getShippingAddress(), request.getCouponCode(), request.getItemIds());
     }
 
     @Transactional
     public CheckoutResponse checkoutFromCurrentBuyer(Long buyerId, String shippingAddress, String couponCode) {
-        return checkoutInternal(buyerId, shippingAddress, couponCode);
+        return checkoutInternal(buyerId, shippingAddress, couponCode, null);
+    }
+
+    @Transactional
+    public CheckoutResponse checkoutFromCurrentBuyer(Long buyerId, String shippingAddress, String couponCode, List<Long> itemIds) {
+        return checkoutInternal(buyerId, shippingAddress, couponCode, itemIds);
     }
 
 
-    private CheckoutResponse checkoutInternal(Long buyerId, String shippingAddress, String couponCode) {
+    private CheckoutResponse checkoutInternal(Long buyerId, String shippingAddress, String couponCode, List<Long> itemIds) {
         User buyer = userRepository.findById(buyerId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Buyer not found"));
 
@@ -83,9 +90,24 @@ public class OrderService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cart is empty");
         }
 
+        List<CartItem> itemsToCheckout;
+        if (itemIds != null && !itemIds.isEmpty()) {
+            Set<Long> selectedIdSet = new HashSet<>(itemIds);
+            itemsToCheckout = cart.getItems().stream()
+                    .filter(item -> (item.getId() != null && selectedIdSet.contains(item.getId()))
+                            || (item.getBookId() != null && selectedIdSet.contains(item.getBookId())))
+                    .collect(Collectors.toList());
+        } else {
+            itemsToCheckout = new ArrayList<>(cart.getItems());
+        }
+
+        if (itemsToCheckout.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No items selected for checkout");
+        }
+
         Map<Long, List<CartItem>> itemsBySeller = new LinkedHashMap<>();
         Map<Long, com.example.bookstore.model.embedded.UserSnapshot> sellerSnapshots = new LinkedHashMap<>();
-        for (CartItem item : cart.getItems()) {
+        for (CartItem item : itemsToCheckout) {
             // Doc sach "live" tu collection books (gio hang chi luu snapshot hien thi)
             Book book = bookRepository.findById(item.getBookId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book not found in cart"));
@@ -96,7 +118,13 @@ public class OrderService {
             sellerSnapshots.putIfAbsent(book.getSellerId(), book.getSeller());
         }
 
+        Long orderId = sequenceService.nextId("orders");
+        String orderCode = String.format("ORD-%d-%06d", LocalDate.now().getYear(), orderId);
+
         Order order = Order.builder()
+                .id(orderId)
+                .orderCode(orderCode)
+                .status(OrderStatus.PROCESSING)
                 .buyerId(buyer.getId())
                 .buyer(com.example.bookstore.model.embedded.UserSnapshot.of(buyer))
                 .totalAmount(0.0)
@@ -185,7 +213,11 @@ public class OrderService {
 
         // Compute shipping fee (flat rate for now)
         double shippingFee = 30000.0;
+        order.setItemsTotal(originalTotal);
         order.setShippingFee(shippingFee);
+        if (order.getShipping() != null) {
+            order.getShipping().setFee(shippingFee);
+        }
         order.setTotalAmount(orderTotal + shippingFee);
         order.setSubOrders(subOrders);
 
@@ -193,7 +225,7 @@ public class OrderService {
         // BẮN EVENT REAL-TIME GỢI Ý
         try {
             List<Long> purchasedBookIds = new ArrayList<>();
-            for (CartItem item : cart.getItems()) {
+            for (CartItem item : itemsToCheckout) {
                 purchasedBookIds.add(item.getBook().getId());
             }
             // Chỉ gửi nếu giỏ hàng có từ 2 sản phẩm trở lên (mới tạo thành cặp được)
@@ -205,13 +237,27 @@ public class OrderService {
         } catch (Exception e) {
             log.error("Lỗi khi gửi RabbitMQ event, nhưng đơn hàng vẫn thành công: {}", e.getMessage());
         }
-        cart.getItems().clear();
+        Set<Long> purchasedItemIds = itemsToCheckout.stream()
+                .map(CartItem::getId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        Set<Long> purchasedBookIds = itemsToCheckout.stream()
+                .map(CartItem::getBookId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        cart.getItems().removeIf(item ->
+                (item.getId() != null && purchasedItemIds.contains(item.getId()))
+                || (item.getBookId() != null && purchasedBookIds.contains(item.getBookId()))
+        );
+        cart.recalculateTotals();
         cartRepository.save(cart);
 
         notifyOrderCreated(saved, buyer);
 
         return CheckoutResponse.builder()
                 .orderId(saved.getId())
+                .orderCode(saved.getOrderCode())
                 .buyerId(buyer.getId())
                 .shippingAddress(saved.getShippingAddress())
             .totalAmount(saved.getTotalAmount())

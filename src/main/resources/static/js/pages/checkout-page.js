@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
     if (!window.ApiService) return;
 
     // ==========================================
@@ -229,6 +229,21 @@
     };
 
 
+    const getSelectedItemIdsFromStorage = () => {
+        try {
+            const raw = sessionStorage.getItem('checkout_selected_item_ids');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed.map(Number);
+                }
+            }
+        } catch (e) {
+            console.error('Error reading checkout_selected_item_ids:', e);
+        }
+        return null;
+    };
+
     const fetchCart = async () => {
         const { userId, role } = ApiService.getAuth();
         if (!userId || role !== 'BUYER') {
@@ -238,6 +253,12 @@
         }
 
         const cart = await ApiService.Cart.get(userId);
+        const selectedIds = getSelectedItemIdsFromStorage();
+        if (cart && Array.isArray(cart.items) && selectedIds && selectedIds.length > 0) {
+            cart.items = cart.items.filter(item => selectedIds.includes(Number(item.id || item.itemId)));
+            cart.totalItems = cart.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+            cart.totalAmount = cart.items.reduce((sum, item) => sum + (Number(item.lineTotal) || 0), 0);
+        }
         currentCart = cart;
         renderItems(cart);
         updateSummary(cart);
@@ -599,7 +620,9 @@
             }
 
             // Gọi API tạo Order
-            const response = await ApiService.Order.checkout(addressLine, appliedCoupon?.code);
+            const selectedItemIds = getSelectedItemIdsFromStorage();
+            const response = await ApiService.Order.checkout(addressLine, appliedCoupon?.code, selectedItemIds);
+            sessionStorage.removeItem('checkout_selected_item_ids');
             const orderId = response?.orderId;
             localStorage.setItem('lastOrderId', String(orderId || ''));
 

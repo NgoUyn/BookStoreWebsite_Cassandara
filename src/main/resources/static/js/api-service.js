@@ -732,8 +732,9 @@ var ApiService = window.ApiService || (() => {
         /**
          * Checkout từ giỏ hàng
          */
-        checkout: async (shippingAddress, couponCode = null) => {
+        checkout: async (shippingAddress, couponCode = null, itemIds = null) => {
             const body = { shippingAddress };
+            if (itemIds && Array.isArray(itemIds) && itemIds.length > 0) body.itemIds = itemIds;
             if (couponCode) body.couponCode = couponCode;
 
             const response = await fetch(`${API_BASE}/orders/me/checkout`, {
