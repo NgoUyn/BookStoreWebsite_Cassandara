@@ -41,8 +41,8 @@ public class Coupon implements SequencedDocument, AuditableDocument {
 
     private CouponType type;
 
-    @Field("amount")
-    private Integer amount;
+    @Field("discountValue")
+private Integer amount;
 
     private Integer minOrderAmount;
     private Double maxDiscountAmount;

@@ -12,15 +12,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-
+import com.example.bookstore.repository.OrderRepository;
+import com.example.bookstore.model.Order;
+import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+ 
 @RestController
 @RequestMapping("/api/seller")
+@RequiredArgsConstructor
 public class SellerDashboardController {
 
     @Autowired
@@ -30,7 +41,8 @@ public class SellerDashboardController {
     private UserRepository userRepository;
 
     @Autowired
-    private SubOrderRepository subOrderRepository;
+   private final OrderRepository orderRepository;
+    
 
     private static String safe(String value) {
         return value == null ? "" : value.trim();
@@ -42,206 +54,314 @@ public class SellerDashboardController {
      */
     @GetMapping("/dashboard-stats")
     @PreAuthorize("hasAuthority('SELLER')")
-    public Map<String, Object> sellerDashboardStats(
-            @AuthenticationPrincipal JwtAuthenticatedPrincipal principal,
-            @RequestHeader(value = "X-User-Id", required = false) String xUserId,
-            @RequestParam(defaultValue = "week") String period
-    ) {
-        Long sellerId = null;
-        if (principal != null) {
-            sellerId = principal.sellerId() != null ? principal.sellerId() : principal.userId();
-        } else if (xUserId != null) {
+public Map<String, Object> sellerDashboardStats(
+        @AuthenticationPrincipal JwtAuthenticatedPrincipal principal,
+        @RequestHeader(value = "X-User-Id", required = false) String xUserId,
+        @RequestParam(defaultValue = "week") String period
+) {
+    // 1. Xác định Seller đang đăng nhập
+    Long sellerId = null;
+
+    if (principal != null) {
+        sellerId = principal.sellerId() != null
+                ? principal.sellerId()
+                : principal.userId();
+    } else if (xUserId != null) {
+        try {
             sellerId = Long.parseLong(xUserId);
+        } catch (NumberFormatException e) {
+            return Map.of("error", "Invalid user ID");
         }
-
-        if (sellerId == null) {
-            return Map.of("error", "Unauthorized");
-        }
-
-        User seller = userRepository.findById(sellerId).orElse(null);
-        if (seller == null) return Map.of("error", "Seller not found");
-
-        List<Book> sellerBooks = bookRepository.findBySeller(seller);
-        List<SubOrder> subOrders = subOrderRepository.findBySeller(seller);
-
-        // ==========================================
-        // 1. Summary Stats
-        // ==========================================
-        double totalRevenue = subOrders.stream()
-                .filter(so -> so.getStatus() != OrderStatus.CANCELLED)
-                .mapToDouble(so -> so.getSubTotal() == null ? 0d : so.getSubTotal())
-                .sum();
-
-        long totalOrders = subOrders.stream()
-                .filter(so -> so.getStatus() != OrderStatus.CANCELLED)
-                .count();
-
-        long uniqueCustomers = subOrders.stream()
-                .filter(so -> so.getParentOrder() != null && so.getParentOrder().getBuyer() != null)
-                .map(so -> so.getParentOrder().getBuyer().getId())
-                .distinct()
-                .count();
-
-        long totalProducts = sellerBooks.size();
-
-        Map<String, Object> summaryStats = new LinkedHashMap<>();
-        summaryStats.put("totalRevenue", totalRevenue);
-        summaryStats.put("totalOrders", totalOrders);
-        summaryStats.put("uniqueCustomers", uniqueCustomers);
-        summaryStats.put("totalProducts", totalProducts);
-
-        // ==========================================
-        // 2. Revenue By Day (for bar chart)
-        // ==========================================
-        int days = period.equalsIgnoreCase("month") ? 30 : 7;
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime since = now.minusDays(days);
-
-        Map<String, Double> revenueByDayMap = new LinkedHashMap<>();
-        for (int i = days; i >= 0; i--) {
-            String dateKey = now.minusDays(i).format(DateTimeFormatter.ISO_LOCAL_DATE);
-            revenueByDayMap.put(dateKey, 0d);
-        }
-
-        for (SubOrder so : subOrders) {
-            if (so.getStatus() == OrderStatus.CANCELLED) continue;
-            LocalDateTime orderDate = so.getParentOrder().getCreatedAt();
-            if (orderDate != null && !orderDate.isBefore(since)) {
-                String dateKey = orderDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
-                revenueByDayMap.merge(dateKey, so.getSubTotal() == null ? 0d : so.getSubTotal(), Double::sum);
-            }
-        }
-
-        List<Map<String, Object>> revenueByDay = revenueByDayMap.entrySet().stream()
-                .map(e -> {
-                    Map<String, Object> entry = new LinkedHashMap<>();
-                    entry.put("date", e.getKey());
-                    entry.put("revenue", e.getValue());
-                    return entry;
-                })
-                .collect(Collectors.toList());
-
-        // ==========================================
-        // 3. Order Status Distribution
-        // ==========================================
-        Map<String, Long> orderStatusDistribution = subOrders.stream()
-                .collect(Collectors.groupingBy(
-                        so -> so.getStatus().toString(),
-                        LinkedHashMap::new,
-                        Collectors.counting()
-                ));
-
-        for (OrderStatus status : OrderStatus.values()) {
-            orderStatusDistribution.putIfAbsent(status.toString(), 0L);
-        }
-
-        // ==========================================
-        // 4. Category Distribution
-        // ==========================================
-        Map<String, Long> categoryDistribution = new LinkedHashMap<>();
-        for (SubOrder so : subOrders) {
-            if (so.getStatus() == OrderStatus.CANCELLED) continue;
-            if (so.getItems() == null) continue;
-            for (var item : so.getItems()) {
-                String catName = (item.getBook() != null && item.getBook().getCategory() != null)
-                        ? item.getBook().getCategory().getName() : "Chua phan loai";
-                long qty = item.getQuantity() != null ? item.getQuantity() : 0;
-                categoryDistribution.merge(catName, qty, Long::sum);
-            }
-        }
-
-        // ==========================================
-        // 5. Customer Growth
-        // ==========================================
-        Map<String, Map<String, Long>> customerGrowth = new LinkedHashMap<>();
-
-        Map<Long, LocalDateTime> buyerFirstOrder = new LinkedHashMap<>();
-        Map<Long, List<LocalDateTime>> buyerOrdersByMonth = new LinkedHashMap<>();
-
-        for (SubOrder so : subOrders) {
-            if (so.getParentOrder() == null || so.getParentOrder().getBuyer() == null) continue;
-            Long buyerId = so.getParentOrder().getBuyer().getId();
-            LocalDateTime orderDate = so.getParentOrder().getCreatedAt();
-            if (orderDate == null) continue;
-
-            buyerOrdersByMonth.computeIfAbsent(buyerId, k -> new ArrayList<>()).add(orderDate);
-
-            if (!buyerFirstOrder.containsKey(buyerId) || orderDate.isBefore(buyerFirstOrder.get(buyerId))) {
-                buyerFirstOrder.put(buyerId, orderDate);
-            }
-        }
-
-        for (int i = 5; i >= 0; i--) {
-            LocalDate monthStart = LocalDate.from(now).withDayOfMonth(1).minusMonths(i);
-            String monthKey = monthStart.format(DateTimeFormatter.ofPattern("MM/yyyy"));
-
-            long newCustomers = 0;
-            long returningCustomers = 0;
-
-            for (var entry : buyerFirstOrder.entrySet()) {
-                Long buyerId = entry.getKey();
-                LocalDateTime firstOrderDate = entry.getValue();
-
-                if (firstOrderDate.toLocalDate().getYear() == monthStart.getYear()
-                        && firstOrderDate.toLocalDate().getMonth() == monthStart.getMonth()) {
-                    newCustomers++;
-                } else if (firstOrderDate.isBefore(monthStart.atStartOfDay())) {
-                    List<LocalDateTime> buyerDates = buyerOrdersByMonth.get(buyerId);
-                    if (buyerDates != null) {
-                        boolean hadOrderThisMonth = buyerDates.stream().anyMatch(d ->
-                                d.toLocalDate().getYear() == monthStart.getYear()
-                                && d.toLocalDate().getMonth() == monthStart.getMonth());
-                        if (hadOrderThisMonth) {
-                            returningCustomers++;
-                        }
-                    }
-                }
-            }
-
-            Map<String, Long> monthData = new LinkedHashMap<>();
-            monthData.put("new", newCustomers);
-            monthData.put("returning", returningCustomers);
-            customerGrowth.put(monthKey, monthData);
-        }
-
-        // ==========================================
-        // 6. Monthly Revenue
-        // ==========================================
-        Map<String, Map<String, Object>> monthlyRevenue = new LinkedHashMap<>();
-        for (int i = 11; i >= 0; i--) {
-            LocalDate monthStart = LocalDate.from(now).withDayOfMonth(1).minusMonths(i);
-            String monthKey = monthStart.format(DateTimeFormatter.ofPattern("MM/yyyy"));
-
-            double monthRevenue = 0;
-            long monthOrders = 0;
-
-            for (SubOrder so : subOrders) {
-                if (so.getStatus() == OrderStatus.CANCELLED) continue;
-                LocalDateTime orderDate = so.getParentOrder().getCreatedAt();
-                if (orderDate != null
-                        && orderDate.toLocalDate().getYear() == monthStart.getYear()
-                        && orderDate.toLocalDate().getMonth() == monthStart.getMonth()) {
-                    monthRevenue += so.getSubTotal() == null ? 0d : so.getSubTotal();
-                    monthOrders++;
-                }
-            }
-
-            Map<String, Object> monthData = new LinkedHashMap<>();
-            monthData.put("revenue", monthRevenue);
-            monthData.put("orders", monthOrders);
-            monthlyRevenue.put(monthKey, monthData);
-        }
-
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("summaryStats", summaryStats);
-        response.put("revenueByDay", revenueByDay);
-        response.put("orderStatusDistribution", orderStatusDistribution);
-        response.put("categoryDistribution", categoryDistribution);
-        response.put("customerGrowth", customerGrowth);
-        response.put("monthlyRevenue", monthlyRevenue);
-
-        return response;
     }
+
+    if (sellerId == null) {
+        return Map.of("error", "Unauthorized");
+    }
+
+    User seller = userRepository.findById(sellerId).orElse(null);
+
+    if (seller == null) {
+        return Map.of("error", "Seller not found");
+    }
+
+    List<Book> sellerBooks = bookRepository.findBySeller(seller);
+
+    // 2. Lấy dữ liệu từ collection orders
+    List<Order> orders = orderRepository.findAll();
+
+    // Lọc các đơn hàng con thuộc Seller
+    // Đồng thời giữ liên kết đến Order cha để lấy ngày và khách hàng.
+    Map<SubOrder, Order> parentOrders = new IdentityHashMap<>();
+    List<SubOrder> subOrders = new ArrayList<>();
+
+    for (Order order : orders) {
+        if (order == null || order.getSubOrders() == null) {
+            continue;
+        }
+
+        for (SubOrder so : order.getSubOrders()) {
+            if (so == null || !Objects.equals(so.getSellerId(), sellerId)) {
+                continue;
+            }
+
+            subOrders.add(so);
+            parentOrders.put(so, order);
+        }
+    }
+
+    // 3. Thống kê tổng quan
+    // Tạm tính doanh thu từ đơn COMPLETED.
+    double totalRevenue = subOrders.stream()
+            .filter(so -> so.getStatus() == OrderStatus.COMPLETED)
+            .mapToDouble(so ->
+                    so.getSubTotal() == null ? 0d : so.getSubTotal())
+            .sum();
+
+    long totalOrders = subOrders.size();
+
+    long uniqueCustomers = subOrders.stream()
+            .map(parentOrders::get)
+            .filter(Objects::nonNull)
+            .map(Order::getBuyerId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .count();
+
+    long totalProducts = sellerBooks == null ? 0 : sellerBooks.size();
+
+    Map<String, Object> summaryStats = new LinkedHashMap<>();
+    summaryStats.put("totalRevenue", totalRevenue);
+    summaryStats.put("totalOrders", totalOrders);
+    summaryStats.put("uniqueCustomers", uniqueCustomers);
+    summaryStats.put("totalProducts", totalProducts);
+
+    // 4. Doanh thu theo ngày
+    int days = "month".equalsIgnoreCase(period) ? 30 : 7;
+
+    LocalDate today = LocalDate.now();
+
+    Map<String, Double> revenueByDayMap = new LinkedHashMap<>();
+
+    for (int i = days - 1; i >= 0; i--) {
+        String dateKey = today.minusDays(i)
+                .format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+        revenueByDayMap.put(dateKey, 0d);
+    }
+
+    for (SubOrder so : subOrders) {
+        if (so.getStatus() != OrderStatus.COMPLETED) {
+            continue;
+        }
+
+        Order parent = parentOrders.get(so);
+
+        if (parent == null || parent.getCreatedAt() == null) {
+            continue;
+        }
+
+        LocalDate orderDate = parent.getCreatedAt().toLocalDate();
+
+        String dateKey = orderDate.format(
+                DateTimeFormatter.ISO_LOCAL_DATE);
+
+        if (revenueByDayMap.containsKey(dateKey)) {
+            revenueByDayMap.merge(
+                    dateKey,
+                    so.getSubTotal() == null ? 0d : so.getSubTotal(),
+                    Double::sum
+            );
+        }
+    }
+
+    List<Map<String, Object>> revenueByDay =
+            revenueByDayMap.entrySet().stream()
+                    .map(e -> {
+                        Map<String, Object> entry = new LinkedHashMap<>();
+                        entry.put("date", e.getKey());
+                        entry.put("revenue", e.getValue());
+                        return entry;
+                    })
+                    .collect(Collectors.toList());
+
+    // 5. Phân bố trạng thái đơn hàng
+    Map<String, Long> orderStatusDistribution =
+            subOrders.stream()
+                    .collect(Collectors.groupingBy(
+                            so -> so.getStatus() == null
+                                    ? "UNKNOWN"
+                                    : so.getStatus().toString(),
+                            LinkedHashMap::new,
+                            Collectors.counting()
+                    ));
+
+    for (OrderStatus status : OrderStatus.values()) {
+        orderStatusDistribution.putIfAbsent(
+                status.toString(), 0L);
+    }
+
+    // 6. Thống kê danh mục
+    Map<String, Long> categoryDistribution = new LinkedHashMap<>();
+
+    for (SubOrder so : subOrders) {
+        if (so.getStatus() == OrderStatus.CANCELLED
+        || (so.getStatus() != null
+            && "RETURNED".equals(so.getStatus().name()))
+        || so.getItems() == null) {
+    continue;
+}
+
+        for (var item : so.getItems()) {
+            if (item == null) {
+                continue;
+            }
+
+            String catName =
+                    item.getBook() != null
+                    && item.getBook().getCategory() != null
+                    && item.getBook().getCategory().getName() != null
+                            ? item.getBook().getCategory().getName()
+                            : "Chưa phân loại";
+
+            long qty = item.getQuantity() == null
+                    ? 0
+                    : item.getQuantity();
+
+            categoryDistribution.merge(
+                    catName, qty, Long::sum);
+        }
+    }
+
+    // 7. Tăng trưởng khách hàng
+    Map<String, Map<String, Long>> customerGrowth =
+            new LinkedHashMap<>();
+
+    Map<Long, LocalDateTime> buyerFirstOrder =
+            new LinkedHashMap<>();
+
+    Map<Long, List<LocalDateTime>> buyerOrdersByMonth =
+            new LinkedHashMap<>();
+
+    for (SubOrder so : subOrders) {
+        Order parent = parentOrders.get(so);
+
+        if (parent == null
+                || parent.getBuyerId() == null
+                || parent.getCreatedAt() == null) {
+            continue;
+        }
+
+        Long buyerId = parent.getBuyerId();
+        LocalDateTime orderDate = parent.getCreatedAt();
+
+        buyerOrdersByMonth
+                .computeIfAbsent(buyerId, k -> new ArrayList<>())
+                .add(orderDate);
+
+        buyerFirstOrder.merge(
+                buyerId,
+                orderDate,
+                (oldDate, newDate) ->
+                        newDate.isBefore(oldDate) ? newDate : oldDate
+        );
+    }
+
+    for (int i = 5; i >= 0; i--) {
+        LocalDate monthStart = today.withDayOfMonth(1)
+                .minusMonths(i);
+
+        String monthKey = monthStart.format(
+                DateTimeFormatter.ofPattern("MM/yyyy"));
+
+        long newCustomers = 0;
+        long returningCustomers = 0;
+
+        for (var entry : buyerFirstOrder.entrySet()) {
+            Long buyerId = entry.getKey();
+            LocalDateTime firstDate = entry.getValue();
+
+            boolean firstInMonth =
+                    firstDate.getYear() == monthStart.getYear()
+                    && firstDate.getMonth() == monthStart.getMonth();
+
+            if (firstInMonth) {
+                newCustomers++;
+            } else if (firstDate.isBefore(monthStart.atStartOfDay())) {
+                List<LocalDateTime> dates =
+                        buyerOrdersByMonth.get(buyerId);
+
+                if (dates != null && dates.stream().anyMatch(d ->
+                        d.getYear() == monthStart.getYear()
+                        && d.getMonth() == monthStart.getMonth())) {
+                    returningCustomers++;
+                }
+            }
+        }
+
+        Map<String, Long> monthData = new LinkedHashMap<>();
+        monthData.put("new", newCustomers);
+        monthData.put("returning", returningCustomers);
+
+        customerGrowth.put(monthKey, monthData);
+    }
+
+    // 8. Doanh thu theo tháng
+    Map<String, Map<String, Object>> monthlyRevenue =
+            new LinkedHashMap<>();
+
+    for (int i = 11; i >= 0; i--) {
+        LocalDate monthStart = today.withDayOfMonth(1)
+                .minusMonths(i);
+
+        String monthKey = monthStart.format(
+                DateTimeFormatter.ofPattern("MM/yyyy"));
+
+        double monthRevenue = 0;
+        long monthOrders = 0;
+
+        for (SubOrder so : subOrders) {
+            if (so.getStatus() != OrderStatus.COMPLETED) {
+                continue;
+            }
+
+            Order parent = parentOrders.get(so);
+
+            if (parent == null || parent.getCreatedAt() == null) {
+                continue;
+            }
+
+            LocalDateTime orderDate = parent.getCreatedAt();
+
+            if (orderDate.getYear() == monthStart.getYear()
+                    && orderDate.getMonth() == monthStart.getMonth()) {
+
+                monthRevenue += so.getSubTotal() == null
+                        ? 0d
+                        : so.getSubTotal();
+
+                monthOrders++;
+            }
+        }
+
+        Map<String, Object> monthData = new LinkedHashMap<>();
+        monthData.put("revenue", monthRevenue);
+        monthData.put("orders", monthOrders);
+
+        monthlyRevenue.put(monthKey, monthData);
+    }
+
+    // 9. Trả dữ liệu về frontend
+    Map<String, Object> response = new LinkedHashMap<>();
+
+    response.put("summaryStats", summaryStats);
+    response.put("revenueByDay", revenueByDay);
+    response.put("orderStatusDistribution", orderStatusDistribution);
+    response.put("categoryDistribution", categoryDistribution);
+    response.put("customerGrowth", customerGrowth);
+    response.put("monthlyRevenue", monthlyRevenue);
+
+    return response;
+}
 
     /**
      * 📊 Seller Analytics - API cho trang Analytics
@@ -268,7 +388,13 @@ public class SellerDashboardController {
         if (seller == null) return Map.of("error", "Seller not found");
 
         List<Book> sellerBooks = bookRepository.findBySeller(seller);
-        List<SubOrder> subOrders = subOrderRepository.findBySeller(seller);
+       List<SubOrder> subOrders = orderRepository.findAll()
+        .stream()
+        .filter(order -> order != null && order.getSubOrders() != null)
+        .flatMap(order -> order.getSubOrders().stream())
+        .filter(so -> so != null
+                && java.util.Objects.equals(so.getSellerId(), seller.getId()))
+        .collect(java.util.stream.Collectors.toList());
 
         double estimatedRevenue = subOrders.stream()
                 .filter(so -> so.getStatus() != OrderStatus.CANCELLED)

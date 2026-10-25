@@ -27,11 +27,11 @@ set "COMPASS=%LOCALAPPDATA%\MongoDBCompass\MongoDBCompass.exe"
 if not exist "%COMPASS%" set "COMPASS=C:\Program Files\MongoDB Compass\MongoDBCompass.exe"
 
 REM --- Instance rieng cua do an (replica set single-node) ------------------
-set "PORT=27018"
+set "PORT=27017"
 set "RS_NAME=rs0"
 set "DB_NAME=bookom"
 set "DB_PATH=D:\mongo-data\rs0"
-set "MONGO_URI=mongodb://127.0.0.1:%PORT%/%DB_NAME%?replicaSet=%RS_NAME%"
+set "MONGO_URI=mongodb://127.0.0.1:%PORT%/%DB_NAME%?replicaSet=%RS_NAME%&directConnection=true"
 
 REM --- Thu muc lam viec cua do an ------------------------------------------
 set "PROJECT_DIR=%~dp0.."

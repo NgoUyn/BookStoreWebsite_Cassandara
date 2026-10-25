@@ -12,12 +12,17 @@
     // 1. FORM ELEMENTS REFERENCES
     // ==========================================
 
-    const shopNameInput = document.getElementById('shop-name') || 
-                         document.querySelector('input[name="shopName"]');
-    const shopDescriptionInput = document.getElementById('shop-description') || 
-                                document.querySelector('textarea[name="description"]');
-    const shopPhoneInput = document.getElementById('shop-phone') || 
-                         document.querySelector('input[name="phoneNumber"]');
+const shopNameInput =
+    document.getElementById('shopName') ||
+    document.getElementById('shop-name');
+
+const shopDescriptionInput =
+    document.getElementById('description') ||
+    document.getElementById('shop-description');
+
+const shopPhoneInput =
+    document.getElementById('contactPhone') ||
+    document.getElementById('shop-phone');
     const shopStatusDisplay = document.getElementById('shop-status') || 
                              document.querySelector('[data-shop-status]');
     const shopSlugDisplay = document.getElementById('shop-slug') || 
@@ -25,8 +30,10 @@
     const shopProductCount = document.getElementById('shop-product-count') || 
                             document.querySelector('[data-shop-product-count]');
 
-    const saveShopBtn = document.getElementById('save-shop-btn') || 
-                       document.querySelector('button[data-action="save-shop"]');
+const saveShopBtn =
+    document.getElementById('shop-panel-save') ||
+    document.getElementById('save-shop-btn') ||
+    document.querySelector('button[data-action="save-shop"]');
     const editShopBtn = document.getElementById('edit-shop-btn') || 
                        document.querySelector('button[data-action="edit-shop"]');
     const cancelEditBtn = document.getElementById('cancel-edit-btn') || 
@@ -44,28 +51,53 @@
     // ==========================================
 
     const setEditMode = (mode) => {
-        isEditMode = mode;
+    isEditMode = mode;
 
-        // Toggle input states
-        if (shopNameInput) shopNameInput.disabled = !mode;
-        if (shopDescriptionInput) shopDescriptionInput.disabled = !mode;
-        if (shopPhoneInput) shopPhoneInput.disabled = !mode;
+    // Bật/tắt các ô nhập
+    if (shopNameInput) shopNameInput.disabled = false;
+    if (shopDescriptionInput) shopDescriptionInput.disabled = false;
+    if (shopPhoneInput) shopPhoneInput.disabled = false;
 
-        // Toggle button visibility
-        if (saveShopBtn) saveShopBtn.style.display = mode ? 'inline-block' : 'none';
-        if (editShopBtn) editShopBtn.style.display = mode ? 'none' : 'inline-block';
-        if (cancelEditBtn) cancelEditBtn.style.display = mode ? 'inline-block' : 'none';
+    // Hiển thị các nút
+if (saveShopBtn) {
+    saveShopBtn.style.display = 'inline-block';
+    saveShopBtn.disabled = false;
+}
 
-        // Visual feedback
-        const inputClass = 'opacity-100 bg-white cursor-text';
-        const disabledClass = 'opacity-60 bg-gray-100 cursor-not-allowed';
-        [shopNameInput, shopDescriptionInput, shopPhoneInput].forEach(el => {
-            if (el) {
-                el.classList.toggle(inputClass, mode);
-                el.classList.toggle(disabledClass, !mode);
-            }
-        });
-    };
+    if (editShopBtn) {
+        editShopBtn.style.display = mode ? 'none' : 'inline-block';
+    }
+
+    if (cancelEditBtn) {
+        cancelEditBtn.style.display = mode ? 'inline-block' : 'none';
+    }
+
+    // Cập nhật giao diện input
+    const enabledClasses = [
+        'opacity-100',
+        'bg-white',
+        'cursor-text'
+    ];
+
+    const disabledClasses = [
+        'opacity-60',
+        'bg-gray-100',
+        'cursor-not-allowed'
+    ];
+
+    [shopNameInput, shopDescriptionInput, shopPhoneInput].forEach(el => {
+        if (!el) return;
+
+        el.classList.remove(
+            ...enabledClasses,
+            ...disabledClasses
+        );
+
+        el.classList.add(
+            ...enabledClasses
+        );
+    });
+};
 
     const showSpinner = (element) => {
         if (!element) return;
@@ -113,6 +145,20 @@
             if (shopNameInput) shopNameInput.value = shop.shopName || '';
             if (shopDescriptionInput) shopDescriptionInput.value = shop.description || '';
             if (shopPhoneInput) shopPhoneInput.value = shop.phoneNumber || '';
+            const setValue = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) {
+        element.value = value ?? '';
+    }
+};
+
+setValue('slug', shop.slug);
+setValue('contactEmail', shop.contactEmail);
+setValue('address', shop.address);
+setValue('city', shop.city);
+setValue('province', shop.province);
+setValue('logoUrl', shop.logoUrl);
+setValue('bannerUrl', shop.bannerUrl);
             if (shopStatusDisplay) shopStatusDisplay.textContent = shop.status || 'N/A';
             if (shopSlugDisplay) shopSlugDisplay.textContent = shop.slug || 'N/A';
 
@@ -162,67 +208,73 @@
     };
 
     window.saveShop = async () => {
-        try {
-            // Validate input
-            const shopName = (shopNameInput?.value || '').trim();
-            const description = (shopDescriptionInput?.value || '').trim();
-            const phoneNumber = (shopPhoneInput?.value || '').trim();
+    const shopName = (shopNameInput?.value || '').trim();
+    const description = (shopDescriptionInput?.value || '').trim();
+    const phoneNumber = (shopPhoneInput?.value || '').trim();
 
-            if (!shopName) {
-                alert('❌ Tên shop không được để trống');
-                shopNameInput?.focus();
-                return;
-            }
+    if (!shopName) {
+        alert('Tên cửa hàng không được để trống');
+        shopNameInput?.focus();
+        return;
+    }
 
-            if (shopName.length < 3) {
-                alert('❌ Tên shop phải từ 3 ký tự trở lên');
-                return;
-            }
+    if (shopName.length < 3) {
+        alert('Tên cửa hàng phải có ít nhất 3 ký tự');
+        return;
+    }
 
-            if (phoneNumber && !/^\d{10,11}$/.test(phoneNumber.replace(/\s/g, ''))) {
-                alert('❌ Số điện thoại không hợp lệ');
-                return;
-            }
+    if (phoneNumber && !/^\d{10,11}$/.test(phoneNumber)) {
+        alert('Số điện thoại không hợp lệ');
+        return;
+    }
 
-            // Show loading
-            const revert = showSpinner(saveShopBtn);
+    let revert = null;
 
-            // Prepare data
-            const shopData = {
-                shopName,
-                description,
-                phoneNumber
-            };
+    try {
+        revert = showSpinner(saveShopBtn);
 
-            // Call API
-            let response;
-            if (currentShopData?.id) {
-                // Update existing shop
-                response = await ApiService.SellerShop.update(shopData);
-            } else {
-                // Create new shop
-                response = await ApiService.SellerShop.create(shopData);
-            }
+        const shopData = {
+            shopName,
+            slug: document.getElementById('slug')?.value?.trim(),
+            description,
+            phoneNumber,
+            contactEmail: document.getElementById('contactEmail')?.value?.trim(),
+            address: document.getElementById('address')?.value?.trim(),
+            city: document.getElementById('city')?.value?.trim(),
+            province: document.getElementById('province')?.value?.trim(),
+            logoUrl: document.getElementById('logoUrl')?.value || null,
+            bannerUrl: document.getElementById('bannerUrl')?.value || null
+        };
 
-            revert();
+        console.log('Dữ liệu cập nhật cửa hàng:', shopData);
 
-            // Success
-            currentShopData = response;
-            alert('✓ Lưu thông tin shop thành công!');
-            setEditMode(false);
+        let response;
 
-            // Reload data to show updated info
-            await loadShopInfo();
-
-        } catch (error) {
-            console.error('❌ Lỗi lưu shop:', error);
-            const revert = showSpinner(saveShopBtn);
-            revert();
-
-            const message = error.response?.data?.message || error.message || 'Thử lại sau';
-            alert('❌ Lỗi: ' + message);
+        if (currentShopData) {
+            response = await ApiService.SellerShop.update(shopData);
+        } else {
+            response = await ApiService.SellerShop.create(shopData);
         }
-    };
+
+        currentShopData = response;
+
+        alert('Cập nhật thông tin cửa hàng thành công!');
+
+        await loadShopInfo();
+
+    } catch (error) {
+        console.error('Lỗi lưu thông tin cửa hàng:', error);
+
+        alert(
+            'Không thể lưu thông tin cửa hàng: ' +
+            (error.message || 'Lỗi không xác định')
+        );
+    } finally {
+        if (typeof revert === 'function') {
+            revert();
+        }
+    }
+};
 
     // ==========================================
     // 7. EVENT LISTENERS
@@ -236,15 +288,26 @@
         cancelEditBtn.addEventListener('click', window.cancelEdit);
     }
 
-    if (saveShopBtn) {
-        saveShopBtn.addEventListener('click', window.saveShop);
-    }
+const shopPanelForm = document.getElementById('shop-panel-form');
+
+if (shopPanelForm) {
+    shopPanelForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        await window.saveShop();
+    });
+} else if (saveShopBtn) {
+    saveShopBtn.addEventListener('click', async (event) => {
+        event.preventDefault();
+        await window.saveShop();
+    });
+}
 
     // Allow Enter key to save
     [shopNameInput, shopDescriptionInput, shopPhoneInput].forEach(el => {
         if (el) {
             el.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && isEditMode && !el.matches('textarea')) {
+                if (e.key === 'Enter' && !el.matches('textarea') && !shopPanelForm) {
+                    e.preventDefault();
                     window.saveShop();
                 }
             });

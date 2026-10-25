@@ -9,6 +9,7 @@ import com.example.bookstore.model.User;
 import com.example.bookstore.repository.SellerShopRepository;
 import com.example.bookstore.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import com.mongodb.MongoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,31 +74,61 @@ public class SellerShopService {
      * Cập nhật thông tin Shop
      * Rule: Chỉ sửa shop của chính họ -> được đảm bảo bằng việc tìm shop qua sellerId
      */
-    @Transactional
+    // Một document MongoDB được cập nhật nguyên tử, không cần transaction nhiều document.
+    // Retry chỉ áp dụng cho xung đột ghi tạm thời, mỗi lần đọc lại dữ liệu mới nhất.
     public SellerShopResponse updateMyShop(Long sellerId, SellerShopUpsertRequest request) {
-        // Lấy shop dựa trên sellerId (Đảm bảo tính sở hữu)
-        SellerShop shop = shopRepository.findBySellerId(sellerId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng của bạn."));
+        final int maxAttempts = 3;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                SellerShop shop = shopRepository.findBySellerId(sellerId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Không tìm thấy cửa hàng của bạn."));
 
-        // Kiểm tra Slug có bị trùng với shop khác không (nếu họ thay đổi slug)
-        if (!shop.getSlug().equals(request.getSlug()) && shopRepository.existsBySlug(request.getSlug())) {
-            throw new RuntimeException("Đường dẫn (Slug) này đã tồn tại. Vui lòng chọn đường dẫn khác.");
+                if (request.getSlug() != null
+                        && !java.util.Objects.equals(shop.getSlug(), request.getSlug())
+                        && shopRepository.existsBySlug(request.getSlug())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "Đường dẫn (Slug) này đã tồn tại. Vui lòng chọn đường dẫn khác.");
+                }
+
+                shop.setSlug(request.getSlug());
+                shop.setShopName(request.getShopName());
+                shop.setDescription(request.getDescription());
+                shop.setLogoUrl(request.getLogoUrl());
+                shop.setBannerUrl(request.getBannerUrl());
+                shop.setContactEmail(request.getContactEmail());
+                shop.setContactPhone(request.getContactPhone());
+                shop.setAddress(request.getAddress());
+                shop.setCity(request.getCity());
+                shop.setProvince(request.getProvince());
+
+                return mapToResponse(shopRepository.save(shop));
+            } catch (org.springframework.dao.DataAccessException ex) {
+                if (!isWriteConflict(ex) || attempt == maxAttempts) throw ex;
+                waitBeforeRetry(attempt);
+            }
         }
+        throw new IllegalStateException("Không thể cập nhật cửa hàng.");
+    }
 
-        // Cập nhật thông tin
-        shop.setSlug(request.getSlug());
-        shop.setShopName(request.getShopName());
-        shop.setDescription(request.getDescription());
-        shop.setLogoUrl(request.getLogoUrl());
-        shop.setBannerUrl(request.getBannerUrl());
-        shop.setContactEmail(request.getContactEmail());
-        shop.setContactPhone(request.getContactPhone());
-        shop.setAddress(request.getAddress());
-        shop.setCity(request.getCity());
-        shop.setProvince(request.getProvince());
+    private boolean isWriteConflict(Throwable error) {
+        while (error != null) {
+            if (error instanceof MongoException mongoException) {
+                if (mongoException.getCode() == 112
+                        || mongoException.hasErrorLabel("TransientTransactionError")) return true;
+            }
+            error = error.getCause();
+        }
+        return false;
+    }
 
-        SellerShop updatedShop = shopRepository.save(shop);
-        return mapToResponse(updatedShop);
+    private void waitBeforeRetry(int attempt) {
+        try {
+            Thread.sleep(100L * attempt);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Đã dừng thử lại cập nhật cửa hàng.", ex);
+        }
     }
 
     /**
@@ -223,7 +254,7 @@ public class SellerShopService {
     private SellerShopResponse mapToResponse(SellerShop shop) {
         return SellerShopResponse.builder()
                 .id(shop.getId())
-                .sellerId(shop.getSeller().getId()) // Tránh query toàn bộ object User
+                .sellerId(shop.getSellerId()) // Dùng sellerId trực tiếp, tránh snapshot seller.id null
                 .slug(shop.getSlug())
                 .shopName(shop.getShopName())
                 .description(shop.getDescription())

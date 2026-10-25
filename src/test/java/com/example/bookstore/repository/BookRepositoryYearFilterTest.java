@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataMongoTest
 @TestPropertySource(properties = {
-        "spring.data.mongodb.uri=mongodb://127.0.0.1:27018/bookom_test?replicaSet=rs0",
+        "spring.data.mongodb.uri=mongodb://127.0.0.1:27017/bookom_test?replicaSet=rs0",
         "spring.data.mongodb.database=bookom_test",
         "spring.data.mongodb.auto-index-creation=false",
         "app.mongo.index-verify-on-startup=false"

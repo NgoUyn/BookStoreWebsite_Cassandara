@@ -240,12 +240,22 @@
         };
     }
 
-    function hasChanged() {
-        if (!initialState) {
-            return true;
-        }
-        return JSON.stringify(normalized(readForm())) !== JSON.stringify(initialState);
+function hasChanged() {
+
+    // Nếu có ảnh Logo hoặc Banner mới thì cho phép Lưu
+    if (pendingLogoFile || pendingBannerFile) {
+        return true;
     }
+
+    // Nếu chưa có dữ liệu ban đầu
+    if (!initialState) {
+        return true;
+    }
+
+    // Kiểm tra thay đổi thông tin cửa hàng
+    return JSON.stringify(normalized(readForm()))
+        !== JSON.stringify(initialState);
+}
 
     function closePanel() {
         if (panel) {
@@ -307,13 +317,28 @@
         updateHeaderName(shop.shopName);
 
         // Show logo image if available, otherwise show initials
-        if (shop.logoUrl && displayLogo) {
-            displayLogo.src = shop.logoUrl;
-            displayLogo.classList.remove('hidden');
-            displayInitials.classList.add('hidden');
-        } else {
-            if (displayLogo) displayLogo.classList.add('hidden');
-            displayInitials.classList.remove('hidden');
+// Hiển thị logo, nếu ảnh lỗi thì hiển thị chữ viết tắt
+        if (displayLogo && displayInitials) {
+            displayLogo.onerror = function () {
+                this.classList.add('hidden');
+                displayInitials.classList.remove('hidden');
+            };
+
+            if (shop.logoUrl && shop.logoUrl.trim()) {
+                displayLogo.classList.add('hidden');
+                displayInitials.classList.remove('hidden');
+
+                displayLogo.onload = function () {
+                    this.classList.remove('hidden');
+                    displayInitials.classList.add('hidden');
+                };
+
+                displayLogo.src = shop.logoUrl.trim();
+            } else {
+                displayLogo.removeAttribute('src');
+                displayLogo.classList.add('hidden');
+                displayInitials.classList.remove('hidden');
+            }
         }
 
         const status = (shop.approvalStatus || 'PENDING').toUpperCase();
@@ -379,10 +404,20 @@
             body: formData
         });
 
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(errText || 'Upload thất bại');
-        }
+if (!response.ok) {
+    const errText = await response.text();
+
+    console.error('Lỗi upload ảnh:', {
+        status: response.status,
+        url: UPLOAD_API,
+        type: type,
+        message: errText
+    });
+
+    throw new Error(
+        `Upload ảnh thất bại (HTTP ${response.status}): ${errText}`
+    );
+}
 
         return await response.text();
     }
@@ -425,11 +460,14 @@
             reader.readAsDataURL(file);
 
             // Store pending file
-            if (type === 'logo') {
-                pendingLogoFile = file;
-            } else {
-                pendingBannerFile = file;
-            }
+if (type === 'logo') {
+    pendingLogoFile = file;
+} else {
+    pendingBannerFile = file;
+}
+
+// Cập nhật trạng thái nút Lưu sau khi chọn ảnh
+setLoading(false);
         });
 
         // Clear button -> remove file
@@ -448,6 +486,7 @@
                 pendingBannerFile = null;
                 document.getElementById('bannerUrl').value = '';
             }
+            setLoading(false);
         });
     }
 
@@ -656,4 +695,48 @@
 <script th:src="@{/js/shop-seller-integration.js}"></script>
 <script th:src="@{/js/pages/shop-voucher-fetch.js}"></script>
 <script th:src="@{/js/pages/shop-product-fetch.js}"></script>
+<style>
+    #seller-shop-panel {
+        box-sizing: border-box;
+    }
+
+    #seller-shop-panel[open] {
+        max-height: calc(100vh - 32px);
+    }
+
+    #seller-shop-panel summary {
+        user-select: none;
+    }
+
+    #seller-shop-panel summary::-webkit-details-marker {
+        display: none;
+    }
+
+    #seller-shop-panel input:not([type="hidden"]):not([type="file"]),
+    #seller-shop-panel textarea,
+    #seller-shop-panel select {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    #seller-shop-panel textarea {
+        resize: vertical;
+    }
+
+    #seller-shop-panel img {
+        max-width: 100%;
+    }
+
+    @media (max-width: 640px) {
+        #seller-shop-panel {
+            border-radius: 14px;
+        }
+
+        #seller-shop-panel form {
+            font-size: 13px;
+        }
+    }
+</style>
 </body>

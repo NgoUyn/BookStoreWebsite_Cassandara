@@ -1,9 +1,13 @@
-<section th:fragment="shop_panel" class="fixed bottom-4 right-4 z-50 w-[92vw] max-w-md">
-    <details id="seller-shop-panel" class="rounded-2xl border border-brand-border bg-white shadow-premium">
-        <summary class="cursor-pointer list-none px-4 py-3 flex items-center justify-between">
+<section th:fragment="shop_panel"
+         class="fixed bottom-4 right-4 z-50 w-[calc(100vw-32px)] max-w-[680px]">
+
+    <details id="seller-shop-panel"
+             class="w-full rounded-2xl border border-brand-border bg-white shadow-premium overflow-hidden">
+
+        <summary class="cursor-pointer list-none px-5 py-4 flex items-center justify-between bg-white">
             <span class="text-sm font-bold text-brand-dark">Quản lí hồ sơ</span>
         </summary>
-        <div class="px-4 pb-4 pt-1 border-t border-brand-border">
+        <div class="px-5 pb-5 pt-4 border-t border-brand-border max-h-[75vh] overflow-y-auto overflow-x-hidden">
             <div id="shop-panel-alert" class="hidden mb-3 rounded-lg border px-3 py-2 text-xs font-semibold"></div>
             <form id="shop-panel-form" class="space-y-2">
                 <div>
@@ -32,12 +36,12 @@
                 <!-- Logo upload -->
                 <div>
                     <label class="text-xs font-bold">Logo</label>
-                    <div class="mt-1 flex items-center gap-3">
+                    <div class="mt-1 flex items-center gap-3 min-w-0">
                         <div id="logo-preview" class="w-14 h-14 rounded-full border border-brand-border bg-gray-50 flex-shrink-0 flex items-center justify-center overflow-hidden">
                             <img id="logo-preview-img" src="" alt="Logo preview" class="w-full h-full object-cover hidden" />
                             <span id="logo-preview-placeholder" class="text-gray-400 text-[10px]">Logo</span>
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1 min-w-0">
                             <input type="file" id="logo-file-input" accept="image/*" class="hidden" />
                             <button type="button" id="logo-choose-btn" class="w-full rounded-md border border-brand-border px-3 py-2 text-xs font-bold hover:bg-brand-bg transition text-left">
                                 Chọn ảnh logo
@@ -65,7 +69,7 @@
                             <button type="button" id="banner-clear-btn" class="hidden text-[10px] text-red-500 hover:text-red-700 mt-1">Xóa ảnh</button>
                         </div>
                     </div>
-                    &lt;!&ndash; Hidden field to store the URL (for form submit) &ndash;&gt;
+                    <!-- Hidden field to store the URL (for form submit) -->
                     <input id="bannerUrl" type="hidden" />
                 </div>
 

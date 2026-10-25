@@ -188,7 +188,14 @@ public class BookController {
             }
 
             // Kiểm tra xem seller có sở hữu sách này không (IDOR Protection)
-            if (book.getSeller() == null || !book.getSeller().getId().equals(sellerId)) {
+           Long bookSellerId = book.getSellerId();
+
+if (bookSellerId == null && book.getSeller() != null) {
+    bookSellerId = book.getSeller().getId();
+}
+
+if (bookSellerId == null
+        || !java.util.Objects.equals(bookSellerId, sellerId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(java.util.Map.of("error", "Không có quyền xem sách này"));
             }
@@ -231,35 +238,62 @@ public class BookController {
         }
     }
 
-    // API Update book cho Seller - S03
     @PutMapping({"/{id}", "/seller/{id}"})
-    @PreAuthorize("hasAuthority('SELLER') and hasPermission(#id, 'Book', 'update')")
-    public ResponseEntity<?> updateBookForSeller(
-            @PathVariable Long id,
-            @RequestBody Book bookDetails,
-            @AuthenticationPrincipal JwtAuthenticatedPrincipal principal) {
-        Long sellerId = currentSellerId(principal);
-        if (sellerId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+@PreAuthorize("hasAuthority('SELLER')")
+public ResponseEntity<?> updateBookForSeller(
+        @PathVariable Long id,
+        @RequestBody Book bookDetails,
+        @AuthenticationPrincipal JwtAuthenticatedPrincipal principal) {
+
+    Long sellerId = currentSellerId(principal);
+
+    if (sellerId == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Bạn cần đăng nhập");
+    }
+
+    try {
+        Book existingBook = bookService.getBookbyId(id);
+
+        if (existingBook == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Sách không tồn tại");
         }
 
-        // Chặn XSS
+        Long bookSellerId = existingBook.getSellerId();
+
+        if (bookSellerId == null && existingBook.getSeller() != null) {
+            bookSellerId = existingBook.getSeller().getId();
+        }
+
+        if (!java.util.Objects.equals(bookSellerId, sellerId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Không có quyền cập nhật sách này");
+        }
+
         if (bookDetails.getTitle() != null) {
-            bookDetails.setTitle(bookDetails.getTitle().replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
+            bookDetails.setTitle(
+                    bookDetails.getTitle()
+                            .replace("<", "&lt;")
+                            .replace(">", "&gt;")
+            );
         }
 
         if (bookDetails.getDescription() != null) {
-            bookDetails.setDescription(securityUtils.sanitize(bookDetails.getDescription()));
+            bookDetails.setDescription(
+                    securityUtils.sanitize(bookDetails.getDescription())
+            );
         }
 
-        try {
-            Book updatedBook = bookService.updateBookForSeller(id, bookDetails, sellerId);
-            return ResponseEntity.ok(updatedBook);
-        } catch (RuntimeException e) {
-            // Bắt lỗi IDOR từ Service ném lên - IDOR: như việc vượt quyền từ user mà nhảy dc vào seller căng lắm là admin để sửa hoặc thêm sách
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-        }
+        Book updatedBook =
+                bookService.updateBookForSeller(id, bookDetails, sellerId);
+
+        return ResponseEntity.ok(updatedBook);
+
+    } catch (RuntimeException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
 
     // API upload ảnh cho sách - S03
     @PostMapping({"/{id}/upload-cover", "/seller/{id}/upload-cover"})
@@ -319,9 +353,16 @@ public class BookController {
 
         try {
             Book book = bookService.getBookbyId(id);
-            if (book == null || book.getSeller() == null || !book.getSeller().getId().equals(sellerId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(java.util.Map.of("message", "Không có quyền"));
-            }
+Long bookSellerId = book == null ? null : book.getSellerId();
+
+if (bookSellerId == null && book != null && book.getSeller() != null) {
+    bookSellerId = book.getSeller().getId();
+}
+
+if (book == null || !java.util.Objects.equals(bookSellerId, sellerId)) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(java.util.Map.of("message", "Không có quyền"));
+}
             book.setPinned(!book.isPinned());
             bookRepository.save(book);
             return ResponseEntity.ok(java.util.Map.of("message", "Đã cập nhật ghim", "isPinned", book.isPinned()));

@@ -277,42 +277,81 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-    public Book updateBookForSeller(Long bookId, Book bookDetails, Long sellerId) {
-        Book existingBook = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sách"));
+public Book updateBookForSeller(Long bookId, Book bookDetails, Long sellerId) {
 
-        // Kiểm tra quyền sở hữu: chỉ seller chủ sở hữu mới được sửa
-        if (existingBook.getSeller() == null || !existingBook.getSeller().getId().equals(sellerId)) {
-            throw new RuntimeException("Không có quyền cập nhật sách này");
-        }
+    Book existingBook = bookRepository.findById(bookId)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy sách"));
 
-        // Cập nhật thông tin an toàn
-        if (bookDetails.getTitle() != null) existingBook.setTitle(bookDetails.getTitle());
-        if (bookDetails.getDescription() != null) existingBook.setDescription(bookDetails.getDescription());
-        if (bookDetails.getPrice() != null) existingBook.setPrice(bookDetails.getPrice());
-        if (bookDetails.getStockQuantity() != null) existingBook.setStockQuantity(bookDetails.getStockQuantity());
-        if (bookDetails.getAuthor() != null) existingBook.setAuthor(bookDetails.getAuthor());
+    // Ưu tiên sellerId lưu trực tiếp trong MongoDB
+    Long bookSellerId = existingBook.getSellerId();
 
-        // UPDATE CATEGORY (FIX CATEGORY KHÔNG SAVE KHI EDIT)
-        if (bookDetails.getCategory() == null && bookDetails.getCategoryId() != null && bookDetails.getCategoryId() > 0) {
-            Category category = categoryRepository.findById(bookDetails.getCategoryId())
-                    .orElse(null);
-            existingBook.setCategory(category);
-        } else if (bookDetails.getCategory() != null) {
-            existingBook.setCategory(bookDetails.getCategory());
-        }
-
-        existingBook.setApprovalStatus(ApprovalStatus.PENDING); // Sửa xong bắt duyệt lại
-
-        return bookRepository.save(existingBook);
+    // Hỗ trợ dữ liệu cũ chỉ có seller.id
+    if (bookSellerId == null && existingBook.getSeller() != null) {
+        bookSellerId = existingBook.getSeller().getId();
     }
+
+    System.out.println("========== KIEM TRA QUYEN SUA SACH ==========");
+    System.out.println("Book ID: " + bookId);
+    System.out.println("Seller ID dang nhap: " + sellerId);
+    System.out.println("Seller ID cua sach: " + bookSellerId);
+
+    // Không cho phép seller khác sửa sách
+    if (sellerId == null
+            || bookSellerId == null
+            || !java.util.Objects.equals(bookSellerId, sellerId)) {
+
+        throw new RuntimeException("Không có quyền cập nhật sách này");
+    }
+
+    // Cập nhật thông tin sách
+    if (bookDetails.getTitle() != null) {
+        existingBook.setTitle(bookDetails.getTitle());
+    }
+
+    if (bookDetails.getDescription() != null) {
+        existingBook.setDescription(bookDetails.getDescription());
+    }
+
+    if (bookDetails.getPrice() != null) {
+        existingBook.setPrice(bookDetails.getPrice());
+    }
+
+    if (bookDetails.getStockQuantity() != null) {
+        existingBook.setStockQuantity(bookDetails.getStockQuantity());
+    }
+
+    if (bookDetails.getAuthor() != null) {
+        existingBook.setAuthor(bookDetails.getAuthor());
+    }
+
+    // Cập nhật danh mục
+    if (bookDetails.getCategory() == null
+            && bookDetails.getCategoryId() != null
+            && bookDetails.getCategoryId() > 0) {
+
+        Category category = categoryRepository
+                .findById(bookDetails.getCategoryId())
+                .orElseThrow(() ->
+                        new RuntimeException("Danh mục không tồn tại"));
+
+        existingBook.setCategory(category);
+
+    } else if (bookDetails.getCategory() != null) {
+        existingBook.setCategory(bookDetails.getCategory());
+    }
+
+    // Sau khi sửa, sách cần được duyệt lại
+    existingBook.setApprovalStatus(ApprovalStatus.PENDING);
+
+    return bookRepository.save(existingBook);
+}
 
     public String uploadAndVerifyCoverImage(Long bookId, MultipartFile file, Long sellerId) throws java.io.IOException {
         Book existingBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sách"));
 
         // Kiểm tra quyền sở hữu: chỉ seller chủ sở hữu mới được upload ảnh
-        if (existingBook.getSeller() == null || !existingBook.getSeller().getId().equals(sellerId)) {
+        if (existingBook.getSeller() == null || !java.util.Objects.equals(existingBook.getSeller().getId(), sellerId)) {
             throw new RuntimeException("Không có quyền upload ảnh cho sách này");
         }
 
@@ -354,7 +393,7 @@ public class BookService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sách"));
 
         // Kiểm tra quyền sở hữu: chỉ seller chủ sở hữu mới được xóa
-        if (existingBook.getSeller() == null || !existingBook.getSeller().getId().equals(sellerId)) {
+        if (existingBook.getSeller() == null || !java.util.Objects.equals(existingBook.getSeller().getId(), sellerId)) {
             throw new RuntimeException("Không có quyền xóa sách này");
         }
 
